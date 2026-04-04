@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build / 打包輸出
+dist/
+dist-renderer/
+release/
+out/
+build/
+*.asar
+
+# Vite
+*.local
+.vite/
+
+# Logs & debug
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env（含密鑰勿提交）
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE（可視團隊習慣調整）
+.idea/
+*.swp
+*.swo
+
+# Electron / 測試產物
+coverage/
+.nyc_output/
+
+# TypeScript incremental
+*.tsbuildinfo

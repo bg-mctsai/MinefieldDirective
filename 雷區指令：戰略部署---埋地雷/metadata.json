@@ -1,0 +1,5 @@
+{
+  "name": "雷區指令：戰略部署 - 埋地雷",
+  "description": "A reverse Minesweeper puzzle game. Place numbers to define mine locations and fill 80% of the map without contradictions.",
+  "requestFramePermissions": []
+}

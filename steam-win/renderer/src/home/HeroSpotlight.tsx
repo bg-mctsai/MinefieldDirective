@@ -1,0 +1,82 @@
+import { AnimatePresence, motion } from 'motion/react';
+import { Shield } from 'lucide-react';
+import { HEROES } from '../heroes';
+import type { HeroDef } from '../heroes';
+
+export function HeroSpotlight({
+  hero,
+  heroId,
+  quoteIdx,
+  onPickHero,
+}: {
+  hero: HeroDef;
+  heroId: string;
+  quoteIdx: number;
+  onPickHero: (id: string) => void;
+}) {
+  return (
+    <motion.aside
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.18, duration: 0.45 }}
+      className="relative lg:col-span-5"
+    >
+      <div className="relative overflow-hidden rounded-3xl border-2 border-[#1e293b] bg-[#0f141c]/95 p-6 shadow-xl">
+        <div className="pointer-events-none absolute inset-0 opacity-30">
+          <div className="data-stream absolute left-[12%] top-0 h-full w-px animate-[stream_3.2s_linear_infinite] bg-gradient-to-b from-transparent via-emerald-500/50 to-transparent" />
+          <div
+            className="data-stream absolute left-[45%] top-0 h-full w-px animate-[stream_4.1s_linear_infinite] bg-gradient-to-b from-transparent via-[#F59E0B]/40 to-transparent"
+            style={{ animationDelay: '-1.2s' }}
+          />
+          <div
+            className="data-stream absolute right-[18%] top-0 h-full w-px animate-[stream_5s_linear_infinite] bg-gradient-to-b from-transparent via-emerald-400/35 to-transparent"
+            style={{ animationDelay: '-2.4s' }}
+          />
+        </div>
+
+        <div className="relative flex flex-col items-center gap-4 md:flex-row md:items-start">
+          <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl border border-[#F59E0B]/30 bg-[#0B0E14] shadow-[inset_0_0_40px_rgba(0,0,0,0.6)]">
+            <div className="absolute inset-2 rounded-xl border border-dashed border-slate-700/80" />
+            <Shield className="relative z-[1] h-16 w-16 text-slate-600" strokeWidth={1.25} />
+            <motion.div
+              className="absolute inset-0 rounded-2xl border border-emerald-500/20"
+              animate={{ opacity: [0.35, 0.9, 0.35] }}
+              transition={{ duration: 3.2, repeat: Infinity }}
+            />
+          </div>
+          <div className="min-w-0 flex-1 text-center md:text-left">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Hero Spotlight</div>
+            <div className="mt-1 text-xl font-black text-white">{hero.name}</div>
+            <div className="text-sm text-[#F59E0B]/90">{hero.role}</div>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={`${hero.id}-${quoteIdx}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                className="mt-4 border-l-2 border-emerald-500/60 pl-3 text-left text-sm leading-relaxed text-slate-400"
+              >
+                「{hero.lines[quoteIdx % hero.lines.length]}」
+              </motion.p>
+            </AnimatePresence>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
+              {HEROES.map((h) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  onClick={() => onPickHero(h.id)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
+                    h.id === heroId ? 'bg-[#F59E0B] text-black' : 'bg-[#1a2332] text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {h.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.aside>
+  );
+}
