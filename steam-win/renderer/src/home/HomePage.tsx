@@ -8,16 +8,26 @@ import { HomeMainMenu } from './HomeMainMenu';
 import { HeroSpotlight } from './HeroSpotlight';
 import { SettingsModal } from './SettingsModal';
 import { loadHomeSettings, saveHomeSettings } from './homeSettingsStorage';
+import { devReloadLevelsFromJson } from '../dev/reloadLevelsJson';
 import type { HomeNavigate, HomeSettings } from './types';
 
 export type { HomeNavigate } from './types';
 
-export default function HomePage({ onNavigate }: { onNavigate: (to: HomeNavigate) => void }) {
+export default function HomePage({
+  onNavigate,
+  onDevLevelsReloaded,
+}: {
+  onNavigate: (to: HomeNavigate) => void;
+  /** 開發：重讀 levels.json 成功後呼叫，讓作戰地圖／對局掛載新資料 */
+  onDevLevelsReloaded?: () => void;
+}) {
   const [typed, setTyped] = useState('');
   const [heroId, setHeroId] = useState(getStoredHeroId);
   const [quoteIdx, setQuoteIdx] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<HomeSettings>(loadHomeSettings);
+  const [devReloadBusy, setDevReloadBusy] = useState(false);
+  const [devReloadHint, setDevReloadHint] = useState<string | null>(null);
 
   const hero = useMemo(() => HEROES.find((h) => h.id === heroId) ?? HEROES[0], [heroId]);
 
@@ -47,10 +57,31 @@ export default function HomePage({ onNavigate }: { onNavigate: (to: HomeNavigate
     playHoverBeep(settings.volume);
   }, [settings.volume]);
 
+  const handleDevReloadLevels = useCallback(async () => {
+    setDevReloadBusy(true);
+    setDevReloadHint(null);
+    const r = await devReloadLevelsFromJson();
+    setDevReloadBusy(false);
+    if (r.ok) {
+      setDevReloadHint(`已載入 ${r.levelCount} 關`);
+      onDevLevelsReloaded?.();
+    } else {
+      setDevReloadHint(r.error);
+    }
+    window.setTimeout(() => setDevReloadHint(null), 4500);
+  }, [onDevLevelsReloaded]);
+
   return (
     <TerminalBackdrop showRadar className="home-terminal font-mono selection:bg-[#F59E0B]/30">
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8 md:py-10">
-        <HomeHeader typedTitle={typed} />
+        <HomeHeader
+          typedTitle={typed}
+          devReload={
+            import.meta.env.DEV
+              ? { onClick: handleDevReloadLevels, busy: devReloadBusy, hint: devReloadHint }
+              : undefined
+          }
+        />
 
         <div className="mt-8 grid flex-1 grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center">
           <HomeMainMenu

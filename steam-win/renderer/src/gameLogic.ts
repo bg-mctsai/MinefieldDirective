@@ -16,10 +16,22 @@ export interface Cell {
 export type Level = PlayableLevel;
 
 /**
- * 關卡資料來源：`levelData/levelDefinitionsFactory` 產生 100 筆 `LevelDefinition`，
- * 再經 `buildPlayableLevel` 展開為 `cells` / `initialHints`。
+ * 關卡資料來源：`levelData` 的 `LEVEL_DEFINITIONS` 經 `buildPlayableLevel` 展開。
+ * 陣列本體固定，內容可由 `rebuildPlayableLevelsFromDefinitions` 更新（開發重讀 JSON）。
  */
-export const LEVELS: Level[] = LEVEL_DEFINITIONS.map(buildPlayableLevel);
+export const LEVELS: Level[] = [];
+
+function syncLevelsFromDefinitions(): void {
+  const next = LEVEL_DEFINITIONS.map(buildPlayableLevel);
+  LEVELS.length = 0;
+  LEVELS.push(...next);
+}
+
+syncLevelsFromDefinitions();
+
+export function rebuildPlayableLevelsFromDefinitions(): void {
+  syncLevelsFromDefinitions();
+}
 
 /** 單一數字格與邏輯推論衝突的類型（供玩家提示用） */
 export type ConflictDetail =
@@ -97,6 +109,31 @@ export function lossConflictHighlightCells(
   const lastK = cellKey(lastPlaced);
   if (!seen.has(lastK)) {
     out.push({ x: lastPlaced.x, y: lastPlaced.y });
+  }
+  return out;
+}
+
+/**
+ * 敗北當下盤面已無解，無法對「放錯後」呼叫 findForced。
+ * 改在「放錯前」推論八鄰內已強制的雷，標成 X 讓玩家看懂（例如鄰格已被 6 等線索卡滿）。
+ */
+export function lossExplosionMarkCells(
+  validCells: { x: number; y: number }[],
+  placedBeforeLoss: { x: number; y: number; value: number }[],
+  lastPlaced: { x: number; y: number }
+): { x: number; y: number }[] {
+  const solver = new MineSolver(validCells, placedBeforeLoss);
+  const { mines } = solver.findForced(placedBeforeLoss);
+  const lx = lastPlaced.x;
+  const ly = lastPlaced.y;
+  const out: { x: number; y: number }[] = [];
+  for (const key of mines) {
+    const comma = key.indexOf(',');
+    const nx = Number(key.slice(0, comma));
+    const ny = Number(key.slice(comma + 1));
+    if (!Number.isFinite(nx) || !Number.isFinite(ny)) continue;
+    if (Math.max(Math.abs(nx - lx), Math.abs(ny - ly)) !== 1) continue;
+    out.push({ x: nx, y: ny });
   }
   return out;
 }

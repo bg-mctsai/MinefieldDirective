@@ -40,6 +40,28 @@ function boundsFromCells(cells: { x: number; y: number }[]) {
   return { width: maxX, height: maxY };
 }
 
+/** 盤面邊界框：與企劃 JSON 一致（SQUARE／CROSS／占位幾何以 mapLayout 為準，勿僅依 cells 外包框推算以免與地圖定義脫鉤） */
+function boardBoundsFromDefinition(definition: LevelDefinition, cells: { x: number; y: number }[]): {
+  width: number;
+  height: number;
+} {
+  const ml = definition.mapLayout;
+  switch (ml.type) {
+    case 'SQUARE':
+      return { width: ml.width, height: ml.height };
+    case 'CROSS':
+      return { width: ml.width, height: ml.height };
+    case 'TRIANGLE':
+      return { width: ml.placeholder.width, height: ml.placeholder.height };
+    case 'HEXAGON':
+      return { width: ml.placeholder.width, height: ml.placeholder.height };
+    case 'DIAMOND':
+    case 'MIXED':
+    default:
+      return boundsFromCells(cells);
+  }
+}
+
 function squareCells(layout: SquareMapLayout): { x: number; y: number }[] {
   const forbidden = new Set((layout.forbiddenCells ?? []).map(([x, y]) => cellsKey(x, y)));
   const cells: { x: number; y: number }[] = [];
@@ -153,7 +175,7 @@ function initialHintsFromLayout(layout: MapLayout): { x: number; y: number; valu
 export function buildPlayableLevel(definition: LevelDefinition): PlayableLevel {
   let cells = cellsFromMapLayout(definition.mapLayout);
   cells = dedupeCells(cells);
-  const { width, height } = boundsFromCells(cells);
+  const { width, height } = boardBoundsFromDefinition(definition, cells);
 
   const initialHints = initialHintsFromLayout(definition.mapLayout);
 

@@ -1,11 +1,13 @@
 import { motion } from 'motion/react';
 import { User } from 'lucide-react';
+import { BOARD_GAP_PX } from './constants';
 
 export function Soldier({ x, y, cellSize }: { x: number; y: number; cellSize: number }) {
+  const step = cellSize + BOARD_GAP_PX;
   return (
     <motion.div
       initial={{ x: -100, y: -100, opacity: 0 }}
-      animate={{ x: x * (cellSize + 4), y: y * (cellSize + 4), opacity: 1 }}
+      animate={{ x: x * step, y: y * step, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 100, damping: 15 }}
       className="pointer-events-none absolute z-30"
       style={{ width: cellSize, height: cellSize }}

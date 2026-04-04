@@ -33,7 +33,7 @@ export default function GameView({
     setCurrentLevelIndex,
     gameState,
     selectedHandIndex,
-    setSelectedHandIndex,
+    selectHand,
     movingSoldier,
     initGame,
     handleCellClick,
@@ -95,12 +95,14 @@ export default function GameView({
         onRestart={() => initGame(currentLevelIndex)}
         levelName={gameState.level.name}
         statusMessage={gameState.message}
+        secondsLeft={gameState.secondsLeft}
+        countdownStarted={gameState.timerStarted}
         commanderPanel={
           <CommanderPanel
             gameState={gameState}
             selectedHandIndex={selectedHandIndex}
             movingSoldier={movingSoldier}
-            onSelectHand={setSelectedHandIndex}
+            onSelectHand={selectHand}
           />
         }
       />
@@ -118,7 +120,6 @@ export default function GameView({
           gameState={gameState}
           currentLevelIndex={currentLevelIndex}
           levelCount={levelList.length}
-          onRetry={() => initGame(currentLevelIndex)}
           onNextLevel={handleNextLevel}
           onReturnToMission={onBack}
         />

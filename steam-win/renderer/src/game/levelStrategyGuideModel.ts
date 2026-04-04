@@ -15,15 +15,15 @@ const CHAPTER_NAMES = [
 function mapLayoutLabel(layout: MapLayout): string {
   switch (layout.type) {
     case 'SQUARE':
-      return `矩形格網 ${layout.width}×${layout.height}`;
+      return `矩形格網　寬${layout.width}×高${layout.height}`;
     case 'CROSS':
-      return `十字戰區 ${layout.width}×${layout.height}`;
+      return `十字戰區　寬${layout.width}×高${layout.height}`;
     case 'DIAMOND':
       return `菱形戰區（半徑 ${layout.radius}）`;
     case 'TRIANGLE':
-      return `三角網格占位 ${layout.placeholder.width}×${layout.placeholder.height}`;
+      return `三角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}`;
     case 'HEXAGON':
-      return `六角網格占位 ${layout.placeholder.width}×${layout.placeholder.height}`;
+      return `六角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}`;
     case 'MIXED':
       return `複合戰區（${layout.sectors.length} 個區塊）`;
     default:
@@ -106,7 +106,7 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
     chapterLine: `章節：${chName}（關卡 ${d.levelId}）`,
     mapLine: `地圖形狀：${mapLayoutLabel(d.mapLayout)}`,
     deployableCells: level.cells.length,
-    boundaryLine: `盤面邊界框：${level.width}×${level.height}（可部署格數 ${level.cells.length}）`,
+    boundaryLine: `盤面邊界框：寬${level.width}×高${level.height}（可部署格數 ${level.cells.length}）`,
     coveragePercent: Math.round(d.coverageGoal * 1000) / 10,
     timeLine: d.timeLimit > 0 ? `任務時限：${d.timeLimit} 秒。` : '任務時限：無（不計時）。',
     handLine: `待辦電碼上限：同時最多 ${d.commands.maxHand} 道（選定後再標格執行）。`,

@@ -1,19 +1,17 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, Map, RefreshCw } from 'lucide-react';
+import { ChevronRight, Map } from 'lucide-react';
 import type { GameState } from './types';
 
 export function GameStatusPanel({
   gameState,
   currentLevelIndex,
   levelCount,
-  onRetry,
   onNextLevel,
   onReturnToMission,
 }: {
   gameState: GameState;
   currentLevelIndex: number;
   levelCount: number;
-  onRetry: () => void;
   onNextLevel: () => void;
   onReturnToMission?: () => void;
 }) {
@@ -42,20 +40,13 @@ export function GameStatusPanel({
             </p>
           </div>
 
-          {(gameState.status === 'lost' || gameState.status === 'won') && (
+          {gameState.status === 'won' && (!isFinalLevel || onReturnToMission) && (
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="flex justify-center gap-4"
             >
-              <button
-                type="button"
-                onClick={onRetry}
-                className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-800 px-8 py-4 font-black text-white shadow-lg transition-all hover:bg-slate-700 active:scale-95"
-              >
-                <RefreshCw size={20} /> 再試一次
-              </button>
-              {gameState.status === 'won' && !isFinalLevel && (
+              {!isFinalLevel && (
                 <button
                   type="button"
                   onClick={onNextLevel}
@@ -64,7 +55,7 @@ export function GameStatusPanel({
                   下一關 <ChevronRight size={20} />
                 </button>
               )}
-              {gameState.status === 'won' && isFinalLevel && onReturnToMission && (
+              {isFinalLevel && onReturnToMission && (
                 <button
                   type="button"
                   onClick={onReturnToMission}

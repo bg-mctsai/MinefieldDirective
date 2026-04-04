@@ -1,8 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LEVELS, MineSolver, formatLossExplanation, lossConflictHighlightCells } from '../gameLogic';
-import { EXPLOSION_RESOLVE_MS, SOLDIER_MOVE_MS } from './constants';
+import {
+  LEVELS,
+  MineSolver,
+  formatLossExplanation,
+  lossConflictHighlightCells,
+  lossExplosionMarkCells,
+} from '../gameLogic';
+import { EXPLOSION_RESOLVE_MS, FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS, SOLDIER_MOVE_MS } from './constants';
 import { generateHand } from './generateHand';
 import type { GameState } from './types';
+
+function withinChebyshev(cellKey: string, cx: number, cy: number, radius: number): boolean {
+  const comma = cellKey.indexOf(',');
+  const x = Number(cellKey.slice(0, comma));
+  const y = Number(cellKey.slice(comma + 1));
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+  return Math.max(Math.abs(x - cx), Math.abs(y - cy)) <= radius;
+}
 
 export function useMineGame(initialLevelIndex: number) {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(() => initialLevelIndex);
@@ -14,6 +28,7 @@ export function useMineGame(initialLevelIndex: number) {
   const initGame = useCallback((levelIndex: number) => {
     const level = LEVELS[levelIndex];
     const hints = level.initialHints ?? [];
+    const limit = level.definition.timeLimit;
     setGameState({
       gameId: Date.now(),
       level,
@@ -25,6 +40,9 @@ export function useMineGame(initialLevelIndex: number) {
       status: 'playing',
       message: '長官電報已收。請先選電碼，再標定佈雷座標。',
       conflictCells: [],
+      explosionMarkCells: [],
+      secondsLeft: limit > 0 ? limit : null,
+      timerStarted: false,
     });
     setSelectedHandIndex(null);
     setMovingSoldier(null);
@@ -33,6 +51,45 @@ export function useMineGame(initialLevelIndex: number) {
   useEffect(() => {
     initGame(currentLevelIndex);
   }, [currentLevelIndex, initGame]);
+
+  useEffect(() => {
+    if (!gameState || gameState.status !== 'playing' || gameState.secondsLeft === null) return;
+    if (!gameState.timerStarted) return;
+
+    const id = window.setInterval(() => {
+      setGameState((prev) => {
+        if (!prev || prev.status !== 'playing' || prev.secondsLeft === null) return prev;
+        const next = prev.secondsLeft - 1;
+        if (next > 0) return { ...prev, secondsLeft: next };
+        return {
+          ...prev,
+          status: 'exploding',
+          message: '時限已盡，雷區未能完成佈署——引爆！長官：「撤！」',
+          secondsLeft: 0,
+          conflictCells: [],
+          explosionMarkCells: [],
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [gameState?.gameId, gameState?.status, gameState?.timerStarted]);
+
+  useEffect(() => {
+    if (!gameState || gameState.status !== 'exploding') return;
+    const t = window.setTimeout(() => {
+      setGameState((prev) => (prev?.status === 'exploding' ? { ...prev, status: 'lost' } : prev));
+    }, EXPLOSION_RESOLVE_MS);
+    return () => clearTimeout(t);
+  }, [gameState?.gameId, gameState?.status]);
+
+  const selectHand = useCallback((index: number) => {
+    setSelectedHandIndex(index);
+    setGameState((prev) => {
+      if (!prev || prev.secondsLeft === null || prev.timerStarted) return prev;
+      return { ...prev, timerStarted: true };
+    });
+  }, []);
 
   const handleCellClick = async (x: number, y: number) => {
     if (!gameState || gameState.status !== 'playing' || selectedHandIndex === null || movingSoldier) return;
@@ -52,6 +109,7 @@ export function useMineGame(initialLevelIndex: number) {
 
     if (conflictDetails) {
       const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
+      const explosionMarkCells = lossExplosionMarkCells(gameState.level.cells, gameState.placedNumbers, { x, y });
       const message = formatLossExplanation(conflictDetails, { x, y, value: newValue });
       setGameState((prev) =>
         prev
@@ -61,13 +119,10 @@ export function useMineGame(initialLevelIndex: number) {
               message,
               placedNumbers: newPlacedNumbers,
               conflictCells,
+              explosionMarkCells,
             }
           : null
       );
-
-      setTimeout(() => {
-        setGameState((prev) => (prev ? { ...prev, status: 'lost' } : null));
-      }, EXPLOSION_RESOLVE_MS);
 
       setMovingSoldier(null);
       return;
@@ -76,8 +131,13 @@ export function useMineGame(initialLevelIndex: number) {
     const forced = solver.findForced(newPlacedNumbers);
     const newRevealedMines = new Set(gameState.revealedMines);
     const newRevealedClear = new Set(gameState.revealedClear);
-    forced.mines.forEach((m) => newRevealedMines.add(m));
-    forced.clear.forEach((c) => newRevealedClear.add(c));
+    const r = FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS;
+    for (const m of forced.mines) {
+      if (withinChebyshev(m, x, y, r)) newRevealedMines.add(m);
+    }
+    for (const c of forced.clear) {
+      if (withinChebyshev(c, x, y, r)) newRevealedClear.add(c);
+    }
 
     const newHand = [...gameState.hand];
     newHand.splice(selectedHandIndex, 1);
@@ -146,7 +206,7 @@ export function useMineGame(initialLevelIndex: number) {
     setCurrentLevelIndex,
     gameState,
     selectedHandIndex,
-    setSelectedHandIndex,
+    selectHand,
     movingSoldier,
     initGame,
     handleCellClick,

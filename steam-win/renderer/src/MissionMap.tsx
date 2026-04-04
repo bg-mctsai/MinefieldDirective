@@ -54,7 +54,7 @@ export default function MissionMap({
                   </div>
                   <div className="text-lg font-black text-white">{lv.name}</div>
                   <div className="text-xs text-slate-500">
-                    {lv.cells.length} 格可部署 · {lv.width}×{lv.height} 邊界
+                    {lv.cells.length} 格可部署 · 寬{lv.width}×高{lv.height} 邊界
                   </div>
                 </div>
                 <button

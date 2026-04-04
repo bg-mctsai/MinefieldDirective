@@ -454,26 +454,18 @@ export default function App() {
                   </p>
                 </div>
                 
-                {(gameState.status === 'lost' || gameState.status === 'won') && (
-                  <motion.div 
+                {gameState.status === 'won' && currentLevelIndex < LEVELS.length - 1 && (
+                  <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="flex gap-4 justify-center"
                   >
                     <button
-                      onClick={() => initGame(currentLevelIndex)}
-                      className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-2xl transition-all shadow-lg border border-slate-700 active:scale-95 flex items-center gap-2"
+                      onClick={() => setCurrentLevelIndex(prev => prev + 1)}
+                      className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-emerald-900/40 active:scale-95 flex items-center gap-2"
                     >
-                      <RefreshCw size={20} /> 再試一次
+                      下一關 <ChevronRight size={20} />
                     </button>
-                    {gameState.status === 'won' && currentLevelIndex < LEVELS.length - 1 && (
-                      <button
-                        onClick={() => setCurrentLevelIndex(prev => prev + 1)}
-                        className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-emerald-900/40 active:scale-95 flex items-center gap-2"
-                      >
-                        下一關 <ChevronRight size={20} />
-                      </button>
-                    )}
                   </motion.div>
                 )}
               </motion.div>

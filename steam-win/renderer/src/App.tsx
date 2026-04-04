@@ -13,6 +13,8 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameLevelIndex, setGameLevelIndex] = useState(0);
   const [highestClearedLevel, setHighestClearedLevel] = useState(() => loadGameProgress().highestClearedLevel);
+  /** 開發重讀 levels.json 後遞增，強制作戰地圖／對局重掛載 */
+  const [levelsReloadToken, setLevelsReloadToken] = useState(0);
 
   return (
     <AnimatePresence mode="wait">
@@ -30,10 +32,14 @@ export default function App() {
               if (to === 'mission') setScreen('mission');
               if (to === 'hero') setScreen('hero');
             }}
+            onDevLevelsReloaded={
+              import.meta.env.DEV ? () => setLevelsReloadToken((n) => n + 1) : undefined
+            }
           />
         )}
         {screen === 'mission' && (
           <MissionMap
+            key={levelsReloadToken}
             onBack={() => setScreen('home')}
             onStart={(idx) => {
               const level = LEVELS[idx];
@@ -48,7 +54,7 @@ export default function App() {
         {screen === 'hero' && <HeroSelect onBack={() => setScreen('home')} />}
         {screen === 'game' && (
           <GameView
-            key={gameLevelIndex}
+            key={`${gameLevelIndex}-${levelsReloadToken}`}
             initialLevelIndex={gameLevelIndex}
             highestClearedLevel={highestClearedLevel}
             onHighestClearedLevelChange={setHighestClearedLevel}

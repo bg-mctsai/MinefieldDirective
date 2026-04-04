@@ -14,6 +14,8 @@ export function GameHeader({
   commanderPanel,
   levelName,
   statusMessage,
+  secondsLeft,
+  countdownStarted,
 }: {
   fillPercentage: number;
   /** 企劃定義之覆蓋率目標（%） */
@@ -23,6 +25,10 @@ export function GameHeader({
   commanderPanel: ReactNode;
   levelName: string;
   statusMessage: string;
+  /** `null` = 本關不計時 */
+  secondsLeft: number | null;
+  /** 限時關：是否已選定長官電報電碼並開始倒數 */
+  countdownStarted: boolean;
 }) {
   return (
     <div className="mb-8 flex w-full max-w-6xl flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center">
@@ -66,6 +72,32 @@ export function GameHeader({
               <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">目標</div>
               <div className="text-2xl font-black text-slate-600">{coverageGoalPercent.toFixed(0)}%</div>
             </div>
+            {secondsLeft !== null && (
+              <>
+                <div className="hidden h-10 w-0.5 bg-slate-800 sm:block" />
+                <div className="px-2 text-center">
+                  <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {countdownStarted ? '剩餘時間' : '任務時限'}
+                  </div>
+                  <div
+                    className={`text-2xl font-black tabular-nums ${
+                      !countdownStarted && secondsLeft > 0
+                        ? 'text-slate-500'
+                        : secondsLeft <= 0
+                          ? 'text-red-500'
+                          : secondsLeft <= 10
+                            ? 'text-amber-400'
+                            : 'text-sky-400'
+                    }`}
+                  >
+                    {secondsLeft}s
+                  </div>
+                  {!countdownStarted && secondsLeft > 0 && (
+                    <div className="mt-0.5 text-[9px] font-bold text-slate-600">選定電碼後倒數</div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
           <button
             type="button"
