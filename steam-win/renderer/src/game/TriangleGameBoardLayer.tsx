@@ -1,0 +1,153 @@
+import type { ReactNode } from 'react';
+import { motion } from 'motion/react';
+import { Bomb } from 'lucide-react';
+import { MineRuins } from './MineRuins';
+import { triangleVerticesPx } from './triangleBoardLayout';
+import type { GameState } from './types';
+
+function polyPoints(v: { ax: number; ay: number; bx: number; by: number; cx: number; cy: number }): string {
+  return `${v.ax},${v.ay} ${v.bx},${v.by} ${v.cx},${v.cy}`;
+}
+
+export function TriangleGameBoardLayer({
+  gameState,
+  side,
+  contentW,
+  contentH,
+  onCellClick,
+}: {
+  gameState: GameState;
+  side: number;
+  contentW: number;
+  contentH: number;
+  onCellClick: (x: number, y: number) => void;
+}) {
+  const w = gameState.level.width;
+  const h = gameState.level.height;
+  const postBlast = gameState.status === 'exploding' || gameState.status === 'lost';
+  const playing = gameState.status === 'playing';
+
+  const validKey = new Set(gameState.level.cells.map((c) => `${c.x},${c.y}`));
+
+  const terrainPolys: ReactNode[] = [];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (validKey.has(`${x},${y}`)) continue;
+      const v = triangleVerticesPx(x, y, side);
+      terrainPolys.push(
+        <polygon
+          key={`terrain-${gameState.gameId}-${x}-${y}`}
+          points={polyPoints(v)}
+          className="pointer-events-none fill-slate-900 stroke-none"
+          aria-hidden
+        />
+      );
+    }
+  }
+
+  return (
+    <svg
+      width={contentW}
+      height={contentH}
+      className="block select-none"
+      style={{ shapeRendering: 'geometricPrecision' }}
+    >
+      <g className="pointer-events-none">{terrainPolys}</g>
+      {gameState.level.cells.map((cell) => {
+        const { x, y } = cell;
+        const v = triangleVerticesPx(x, y, side);
+        const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
+        const isMine = gameState.revealedMines.has(`${x},${y}`);
+        const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
+        const isExploding = gameState.status === 'exploding' && isMine;
+        const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
+
+        const cx = (v.ax + v.bx + v.cx) / 3;
+        const cy = (v.ay + v.by + v.cy) / 3;
+        const numFont = Math.max(11, Math.round(side * 0.34));
+        const iconSize = Math.max(12, Math.round(side * 0.32));
+
+        let fillClass = 'fill-slate-800';
+        let strokeClass = 'stroke-slate-600';
+        if (isConflict) {
+          fillClass = 'fill-red-600';
+          strokeClass = 'stroke-white';
+        } else if (placed) {
+          fillClass = 'fill-amber-950/90';
+          strokeClass = 'stroke-amber-500';
+        } else if (isMine) {
+          fillClass = postBlast ? 'fill-stone-950/80' : 'fill-red-950/50';
+          strokeClass = postBlast ? 'stroke-stone-600' : 'stroke-red-900';
+        }
+
+        return (
+          <motion.g
+            key={`${gameState.gameId}-${x}-${y}`}
+            style={{ transformOrigin: `${cx}px ${cy}px` }}
+            whileHover={playing ? { scale: 1.035 } : {}}
+            transition={{ type: 'spring', stiffness: 400, damping: 24 }}
+          >
+            <polygon
+              points={polyPoints(v)}
+              className={`cursor-pointer stroke-[1.5] transition-colors ${fillClass} ${strokeClass} ${
+                isConflict ? 'animate-pulse' : ''
+              }`}
+              onClick={() => onCellClick(x, y)}
+            />
+            {placed && (
+              <text
+                x={cx}
+                y={cy}
+                textAnchor="middle"
+                dominantBaseline="central"
+                className={`pointer-events-none font-black ${isConflict ? 'fill-white' : 'fill-amber-400'}`}
+                style={{ fontSize: numFont }}
+              >
+                {placed.value}
+              </text>
+            )}
+            {isMine && !placed && (
+              <foreignObject
+                x={cx - iconSize / 2}
+                y={cy - iconSize / 2}
+                width={iconSize}
+                height={iconSize}
+                className="pointer-events-none overflow-visible"
+              >
+                <div className="flex h-full w-full items-center justify-center">
+                  {postBlast ? (
+                    <MineRuins x={x} y={y} exploding={isExploding} />
+                  ) : (
+                    <Bomb size={iconSize} className="text-red-400 opacity-60" />
+                  )}
+                </div>
+              </foreignObject>
+            )}
+            {showExplosionX && postBlast && (
+              <g className="pointer-events-none" aria-hidden>
+                <line
+                  x1={cx - side * 0.22}
+                  y1={cy - side * 0.22}
+                  x2={cx + side * 0.22}
+                  y2={cy + side * 0.22}
+                  className="stroke-rose-400"
+                  strokeWidth={Math.max(3, side * 0.08)}
+                  strokeLinecap="round"
+                />
+                <line
+                  x1={cx + side * 0.22}
+                  y1={cy - side * 0.22}
+                  x2={cx - side * 0.22}
+                  y2={cy + side * 0.22}
+                  className="stroke-rose-400"
+                  strokeWidth={Math.max(3, side * 0.08)}
+                  strokeLinecap="round"
+                />
+              </g>
+            )}
+          </motion.g>
+        );
+      })}
+    </svg>
+  );
+}

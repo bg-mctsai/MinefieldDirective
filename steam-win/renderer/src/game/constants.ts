@@ -7,6 +7,9 @@ export const BOARD_GAP_PX = 4;
 /** 盤面容器 p-4 左右合計 */
 export const BOARD_PADDING_PX = 32;
 
+/** 與 GameBoard `p-3` 一致，小兵／疊圖座標需加此偏移對齊內容區 */
+export const GAME_BOARD_FRAME_PAD_PX = 12;
+
 /** 盤面外框上限：超過則縮小格點，避免 16×2 等極寬盤面橫向溢出 */
 export const BOARD_MAX_OUTER_W_PX = 680;
 export const BOARD_MAX_OUTER_H_PX = 560;

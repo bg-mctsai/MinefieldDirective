@@ -35,5 +35,14 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   'events.duration': '（非 REINFORCE）事件持續秒數。',
   'events.count': '（type=REINFORCE）隨機鎖定空格數量。',
 
+  chapterEntryBriefing:
+    '可選；各章第一關常用。進入關卡時顯示的長官簡報台詞（長官發電報、士兵依數字佈雷之世界觀），字串陣列（建議 2～5 句）。執行 npm run export-levels-json 時會自舊版 levels.json 合併保留此欄。',
+
+  mapCloudOverlay:
+    '可選；沙塵暴視覺效果：多條不規則橫向沙帶從兩側交替飄入飄出（僅畫面、不擋點擊）。第 21～30 關預設啟用。',
+  'mapCloudOverlay.periodSec': '沙帶移動速度基準（秒）；值愈大移動愈慢（建議 10～22；預設 18）。',
+  'mapCloudOverlay.opacity': '0～1，沙帶通過時的濃度；愈高格子愈不清楚（建議 0.45～0.70；預設 0.52）。',
+  'mapCloudOverlay.blurPx': '柔邊模糊強度 px（建議 32～56；愈大愈霧；預設 44）。',
+
   rewards: '通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。',
 };

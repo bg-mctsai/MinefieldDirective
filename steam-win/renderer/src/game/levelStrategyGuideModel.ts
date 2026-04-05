@@ -4,9 +4,9 @@ import type { GridSystem, LevelEvent, MapLayout } from '../levelData/types';
 const CHAPTER_NAMES = [
   '',
   '新兵訓練營',
-  '城市巷戰',
-  '沙漠閃擊',
-  '三角形陣地',
+  '巷戰封鎖線',
+  '荒漠記憶',
+  '三角高地',
   '蜂巢幽閉',
   '異次元裂縫',
   '終焉防線',
@@ -20,8 +20,11 @@ function mapLayoutLabel(layout: MapLayout): string {
       return `十字戰區　寬${layout.width}×高${layout.height}`;
     case 'DIAMOND':
       return `菱形戰區（半徑 ${layout.radius}）`;
-    case 'TRIANGLE':
-      return `三角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}`;
+    case 'TRIANGLE': {
+      const n = layout.forbiddenCells?.length ?? 0;
+      const terrain = n > 0 ? `；${n} 格隨機碎裂地形（禁佈）` : '';
+      return `三角鑲嵌格網　寬${layout.placeholder.width}×高${layout.placeholder.height}${terrain}`;
+    }
     case 'HEXAGON':
       return `六角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}`;
     case 'MIXED':
@@ -36,7 +39,7 @@ function neighborLogicLine(grid: GridSystem): string {
     case 'HEXAGON':
       return '企劃為六角鄰接語意；目前仍以方格盤面運算，數字約束採周圍 8 格（含對角），待幾何接軌後會改為六角鄰居規則。';
     case 'TRIANGLE':
-      return '企劃為三角鑲嵌語意；目前以方格占位，數字約束仍為周圍 8 格（含對角）。';
+      return '三角鑲嵌：數字＝共用邊的鄰格內地雷數；內格最多 3 鄰、邊界 1～2 鄰，故線索與電報數字皆不超過 3。';
     case 'MIXED':
       return '複合戰區由多區併成；每格數字仍表示其周圍有效鄰格內的地雷總數（依目前 solver 為 8 鄰接）。';
     default:
@@ -46,6 +49,7 @@ function neighborLogicLine(grid: GridSystem): string {
 
 function forbiddenCount(layout: MapLayout): number | null {
   if (layout.type === 'SQUARE' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
+  if (layout.type === 'TRIANGLE' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
   return null;
 }
 
@@ -83,6 +87,8 @@ export type LevelStrategyGuideModel = {
   digitsLine: string;
   hintsLine: string;
   forbiddenLine: string | null;
+  /** 有設定 mapCloudOverlay 時（例：第 21～30 關荒漠雲層） */
+  cloudLine: string | null;
   eventsLines: string[];
   logicNeighborLine: string;
 };
@@ -118,7 +124,13 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
         : '開局無預置提示數字；全依長官電報與你方佈雷推進。',
     forbiddenLine:
       forbidden !== null ? `場上有 ${forbidden} 格障礙／禁區，無法部署。` : null,
+    cloudLine: d.mapCloudOverlay
+      ? '戰場有飄動沙塵迷霧（CSS 漸層＋模糊動畫）沿全圖巡迴，中心並以 backdrop 模糊棋格（僅畫面，不擋點格、不影響邏輯）。'
+      : null,
     eventsLines: d.events.length ? d.events.map((ev) => formatEvent(ev, d.timeLimit)) : ['本關無動態戰場事件。'],
-    logicNeighborLine: neighborLogicLine(d.gridSystem),
+    logicNeighborLine:
+      d.chapter === 4 && d.levelId >= 33 && d.mapLayout.type === 'TRIANGLE' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
+        ? `${neighborLogicLine(d.gridSystem)} 本關起含種子隨機地形格（不可佈署），邊界形狀會影響可走的三角拓撲。`
+        : neighborLogicLine(d.gridSystem),
   };
 }

@@ -4,62 +4,66 @@ import { Bomb, ChevronLeft, RefreshCw } from 'lucide-react';
 
 /** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬 */
 export const GAME_HEADER_CARD_CLASS =
-  'flex flex-1 min-h-[4.5rem] min-w-0 flex-col justify-center rounded-3xl border-2 border-slate-800 bg-slate-900 p-4 shadow-xl sm:flex-row sm:items-center sm:gap-4';
+  'flex flex-1 min-h-[3.75rem] min-w-0 flex-col justify-center rounded-2xl border-2 border-slate-800 bg-slate-900 p-3 shadow-xl sm:flex-row sm:items-center sm:gap-3';
 
 export function GameHeader({
   fillPercentage,
   coverageGoalPercent,
   onBack,
   onRestart,
-  commanderPanel,
   levelName,
-  statusMessage,
   secondsLeft,
   countdownStarted,
+  guideButton,
+  telegraphPanel,
 }: {
   fillPercentage: number;
   /** 企劃定義之覆蓋率目標（%） */
   coverageGoalPercent: number;
   onBack: () => void;
   onRestart: () => void;
-  commanderPanel: ReactNode;
   levelName: string;
-  statusMessage: string;
   /** `null` = 本關不計時 */
   secondsLeft: number | null;
   /** 限時關：是否已選定長官電報電碼並開始倒數 */
   countdownStarted: boolean;
+  /** 第一行右側，通常為「指南」 */
+  guideButton?: ReactNode;
+  /** 第二行與任務進度並排：長官電報列 */
+  telegraphPanel?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex w-full max-w-6xl flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center">
+    <div className="mb-4 flex w-full max-w-6xl flex-col gap-3">
       <motion.div
-        initial={{ x: -20, opacity: 0 }}
+        initial={{ x: -12, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex shrink-0 items-center gap-4"
+        className="flex w-full min-w-0 items-center justify-between gap-3"
       >
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-3 py-2 text-sm font-bold text-slate-200 transition-colors hover:border-amber-500/60 hover:text-amber-400"
-        >
-          <ChevronLeft size={18} />
-          返回
-        </button>
-        <div className="rounded-2xl border-2 border-slate-800 bg-slate-900 p-3 shadow-lg">
-          <Bomb className="text-amber-500" size={32} />
+        <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-3 py-2 text-sm font-bold text-slate-200 transition-colors hover:border-amber-500/60 hover:text-amber-400"
+          >
+            <ChevronLeft size={18} />
+            返回
+          </button>
+          <div className="shrink-0 rounded-2xl border-2 border-slate-800 bg-slate-900 p-3 shadow-lg">
+            <Bomb className="text-amber-500" size={32} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="mb-0 flex min-w-0 items-center gap-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
+              <span className="truncate">{levelName}</span>
+            </h1>
+          </div>
         </div>
-        <div>
-          <h1 className="mb-0 flex items-center gap-2 text-3xl font-black tracking-tight text-white">
-            雷區指令：{levelName}
-          </h1>
-          <p className="text-sm font-medium text-slate-500">{statusMessage}</p>
-        </div>
+        {guideButton != null && <div className="shrink-0">{guideButton}</div>}
       </motion.div>
 
       <motion.div
-        initial={{ x: 20, opacity: 0 }}
+        initial={{ x: 12, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex w-full min-w-0 flex-1 flex-col items-stretch gap-4 sm:flex-row"
+        className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch"
       >
         <div className={GAME_HEADER_CARD_CLASS}>
           <div className="flex flex-1 flex-wrap items-center justify-center gap-4 sm:justify-start">
@@ -109,7 +113,9 @@ export function GameHeader({
           </button>
         </div>
 
-        {commanderPanel}
+        {telegraphPanel != null && (
+          <div className="flex min-h-[3.75rem] min-w-0 flex-1 flex-col">{telegraphPanel}</div>
+        )}
       </motion.div>
     </div>
   );

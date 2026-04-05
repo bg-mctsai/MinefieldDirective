@@ -1,9 +1,18 @@
 import { motion } from 'motion/react';
-import { User } from 'lucide-react';
 import type { GameState } from './types';
-import { GAME_HEADER_CARD_CLASS } from './GameHeader';
 
-export function CommanderPanel({
+function telegraphHint(
+  gameState: GameState,
+  selectedHandIndex: number | null
+): string {
+  if (gameState.status === 'exploding') return '！！！連環爆炸中！！！';
+  if (gameState.status !== 'playing') return '任務結束。';
+  if (selectedHandIndex === null) return '先選電碼，再點格佈雷';
+  return `電碼「${gameState.hand[selectedHandIndex]}」—請點目標格`;
+}
+
+/** 與「指南」同一列的橫向長官電報列（電碼按鈕尺寸與先前 header 卡一致） */
+export function CommanderTelegraphRow({
   gameState,
   selectedHandIndex,
   movingSoldier,
@@ -14,49 +23,41 @@ export function CommanderPanel({
   movingSoldier: { x: number; y: number; value: number } | null;
   onSelectHand: (index: number) => void;
 }) {
-  const hint =
-    gameState.status === 'exploding' ? (
-      <span className="animate-pulse text-red-500">！！！連環爆炸中！！！</span>
-    ) : gameState.status !== 'playing' ? (
-      '任務結束。'
-    ) : selectedHandIndex === null ? (
-      '先選電碼，再點格佈雷'
-    ) : (
-      `電碼「${gameState.hand[selectedHandIndex]}」—請點目標格`
-    );
+  const hint = telegraphHint(gameState, selectedHandIndex);
+  const n = gameState.hand.length;
 
   return (
-    <div className={`relative min-w-0 overflow-hidden ${GAME_HEADER_CARD_CLASS}`}>
-      <div className="pointer-events-none absolute right-0 top-0 p-2 opacity-5">
-        <User size={56} className="text-white" />
-      </div>
-
-      <div className="relative z-10 flex shrink-0 flex-col gap-1 sm:w-[7.5rem]">
-        <h2 className="text-sm font-black leading-tight text-white">長官電報</h2>
-        <p className="hidden text-[9px] font-bold uppercase text-slate-500 sm:block">HQ Telegraph</p>
-        <div className="flex gap-1.5">
+    <div
+      className="flex h-full min-h-[3.25rem] min-w-0 flex-1 items-center gap-2 rounded-2xl border-2 border-slate-800 bg-slate-900 px-2 py-1.5 shadow-xl sm:gap-3 sm:px-3 sm:py-2"
+      title={hint}
+    >
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex flex-col leading-none">
+          <span className="text-xs font-black text-white sm:text-sm">長官電報</span>
+          <span className="hidden text-[8px] font-bold uppercase tracking-wide text-slate-500 sm:block">
+            HQ Telegraph
+          </span>
+        </div>
+        <div className="flex gap-1">
           <motion.div
             animate={gameState.placedInTurn >= 1 ? { scale: [1, 1.2, 1] } : {}}
-            className={`h-2.5 w-2.5 rounded-full ${
-              gameState.placedInTurn >= 1 ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-slate-800'
+            className={`h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 ${
+              gameState.placedInTurn >= 1 ? 'bg-amber-500 shadow-[0_0_6px_#f59e0b]' : 'bg-slate-800'
             }`}
           />
           <motion.div
             animate={gameState.placedInTurn >= 2 ? { scale: [1, 1.2, 1] } : {}}
-            className={`h-2.5 w-2.5 rounded-full ${
-              gameState.placedInTurn >= 2 ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-slate-800'
+            className={`h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 ${
+              gameState.placedInTurn >= 2 ? 'bg-amber-500 shadow-[0_0_6px_#f59e0b]' : 'bg-slate-800'
             }`}
           />
         </div>
-        <p className="max-w-[10rem] truncate text-[10px] font-bold text-slate-500 sm:max-w-none sm:whitespace-normal sm:text-[9px]">
-          {hint}
-        </p>
       </div>
 
       <div
-        className="relative z-10 grid w-full min-w-0 flex-1 gap-2 sm:max-w-none"
+        className="grid min-w-0 flex-1 gap-1.5 sm:gap-2"
         style={{
-          gridTemplateColumns: `repeat(${gameState.hand.length}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
         }}
       >
         {gameState.hand.map((num, idx) => (

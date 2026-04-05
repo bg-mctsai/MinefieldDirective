@@ -1,4 +1,4 @@
-import { MineSolver, type Level } from '../gameLogic';
+import { MineSolver, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
 
 function allowedValuesFromCommands(level: Level): number[] {
   const w = level.definition.commands.weights;
@@ -40,11 +40,12 @@ export function generateHand(level: Level, placedNumbers: { x: number; y: number
   const sampleCells = emptyCells.sort(() => Math.random() - 0.5).slice(0, 8);
 
   const shuffledAllowed = [...allowed].sort(() => Math.random() - 0.5);
+  const mineTopo = mineSolverTopologyFromLevel(level);
 
   for (const cell of sampleCells) {
     for (const v of shuffledAllowed) {
       const testPlaced = [...placedNumbers, { x: cell.x, y: cell.y, value: v }];
-      const solver = new MineSolver(level.cells, testPlaced);
+      const solver = new MineSolver(level.cells, testPlaced, mineTopo);
       if (solver.isValid()) {
         validNumbers.add(v);
         if (validNumbers.size >= 3) break;

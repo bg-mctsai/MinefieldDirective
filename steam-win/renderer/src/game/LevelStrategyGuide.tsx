@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { BookOpen, ShieldAlert, X } from 'lucide-react';
 import type { Level } from '../gameLogic';
@@ -6,8 +6,44 @@ import { buildLevelStrategyGuideModel } from './levelStrategyGuideModel';
 
 type Tab = 'logic' | 'flow' | 'briefing';
 
-export function LevelStrategyGuide({ level }: { level: Level }) {
-  const [open, setOpen] = useState(false);
+export function LevelStrategyGuideTrigger({
+  className = '',
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      title="戰略指南（本關）"
+      className={`inline-flex items-center gap-1 rounded-lg border border-slate-700/90 bg-slate-900/80 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-amber-500/95 shadow-sm transition-colors hover:border-amber-500/45 hover:bg-slate-800 hover:text-amber-400 ${className}`}
+      {...props}
+    >
+      <BookOpen size={13} className="shrink-0 opacity-90" aria-hidden />
+      指南
+    </button>
+  );
+}
+
+export function LevelStrategyGuide({
+  level,
+  open: openProp,
+  onOpenChange,
+  showTrigger = true,
+}: {
+  level: Level;
+  /** 與 onOpenChange 併用時為受控模式（例如按鈕放在 GameHeader 第一行） */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** false：不渲染內建按鈕，改以 LevelStrategyGuideTrigger 自行擺放 */
+  showTrigger?: boolean;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = onOpenChange != null;
+  const open = controlled ? Boolean(openProp) : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (controlled) onOpenChange(next);
+    else setInternalOpen(next);
+  };
+
   const [tab, setTab] = useState<Tab>('briefing');
   const m = buildLevelStrategyGuideModel(level);
 
@@ -26,17 +62,11 @@ export function LevelStrategyGuide({ level }: { level: Level }) {
 
   return (
     <>
-      <div className="mb-1 flex w-full max-w-6xl shrink-0 justify-end">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          title="戰略指南（本關）"
-          className="inline-flex items-center gap-1 rounded-lg border border-slate-700/90 bg-slate-900/80 px-2 py-1 text-[11px] font-black uppercase tracking-wide text-amber-500/95 shadow-sm transition-colors hover:border-amber-500/45 hover:bg-slate-800 hover:text-amber-400"
-        >
-          <BookOpen size={13} className="shrink-0 opacity-90" aria-hidden />
-          指南
-        </button>
-      </div>
+      {showTrigger && (
+        <div className="mb-2 flex w-full max-w-6xl shrink-0 justify-end">
+          <LevelStrategyGuideTrigger onClick={() => setOpen(true)} />
+        </div>
+      )}
 
       <AnimatePresence>
         {open && (
@@ -101,6 +131,7 @@ export function LevelStrategyGuide({ level }: { level: Level }) {
                       <li>{m.digitsLine}</li>
                       <li>{m.hintsLine}</li>
                       {m.forbiddenLine && <li>{m.forbiddenLine}</li>}
+                      {m.cloudLine && <li>{m.cloudLine}</li>}
                     </ul>
                     <div className="border-t border-slate-800 pt-3">
                       <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">戰場事件</p>
@@ -134,7 +165,7 @@ export function LevelStrategyGuide({ level }: { level: Level }) {
                   <ul className="list-inside list-decimal space-y-3 marker:text-[#F59E0B]">
                     <li>
                       <span className="font-bold text-white">選取電碼：</span>
-                      從右側「長官電報」選一道電碼（本關最多同時 {level.definition.commands.maxHand} 道待辦）。
+                      從「長官電報」列選一道電碼（本關最多同時 {level.definition.commands.maxHand} 道待辦）。
                     </li>
                     <li>
                       <span className="font-bold text-white">執行佈雷：</span>

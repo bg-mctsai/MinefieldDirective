@@ -1,11 +1,18 @@
-import type { CommandConfig, LevelDefinition, LevelEvent, LevelRewards, MapLayout } from './types';
+import type {
+  CommandConfig,
+  LevelDefinition,
+  LevelEvent,
+  LevelRewards,
+  MapCloudOverlayConfig,
+  MapLayout,
+} from './types';
 
 const CHAPTER_NAMES = [
   '',
   '新兵訓練營',
-  '城市巷戰',
-  '沙漠閃擊',
-  '三角形陣地',
+  '巷戰封鎖線',
+  '荒漠記憶',
+  '三角高地',
   '蜂巢幽閉',
   '異次元裂縫',
   '終焉防線',
@@ -14,7 +21,7 @@ const CHAPTER_NAMES = [
 function chapterOf(levelId: number): number {
   if (levelId <= 10) return 1;
   if (levelId <= 20) return 2;
-  if (levelId <= 35) return 3;
+  if (levelId <= 30) return 3;
   if (levelId <= 50) return 4;
   if (levelId <= 70) return 5;
   if (levelId <= 90) return 6;
@@ -67,8 +74,9 @@ function weightsCh3(): CommandConfig['weights'] {
   return { '1': 8, '2': 14, '3': 22, '4': 22, '5': 14, '6': 10, '7': 7, '8': 3 };
 }
 
+/** 三角鑲嵌邊鄰最多 3 格，電報數字僅 1～3 */
 function weightsCh4(): CommandConfig['weights'] {
-  return { '1': 10, '2': 15, '3': 18, '4': 18, '5': 15, '6': 12, '7': 8, '8': 4 };
+  return { '1': 28, '2': 34, '3': 38 };
 }
 
 function weightsCh5(): CommandConfig['weights'] {
@@ -86,10 +94,18 @@ function weightsCh7(): CommandConfig['weights'] {
 
 function defaultCommands(ch: number, levelId: number): CommandConfig {
   const poolType = 'WEIGHTED' as const;
-  const maxHand = ch >= 5 ? 5 : 4;
+  if (ch === 1) {
+    if (levelId === 7) return { maxHand: 4, poolType, weights: weightsCh2() };
+    if (levelId === 8 || levelId === 9) return { maxHand: 4, poolType, weights: weightsCh2() };
+    return { maxHand: 4, poolType, weights: weightsCh1() };
+  }
+  let maxHand = ch >= 5 ? 5 : 4;
+  /** 三角高地 31～40：長官電報固定 3 道並陳，從中擇一執行 */
+  if (ch === 4 && levelId >= 31 && levelId <= 40) {
+    maxHand = 3;
+  }
   let weights: CommandConfig['weights'];
-  if (ch === 1) weights = weightsCh1();
-  else if (ch === 2) weights = weightsCh2();
+  if (ch === 2) weights = weightsCh2();
   else if (ch === 3) weights = weightsCh3();
   else if (ch === 4) weights = weightsCh4();
   else if (ch === 5) weights = weightsCh5();
@@ -106,10 +122,10 @@ function defaultCommands(ch: number, levelId: number): CommandConfig {
 function defaultEvents(ch: number, timeLimit: number): LevelEvent[] {
   if (ch <= 2) return [];
   if (ch === 3) {
-    const t = Math.max(timeLimit, 60);
     return [
-      { trigger: 'TIME_LEFT', threshold: Math.floor(t * 0.5), type: 'JAMMING', duration: 12 },
-      { trigger: 'PROGRESS', threshold: 0.55, type: 'REINFORCE', count: 2 },
+      { trigger: 'PROGRESS', threshold: 0.08, type: 'SANDSTORM', duration: 18 },
+      { trigger: 'PROGRESS', threshold: 0.38, type: 'SANDSTORM', duration: 22 },
+      { trigger: 'PROGRESS', threshold: 0.68, type: 'SANDSTORM', duration: 18 },
     ];
   }
   if (ch === 4) {
@@ -155,7 +171,6 @@ function defaultRewards(ch: number, levelId: number): LevelRewards {
       todo: ['TODO: 實作情報官、偽裝指令、混合格鄰接'],
     };
   }
-  if (ch === 4) todo.push('TODO: 三角鑲嵌格與鄰居模型');
   if (ch === 5) todo.push('TODO: 六角格鄰居與畫面呈現');
   if (ch === 6) todo.push('TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）');
   if (ch === 7) todo.push('TODO: 超大型異形輪廓地圖美術與格點');
@@ -171,8 +186,14 @@ function titleFor(levelId: number, chapter: number): string {
   return `${CHAPTER_NAMES[chapter]} · 第 ${levelId} 戰`;
 }
 
+/** 第一章 1～10：覆蓋率 0.70～0.75 線性遞增 */
+function coverageCh1(levelId: number): number {
+  return Math.round((0.7 + (levelId - 1) * (0.05 / 9)) * 1000) / 1000;
+}
+
 function coverageFor(ch: number, levelId: number): number {
   if (levelId === 100) return 1;
+  if (ch === 1 && levelId >= 1 && levelId <= 10) return coverageCh1(levelId);
   if (ch <= 2) return 0.7;
   if (ch <= 4) return 0.75;
   if (ch <= 5) return 0.8;
@@ -181,18 +202,78 @@ function coverageFor(ch: number, levelId: number): number {
 }
 
 function timeLimitFor(ch: number, levelId: number): number {
-  if (ch <= 2 || levelId === 100) return 0;
+  if (levelId === 100) return 0;
+  if (ch === 1) {
+    if (levelId >= 6 && levelId <= 10) return 57 + (levelId - 6) * 11;
+    return 0;
+  }
+  if (ch === 2) return 84 + (levelId - 11) * 8;
   if (ch === 3) return 60 + ((levelId - 21) % 6) * 12;
-  if (ch === 4) return 72 + ((levelId - 36) % 5) * 10;
+  if (ch === 4) {
+    const phase = ((levelId - 31) % 10 + 10) % 10;
+    const times = [60, 68, 66, 66, 74, 74, 56, 56, 60, 84];
+    return times[phase]!;
+  }
   if (ch === 5) return 90 + ((levelId - 51) % 5) * 8;
   if (ch === 6) return 100 + ((levelId - 71) % 5) * 6;
   return 110 + ((levelId - 91) % 4) * 12;
 }
 
+/** 第四章三角高地：每關總格數 70～100（寬×高），每 10 關循環 */
+const CH4_TRIANGLE_LAYOUTS: { width: number; height: number }[] = [
+  { width: 8, height: 9 },
+  { width: 9, height: 9 },
+  { width: 10, height: 8 },
+  { width: 8, height: 10 },
+  { width: 9, height: 10 },
+  { width: 10, height: 9 },
+  { width: 7, height: 10 },
+  { width: 10, height: 7 },
+  { width: 9, height: 8 },
+  { width: 10, height: 10 },
+];
+
+/**
+ * 31～32：完整三角鑲嵌（教學手感）。
+ * 33 起：同尺寸邊界內以種子隨機挖 `forbiddenCells` 形成碎裂地形（可部署格數變少、拓撲變化）。
+ */
+export function buildCh4TriangleMapLayout(levelId: number, seed: string): MapLayout {
+  const phase = ((levelId - 31) % 10 + 10) % 10;
+  const { width, height } = CH4_TRIANGLE_LAYOUTS[phase]!;
+  if (levelId <= 32) {
+    return { type: 'TRIANGLE', placeholder: { width, height } };
+  }
+  const area = width * height;
+  const roll = mulberry32(hashSeed(`${seed}-terrain-n`))();
+  const frac = 0.12 + roll * 0.14;
+  let nForbidden = Math.floor(area * frac);
+  const maxF = Math.max(6, Math.floor(area * 0.32));
+  nForbidden = Math.min(Math.max(nForbidden, 6), maxF);
+  const forbiddenCells = seededForbiddenCells(`${seed}-terrain-cells`, width, height, nForbidden);
+  return {
+    type: 'TRIANGLE',
+    placeholder: { width, height },
+    forbiddenCells,
+  };
+}
+
+/** 第一章 1～10：僅矩形格網（正方形或長方形），無障礙格 */
+const CH1_RECT_LAYOUTS: MapLayout[] = [
+  { type: 'SQUARE', width: 5, height: 5 },
+  { type: 'SQUARE', width: 6, height: 4 },
+  { type: 'SQUARE', width: 6, height: 6 },
+  { type: 'SQUARE', width: 7, height: 5 },
+  { type: 'SQUARE', width: 7, height: 7 },
+  { type: 'SQUARE', width: 10, height: 6 },
+  { type: 'SQUARE', width: 10, height: 8 },
+  { type: 'SQUARE', width: 12, height: 8 },
+  { type: 'SQUARE', width: 12, height: 10 },
+  { type: 'SQUARE', width: 12, height: 12 },
+];
+
 function mapLayoutFor(levelId: number, chapter: number, seed: string): MapLayout {
   if (chapter === 1) {
-    const size = [5, 6, 8][(levelId - 1) % 3] as number;
-    return { type: 'SQUARE', width: size, height: size };
+    return CH1_RECT_LAYOUTS[levelId - 1] ?? CH1_RECT_LAYOUTS[0];
   }
   if (chapter === 2) {
     return (levelId - 11) % 2 === 0
@@ -209,11 +290,7 @@ function mapLayoutFor(levelId: number, chapter: number, seed: string): MapLayout
     };
   }
   if (chapter === 4) {
-    const w = 10 + (levelId % 2);
-    return {
-      type: 'TRIANGLE',
-      placeholder: { width: w, height: w },
-    };
+    return buildCh4TriangleMapLayout(levelId, seed);
   }
   if (chapter === 5) {
     const w = 10 + ((levelId - 51) % 3);
@@ -284,6 +361,28 @@ function gridSystemFor(chapter: number): LevelDefinition['gridSystem'] {
   return 'SQUARE';
 }
 
+/**
+ * 第 21～30 關：荒漠飄雲遮視野（企劃可在 levels.json 覆寫；export 會合併保留手改）。
+ * 使用明確常數避免 JSON 出現 0.6100000000000001 等浮點噪音。
+ */
+const MAP_CLOUD_OVERLAY_L21_TO_L30: readonly MapCloudOverlayConfig[] = [
+  { centerX: 0.28, centerY: 0.32, radius: 0.38, driftX: 0.085, driftY: 0.048, periodSec: 11, opacity: 0.52, blurPx: 44 },
+  { centerX: 0.39, centerY: 0.44, radius: 0.42, driftX: 0.105, driftY: 0.066, periodSec: 12.6, opacity: 0.54, blurPx: 44 },
+  { centerX: 0.5, centerY: 0.56, radius: 0.46, driftX: 0.125, driftY: 0.048, periodSec: 14.2, opacity: 0.56, blurPx: 44 },
+  { centerX: 0.61, centerY: 0.68, radius: 0.38, driftX: 0.085, driftY: 0.066, periodSec: 15.8, opacity: 0.52, blurPx: 44 },
+  { centerX: 0.72, centerY: 0.32, radius: 0.42, driftX: 0.105, driftY: 0.048, periodSec: 17.4, opacity: 0.54, blurPx: 44 },
+  { centerX: 0.28, centerY: 0.44, radius: 0.46, driftX: 0.125, driftY: 0.066, periodSec: 11, opacity: 0.56, blurPx: 44 },
+  { centerX: 0.39, centerY: 0.56, radius: 0.38, driftX: 0.085, driftY: 0.048, periodSec: 12.6, opacity: 0.52, blurPx: 44 },
+  { centerX: 0.5, centerY: 0.68, radius: 0.42, driftX: 0.105, driftY: 0.066, periodSec: 14.2, opacity: 0.54, blurPx: 44 },
+  { centerX: 0.61, centerY: 0.32, radius: 0.46, driftX: 0.125, driftY: 0.048, periodSec: 15.8, opacity: 0.56, blurPx: 44 },
+  { centerX: 0.72, centerY: 0.44, radius: 0.38, driftX: 0.085, driftY: 0.066, periodSec: 17.4, opacity: 0.52, blurPx: 44 },
+] as const;
+
+function mapCloudOverlayFor(levelId: number): MapCloudOverlayConfig | undefined {
+  if (levelId < 21 || levelId > 30) return undefined;
+  return MAP_CLOUD_OVERLAY_L21_TO_L30[levelId - 21];
+}
+
 export function createLevelDefinition(levelId: number): LevelDefinition {
   const chapter = chapterOf(levelId);
   const initialSeed = `minefield-campaign-v1-L${levelId}-ch${chapter}`;
@@ -302,6 +401,7 @@ export function createLevelDefinition(levelId: number): LevelDefinition {
     mapLayout,
     commands: defaultCommands(chapter, levelId),
     events: defaultEvents(chapter, timeLimit),
+    mapCloudOverlay: mapCloudOverlayFor(levelId),
     rewards: defaultRewards(chapter, levelId),
   };
 }

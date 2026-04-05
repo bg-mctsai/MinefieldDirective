@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LEVELS as GAME_LEVELS } from '../gameLogic';
 import { useMineGame } from './useMineGame';
 import { GameHeader } from './GameHeader';
 import { GameBoard } from './GameBoard';
-import { GameStatusPanel } from './GameStatusPanel';
-import { CommanderPanel } from './CommanderPanel';
-import { VictoryOverlay } from './VictoryOverlay';
-import { CampaignCompleteOverlay } from './CampaignCompleteOverlay';
-import { LevelStrategyGuide } from './LevelStrategyGuide';
+import { GameStatusMessageBar, GameStatusPanel } from './GameStatusPanel';
+import { CommanderTelegraphRow } from './CommanderPanel';
+import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
+import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
 import { LEVEL_MAX, isLevelUnlocked, saveGameProgress } from './gameProgressStorage';
 
 export default function GameView({
@@ -40,6 +39,15 @@ export default function GameView({
     fillPercentage,
   } = useMineGame(safeInitialLevelIndex);
 
+  const [chapterBriefingDismissed, setChapterBriefingDismissed] = useState(false);
+  const [strategyGuideOpen, setStrategyGuideOpen] = useState(false);
+
+  useEffect(() => {
+    if (gameState?.gameId == null) return;
+    setChapterBriefingDismissed(false);
+    setStrategyGuideOpen(false);
+  }, [gameState?.gameId]);
+
   const lastRecordedWinGameId = useRef<number | null>(null);
 
   const handleNextLevel = useCallback(() => {
@@ -53,19 +61,6 @@ export default function GameView({
     if (!isLevelUnlocked(nextLevel.id, effectiveHighestCleared)) return;
     setCurrentLevelIndex(nextIndex);
   }, [currentLevelIndex, levelList, gameState, highestClearedLevel]);
-
-  /** 勝利覆蓋層：有下一關就進下一關，否則同關再開一局 */
-  const handleVictoryContinue = useCallback(() => {
-    if (!gameState) return;
-    const effectiveHighestCleared = Math.max(highestClearedLevel, gameState.level.id);
-    const nextIndex = currentLevelIndex + 1;
-    const nextLevel = levelList[nextIndex];
-    if (nextLevel && isLevelUnlocked(nextLevel.id, effectiveHighestCleared)) {
-      setCurrentLevelIndex(nextIndex);
-      return;
-    }
-    initGame(currentLevelIndex);
-  }, [currentLevelIndex, levelList, gameState, highestClearedLevel, initGame]);
 
   useEffect(() => {
     if (!gameState) return;
@@ -82,23 +77,28 @@ export default function GameView({
 
   if (!gameState) return null;
 
-  const isLastLevel = currentLevelIndex >= levelList.length - 1;
-  const showCampaignComplete = gameState.status === 'won' && isLastLevel;
-  const showLevelVictoryOverlay = gameState.status === 'won' && !isLastLevel;
+  const briefingLines = gameState.level.definition.chapterEntryBriefing;
+  const chapterHeading = gameState.level.name.includes(' · ')
+    ? gameState.level.name.split(' · ')[0]!
+    : gameState.level.name;
+  const showChapterBriefing =
+    gameState.status === 'playing' &&
+    Boolean(briefingLines?.length) &&
+    !chapterBriefingDismissed;
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-slate-950 p-4 font-sans text-slate-300 selection:bg-amber-500/30 md:p-8">
+    <div className="flex min-h-screen flex-col items-center bg-slate-950 p-3 font-sans text-slate-300 selection:bg-amber-500/30 md:p-5">
       <GameHeader
         fillPercentage={fillPercentage}
         coverageGoalPercent={gameState.level.definition.coverageGoal * 100}
         onBack={onBack}
         onRestart={() => initGame(currentLevelIndex)}
         levelName={gameState.level.name}
-        statusMessage={gameState.message}
         secondsLeft={gameState.secondsLeft}
         countdownStarted={gameState.timerStarted}
-        commanderPanel={
-          <CommanderPanel
+        guideButton={<LevelStrategyGuideTrigger onClick={() => setStrategyGuideOpen(true)} />}
+        telegraphPanel={
+          <CommanderTelegraphRow
             gameState={gameState}
             selectedHandIndex={selectedHandIndex}
             movingSoldier={movingSoldier}
@@ -107,9 +107,15 @@ export default function GameView({
         }
       />
 
-      <LevelStrategyGuide level={gameState.level} />
+      <LevelStrategyGuide
+        level={gameState.level}
+        open={strategyGuideOpen}
+        onOpenChange={setStrategyGuideOpen}
+        showTrigger={false}
+      />
 
       <div className="flex w-full max-w-6xl flex-col items-center">
+        <GameStatusMessageBar gameState={gameState} />
         <GameBoard
           boardRef={boardRef}
           gameState={gameState}
@@ -120,23 +126,18 @@ export default function GameView({
           gameState={gameState}
           currentLevelIndex={currentLevelIndex}
           levelCount={levelList.length}
+          fillPercentage={fillPercentage}
           onNextLevel={handleNextLevel}
           onReturnToMission={onBack}
+          onReplayFinalLevel={() => initGame(currentLevelIndex)}
         />
       </div>
 
-      <VictoryOverlay
-        visible={showLevelVictoryOverlay}
-        fillPercentage={fillPercentage}
-        continueLabel="下一關"
-        onContinue={handleVictoryContinue}
-      />
-      <CampaignCompleteOverlay
-        visible={showCampaignComplete}
-        fillPercentage={fillPercentage}
-        totalLevels={levelList.length}
-        onReturnToMission={onBack}
-        onReplayFinalLevel={() => initGame(currentLevelIndex)}
+      <ChapterEntryBriefingOverlay
+        visible={showChapterBriefing}
+        chapterTitle={chapterHeading}
+        lines={briefingLines ?? []}
+        onDismiss={() => setChapterBriefingDismissed(true)}
       />
     </div>
   );

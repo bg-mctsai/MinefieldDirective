@@ -41,11 +41,11 @@ export type DiamondMapLayout = {
   radius: number;
 };
 
-/** 尚未實作幾何時保留企劃意圖，執行時由 buildRuntimeLevel 使用 placeholder */
+/** 三角鑲嵌：索引 (x,y) 見 `triangleGrid.ts`；可選 forbidden 從矩形範圍內剔除 */
 export type TriangleMapLayout = {
   type: 'TRIANGLE';
-  /** 暫用方格替代時的邊界（TODO: 三角鑲嵌鄰接） */
   placeholder: { width: number; height: number };
+  forbiddenCells?: [number, number][];
 };
 
 export type HexagonMapLayout = {
@@ -97,6 +97,28 @@ export type LevelRewards = {
   todo?: string[];
 };
 
+/**
+ * 盤面視覺層：有機形雲塊巡迴霧層（不阻擋點擊）。
+ * 雲沿棋盤巡迴；半透明＋漸層＋模糊，底下格子會微微透出。
+ * centerX／centerY：0～1，微調巡迴起點。
+ */
+export type MapCloudOverlayConfig = {
+  centerX: number;
+  centerY: number;
+  /** 雲塊尺度係數：相對棋盤較短邊之比例（愈大遮住面積愈大） */
+  radius: number;
+  /** @deprecated 全圖巡迴，忽略（保留舊 JSON） */
+  driftX?: number;
+  /** @deprecated 同上 */
+  driftY?: number;
+  /** 巡迴一整圈秒數 */
+  periodSec?: number;
+  /** 整體霧濃度 0～1（愈低格子愈透；預設約 0.52） */
+  opacity?: number;
+  /** 柔邊模糊強度（px 量級，會換算成 SVG blur；預設約 16） */
+  blurPx?: number;
+};
+
 export interface LevelDefinition {
   levelId: number;
   chapter: number;
@@ -108,5 +130,9 @@ export interface LevelDefinition {
   mapLayout: MapLayout;
   commands: CommandConfig;
   events: LevelEvent[];
+  /** 各章首戰可選：進入關卡時顯示的長官簡報（長官發電報、部屬依數字佈雷；字串陣列逐行） */
+  chapterEntryBriefing?: string[];
+  /** 可選：飄動雲層遮罩（僅視覺，不影響邏輯） */
+  mapCloudOverlay?: MapCloudOverlayConfig;
   rewards: LevelRewards;
 }

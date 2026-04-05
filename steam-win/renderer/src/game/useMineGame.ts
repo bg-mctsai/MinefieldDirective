@@ -5,18 +5,13 @@ import {
   formatLossExplanation,
   lossConflictHighlightCells,
   lossExplosionMarkCells,
+  lossUiTopologyFromLevel,
+  mineSolverTopologyFromLevel,
 } from '../gameLogic';
+import { withinForcedRevealZone } from '../levelData/gridTopology';
 import { EXPLOSION_RESOLVE_MS, FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS, SOLDIER_MOVE_MS } from './constants';
 import { generateHand } from './generateHand';
 import type { GameState } from './types';
-
-function withinChebyshev(cellKey: string, cx: number, cy: number, radius: number): boolean {
-  const comma = cellKey.indexOf(',');
-  const x = Number(cellKey.slice(0, comma));
-  const y = Number(cellKey.slice(comma + 1));
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
-  return Math.max(Math.abs(x - cx), Math.abs(y - cy)) <= radius;
-}
 
 export function useMineGame(initialLevelIndex: number) {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(() => initialLevelIndex);
@@ -38,7 +33,7 @@ export function useMineGame(initialLevelIndex: number) {
       hand: generateHand(level, [...hints]),
       placedInTurn: 0,
       status: 'playing',
-      message: '長官電報已收。請先選電碼，再標定佈雷座標。',
+      message: '長官電報已收。先選一封電報上的數字，再標定佈雷座標。',
       conflictCells: [],
       explosionMarkCells: [],
       secondsLeft: limit > 0 ? limit : null,
@@ -104,13 +99,20 @@ export function useMineGame(initialLevelIndex: number) {
     await new Promise((resolve) => setTimeout(resolve, SOLDIER_MOVE_MS));
 
     const newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: newValue }];
-    const solver = new MineSolver(gameState.level.cells, newPlacedNumbers);
+    const mineTopo = mineSolverTopologyFromLevel(gameState.level);
+    const solver = new MineSolver(gameState.level.cells, newPlacedNumbers, mineTopo);
     const conflictDetails = solver.getConflicts();
 
     if (conflictDetails) {
+      const lossTopo = lossUiTopologyFromLevel(gameState.level);
       const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
-      const explosionMarkCells = lossExplosionMarkCells(gameState.level.cells, gameState.placedNumbers, { x, y });
-      const message = formatLossExplanation(conflictDetails, { x, y, value: newValue });
+      const explosionMarkCells = lossExplosionMarkCells(
+        gameState.level.cells,
+        gameState.placedNumbers,
+        { x, y },
+        lossTopo
+      );
+      const message = formatLossExplanation(conflictDetails, { x, y, value: newValue }, lossTopo);
       setGameState((prev) =>
         prev
           ? {
@@ -132,11 +134,15 @@ export function useMineGame(initialLevelIndex: number) {
     const newRevealedMines = new Set(gameState.revealedMines);
     const newRevealedClear = new Set(gameState.revealedClear);
     const r = FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS;
+    const validKeys = new Set(gameState.level.cells.map((c) => `${c.x},${c.y}`));
+    const revealMode = mineTopo.neighborMode;
+    const bw = gameState.level.width;
+    const bh = gameState.level.height;
     for (const m of forced.mines) {
-      if (withinChebyshev(m, x, y, r)) newRevealedMines.add(m);
+      if (withinForcedRevealZone(m, x, y, r, validKeys, revealMode, bw, bh)) newRevealedMines.add(m);
     }
     for (const c of forced.clear) {
-      if (withinChebyshev(c, x, y, r)) newRevealedClear.add(c);
+      if (withinForcedRevealZone(c, x, y, r, validKeys, revealMode, bw, bh)) newRevealedClear.add(c);
     }
 
     const newHand = [...gameState.hand];
@@ -182,8 +188,8 @@ export function useMineGame(initialLevelIndex: number) {
               placedInTurn: finalPlacedInTurn,
               message:
                 finalPlacedInTurn === 0
-                  ? '嘀——新電報到達，請選下一道電碼。'
-                  : '此格已依令安放。請選下一道電碼後再標座標。',
+                  ? '嘀——新電報到達，請選下一個數字。'
+                  : '此格已依令安放。請先選下一封電報上的數字，再標座標。',
             }
           : null
       );

@@ -148,7 +148,12 @@ function cellsFromMapLayout(layout: MapLayout): { x: number; y: number }[] {
       return diamondCells(layout.radius);
     case 'TRIANGLE': {
       const { width, height } = layout.placeholder;
-      return squareCells({ type: 'SQUARE', width, height });
+      return squareCells({
+        type: 'SQUARE',
+        width,
+        height,
+        forbiddenCells: layout.forbiddenCells,
+      });
     }
     case 'HEXAGON': {
       const { width, height } = layout.placeholder;

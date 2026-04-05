@@ -23,7 +23,7 @@ export function HomeHeader({
           <span className="inline-block w-2.5 animate-pulse text-[#F59E0B]">▍</span>
         </h1>
         <p className="mt-2 text-sm text-emerald-400/90 md:text-base">
-          [電報線就緒] 長官部門來電，依電碼於雷區執行佈雷。
+          [電報線就緒] 長官部門來電，依電報數字於雷區執行佈雷。
         </p>
       </div>
       <div className="flex flex-col items-end gap-2 text-xs md:text-sm">
