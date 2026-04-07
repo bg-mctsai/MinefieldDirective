@@ -52,6 +52,8 @@ export type HexagonMapLayout = {
   type: 'HEXAGON';
   /** 暫用方格替代（TODO: 六角鄰接） */
   placeholder: { width: number; height: number };
+  /** 占位矩形內禁佈格，與畫面蜂巢索引一致；可形成碎裂／空格區 */
+  forbiddenCells?: [number, number][];
 };
 
 export type MapLayout =
@@ -134,5 +136,11 @@ export interface LevelDefinition {
   chapterEntryBriefing?: string[];
   /** 可選：飄動雲層遮罩（僅視覺，不影響邏輯） */
   mapCloudOverlay?: MapCloudOverlayConfig;
+  /** 可選：開局即固定為地雷的座標；solver 會把這些格視為必雷 */
+  forcedMineCells?: [number, number][];
+  /** 可選：當此清單中的格子被邏輯確認為地雷時，加秒獎勵（預設 5 秒） */
+  mineBonusTargetCells?: [number, number][];
+  /** 可選：每個目標地雷確認時加的秒數；未填時預設 5 */
+  mineBonusSeconds?: number;
   rewards: LevelRewards;
 }

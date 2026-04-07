@@ -3,8 +3,10 @@ import { GameCell } from './GameCell';
 import { MapCloudOverlay } from './MapCloudOverlay';
 import { Soldier } from './Soldier';
 import { TriangleGameBoardLayer } from './TriangleGameBoardLayer';
+import { HexGameBoardLayer } from './HexGameBoardLayer';
 import { BOARD_GAP_PX, boardCellPxForLevel } from './constants';
 import { triangleBoardContentSizePx, triangleSidePxForLevel } from './triangleBoardLayout';
+import { hexBoardContentSizePx, hexRadiusPxForLevel } from './hexBoardLayout';
 import type { GameState } from './types';
 
 export function GameBoard({
@@ -12,16 +14,29 @@ export function GameBoard({
   movingSoldier,
   onCellClick,
   boardRef,
+  bonusFxKeys,
 }: {
   gameState: GameState;
   movingSoldier: { x: number; y: number; value: number } | null;
   onCellClick: (x: number, y: number) => void;
   boardRef: RefObject<HTMLDivElement | null>;
+  bonusFxKeys: string[];
 }) {
   const w = gameState.level.width;
   const h = gameState.level.height;
-  const isTriangle = gameState.level.definition.gridSystem === 'TRIANGLE';
+  const grid = gameState.level.definition.gridSystem;
+  const isTriangle = grid === 'TRIANGLE';
+  const isHex = grid === 'HEXAGON';
   const cloud = gameState.level.definition.mapCloudOverlay;
+  const configuredBonusTargets = gameState.level.definition.mineBonusTargetCells;
+  const effectiveBonusTargets =
+    configuredBonusTargets && configuredBonusTargets.length > 0
+      ? configuredBonusTargets
+      : (gameState.level.definition.forcedMineCells ?? []);
+  const bonusTargetKeys = new Set(effectiveBonusTargets.map(([tx, ty]) => `${tx},${ty}`));
+  const rewardedTargetKeys = gameState.rewardedMineTargets;
+  const bonusFxKeySet = new Set(bonusFxKeys);
+  const bonusSeconds = gameState.level.definition.mineBonusSeconds ?? 5;
 
   if (isTriangle) {
     const side = triangleSidePxForLevel(w, h);
@@ -41,6 +56,8 @@ export function GameBoard({
             contentW={contentW}
             contentH={contentH}
             onCellClick={onCellClick}
+            bonusFxKeys={bonusFxKeySet}
+            bonusSeconds={bonusSeconds}
           />
 
           {cloud && (
@@ -53,6 +70,48 @@ export function GameBoard({
               y={movingSoldier.y}
               cellSize={side}
               layout="triangle"
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (isHex) {
+    const r = hexRadiusPxForLevel(w, h);
+    const { w: contentW, h: contentH, minX, minY } = hexBoardContentSizePx(w, h, r);
+
+    return (
+      <div className="w-full max-w-full overflow-x-auto">
+        <div
+          ref={boardRef}
+          key={gameState.gameId}
+          className="relative mx-auto overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl"
+          style={{ width: 'fit-content' }}
+        >
+          <HexGameBoardLayer
+            gameState={gameState}
+            r={r}
+            contentW={contentW}
+            contentH={contentH}
+            minX={minX}
+            minY={minY}
+            onCellClick={onCellClick}
+            bonusFxKeys={bonusFxKeySet}
+            bonusSeconds={bonusSeconds}
+          />
+
+          {cloud && (
+            <MapCloudOverlay config={cloud} boardWidthPx={contentW} boardHeightPx={contentH} />
+          )}
+
+          {movingSoldier && (
+            <Soldier
+              x={movingSoldier.x}
+              y={movingSoldier.y}
+              cellSize={r}
+              layout="hex"
+              hexMin={{ x: minX, y: minY }}
             />
           )}
         </div>
@@ -97,6 +156,10 @@ export function GameBoard({
           const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
           const isExploding = gameState.status === 'exploding' && isMine;
           const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
+          const key = `${x},${y}`;
+          const isBonusTarget = bonusTargetKeys.has(key);
+          const isBonusTargetRewarded = rewardedTargetKeys.has(key);
+          const showBonusFx = bonusFxKeySet.has(key);
 
           return (
             <GameCell
@@ -109,6 +172,10 @@ export function GameBoard({
               isConflict={isConflict}
               isExploding={isExploding}
               showExplosionX={showExplosionX}
+              isBonusTarget={isBonusTarget}
+              isBonusTargetRewarded={isBonusTargetRewarded}
+              showBonusFx={showBonusFx}
+              bonusSeconds={bonusSeconds}
               status={gameState.status}
               onClick={onCellClick}
             />

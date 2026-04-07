@@ -12,6 +12,12 @@ const CHAPTER_NAMES = [
   '終焉防線',
 ] as const;
 
+function chapterDisplayName(chapter: number, levelId: number): string {
+  if (levelId >= 31 && levelId <= 40) return '三角高地';
+  if (levelId >= 41 && levelId <= 50) return '蜂巢防線';
+  return CHAPTER_NAMES[chapter] ?? `第 ${chapter} 章`;
+}
+
 function mapLayoutLabel(layout: MapLayout): string {
   switch (layout.type) {
     case 'SQUARE':
@@ -25,8 +31,11 @@ function mapLayoutLabel(layout: MapLayout): string {
       const terrain = n > 0 ? `；${n} 格隨機碎裂地形（禁佈）` : '';
       return `三角鑲嵌格網　寬${layout.placeholder.width}×高${layout.placeholder.height}${terrain}`;
     }
-    case 'HEXAGON':
-      return `六角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}`;
+    case 'HEXAGON': {
+      const n = layout.forbiddenCells?.length ?? 0;
+      const voids = n > 0 ? `；${n} 格空格／禁佈區` : '';
+      return `六角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}${voids}`;
+    }
     case 'MIXED':
       return `複合戰區（${layout.sectors.length} 個區塊）`;
     default:
@@ -37,7 +46,7 @@ function mapLayoutLabel(layout: MapLayout): string {
 function neighborLogicLine(grid: GridSystem): string {
   switch (grid) {
     case 'HEXAGON':
-      return '企劃為六角鄰接語意；目前仍以方格盤面運算，數字約束採周圍 8 格（含對角），待幾何接軌後會改為六角鄰居規則。';
+      return '蜂巢戰區：數字＝六邊形邊相接之鄰格內地雷數（邊界或空格區旁有效鄰格少於 6）。';
     case 'TRIANGLE':
       return '三角鑲嵌：數字＝共用邊的鄰格內地雷數；內格最多 3 鄰、邊界 1～2 鄰，故線索與電報數字皆不超過 3。';
     case 'MIXED':
@@ -50,6 +59,7 @@ function neighborLogicLine(grid: GridSystem): string {
 function forbiddenCount(layout: MapLayout): number | null {
   if (layout.type === 'SQUARE' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
   if (layout.type === 'TRIANGLE' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
+  if (layout.type === 'HEXAGON' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
   return null;
 }
 
@@ -95,7 +105,7 @@ export type LevelStrategyGuideModel = {
 
 export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideModel {
   const d = level.definition;
-  const chName = CHAPTER_NAMES[d.chapter] ?? `第 ${d.chapter} 章`;
+  const chName = chapterDisplayName(d.chapter, d.levelId);
   const digits = weightedDigits(d.commands.weights);
   const digitsLine =
     digits.length > 0 ? `電報可能出現的數字：${digits.join('、')}。` : '電碼池未設定有效數字（請檢查企劃資料）。';
@@ -131,6 +141,8 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
     logicNeighborLine:
       d.chapter === 4 && d.levelId >= 33 && d.mapLayout.type === 'TRIANGLE' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
         ? `${neighborLogicLine(d.gridSystem)} 本關起含種子隨機地形格（不可佈署），邊界形狀會影響可走的三角拓撲。`
-        : neighborLogicLine(d.gridSystem),
+        : d.mapLayout.type === 'HEXAGON' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
+          ? `${neighborLogicLine(d.gridSystem)} 本關含種子隨機空格區域（不可佈署）。`
+          : neighborLogicLine(d.gridSystem),
   };
 }

@@ -179,13 +179,16 @@ export type MineSolverTopology = {
   neighborMode: NeighborMode;
   boardWidth: number;
   boardHeight: number;
+  forcedMineKeys?: Set<string>;
 };
 
 export function mineSolverTopologyFromLevel(level: PlayableLevel): MineSolverTopology {
+  const forcedMineKeys = new Set((level.definition.forcedMineCells ?? []).map(([x, y]) => `${x},${y}`));
   return {
     neighborMode: neighborModeForGridSystem(level.definition.gridSystem),
     boardWidth: level.width,
     boardHeight: level.height,
+    forcedMineKeys,
   };
 }
 
@@ -214,6 +217,7 @@ export class MineSolver {
   private neighborMode: NeighborMode;
   private boardW: number;
   private boardH: number;
+  private forcedMineKeys: Set<string>;
 
   constructor(
     validCells: { x: number; y: number }[],
@@ -228,6 +232,7 @@ export class MineSolver {
     this.neighborMode = topology?.neighborMode ?? 'MOORE';
     this.boardW = topology?.boardWidth ?? 0;
     this.boardH = topology?.boardHeight ?? 0;
+    this.forcedMineKeys = topology?.forcedMineKeys ?? new Set<string>();
 
     // Pre-calculate neighbors for constraints
     this.constraints.forEach((c, idx) => {
@@ -239,10 +244,14 @@ export class MineSolver {
     const key = `${x},${y}`;
     if (this.neighborCache.has(key)) return this.neighborCache.get(key)!;
 
-    const neighbors =
-      this.neighborMode === 'MOORE'
-        ? logicNeighborKeys(x, y, this.validCells, 'MOORE', this.boardW, this.boardH)
-        : logicNeighborKeys(x, y, this.validCells, 'TRIANGLE', this.boardW, this.boardH);
+    const neighbors = logicNeighborKeys(
+      x,
+      y,
+      this.validCells,
+      this.neighborMode,
+      this.boardW,
+      this.boardH
+    );
 
     this.neighborCache.set(key, neighbors);
     return neighbors;
@@ -259,7 +268,7 @@ export class MineSolver {
     const varToConstraints = new Map<string, number[]>();
     for (let i = 0; i < n; i++) {
       for (const nk of this.constraintNeighbors.get(i)!) {
-        if (numberCells.has(nk)) continue;
+        if (numberCells.has(nk) || this.forcedMineKeys.has(nk)) continue;
         let arr = varToConstraints.get(nk);
         if (!arr) {
           arr = [];
@@ -307,7 +316,7 @@ export class MineSolver {
       let mineCount = 0;
       let unknownCount = 0;
       for (const n of neighbors) {
-        const val = currentMines.get(n);
+        const val = currentMines.get(n) ?? (this.forcedMineKeys.has(n) ? 1 : undefined);
         if (val !== undefined) {
           if (val === 1) mineCount++;
         } else {
@@ -326,7 +335,7 @@ export class MineSolver {
       const neighbors = this.constraintNeighbors.get(i)!;
       let mineCount = 0;
       for (const n of neighbors) {
-        if (currentMines.get(n) === 1) mineCount++;
+        if ((currentMines.get(n) ?? (this.forcedMineKeys.has(n) ? 1 : 0)) === 1) mineCount++;
       }
       if (mineCount !== c.value) return false;
     }
@@ -343,6 +352,9 @@ export class MineSolver {
       return this.checkAllFor(currentMines, constraintIndices);
     }
     const cell = vars[index];
+    if (currentMines.has(cell)) {
+      return this.backtrackForComponent(vars, index + 1, currentMines, constraintIndices);
+    }
     currentMines.set(cell, 0);
     if (this.isPartiallyValidFor(currentMines, constraintIndices) && this.backtrackForComponent(vars, index + 1, currentMines, constraintIndices)) {
       return true;
@@ -355,51 +367,33 @@ export class MineSolver {
     return false;
   }
 
-  private findAllSolutionsForComponent(
-    vars: string[],
-    index: number,
-    currentMines: Map<string, number>,
-    solutions: Map<string, number>[],
-    limit: number,
-    constraintIndices: readonly number[]
-  ): void {
-    if (solutions.length >= limit) return;
-    if (index === vars.length) {
-      if (this.checkAllFor(currentMines, constraintIndices)) {
-        solutions.push(new Map(currentMines));
-      }
-      return;
-    }
-    const cell = vars[index];
-    for (const val of [0, 1] as const) {
-      currentMines.set(cell, val);
-      if (this.isPartiallyValidFor(currentMines, constraintIndices)) {
-        this.findAllSolutionsForComponent(vars, index + 1, currentMines, solutions, limit, constraintIndices);
-      }
-      if (solutions.length >= limit) return;
-    }
-    currentMines.delete(cell);
-  }
-
   private findForcedInComponent(
     constraintIndices: readonly number[],
     vars: readonly string[]
   ): { mines: string[]; clear: string[] } {
-    const solutions: Map<string, number>[] = [];
-    this.findAllSolutionsForComponent([...vars], 0, new Map(), solutions, 100, constraintIndices);
-    if (solutions.length === 0) return { mines: [], clear: [] };
-
     const forcedMines: string[] = [];
     const forcedClear: string[] = [];
+    const varArr = [...vars];
+
+    // 1) 先取一組參考解；順便證明此分量可滿足
+    const refSol = new Map<string, number>();
+    if (!this.backtrackForComponent(varArr, 0, refSol, constraintIndices)) {
+      return { mines: [], clear: [] };
+    }
+    const ref = new Map(refSol);
+
+    // 2) 逐格只測「反向值」；已確認的 forced 值累積帶入後續搜尋以縮小空間
+    const known = new Map<string, number>();
     for (const cell of vars) {
-      let alwaysMine = true;
-      let alwaysClear = true;
-      for (const sol of solutions) {
-        if (sol.get(cell) === 1) alwaysClear = false;
-        if (sol.get(cell) === 0) alwaysMine = false;
+      const refVal = ref.get(cell)!;
+      const probe = new Map(known);
+      probe.set(cell, 1 - refVal);
+      const altOk = this.backtrackForComponent(varArr, 0, probe, constraintIndices);
+      if (!altOk) {
+        if (refVal === 1) forcedMines.push(cell);
+        else forcedClear.push(cell);
+        known.set(cell, refVal);
       }
-      if (alwaysMine) forcedMines.push(cell);
-      if (alwaysClear) forcedClear.push(cell);
     }
     return { mines: forcedMines, clear: forcedClear };
   }
@@ -459,6 +453,17 @@ export class MineSolver {
    * 若盤面有效則回傳 null；否則回傳衝突數字格詳情（供 UI 說明與標示）。
    */
   public getConflicts(): ConflictDetail[] | null {
+    const numberCellKeys = new Set(this.constraints.map((c) => `${c.x},${c.y}`));
+    for (const k of this.forcedMineKeys) {
+      if (!numberCellKeys.has(k)) continue;
+      const comma = k.indexOf(',');
+      const x = Number(k.slice(0, comma));
+      const y = Number(k.slice(comma + 1));
+      const c = this.constraints.find((cc) => cc.x === x && cc.y === y);
+      if (c) {
+        return [{ x, y, displayValue: c.value, kind: 'global_unsatisfiable' }];
+      }
+    }
     const components = this.buildConstraintComponents();
     for (const comp of components) {
       if (!this.backtrackForComponent(comp.vars, 0, new Map(), comp.constraintIndices)) {
@@ -487,7 +492,7 @@ export class MineSolver {
       mines.push(...f.mines);
       clear.push(...f.clear);
     }
-    return { mines, clear };
+    return { mines: Array.from(new Set(mines)), clear: Array.from(new Set(clear)) };
   }
 }
 

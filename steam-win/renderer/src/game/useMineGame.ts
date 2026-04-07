@@ -13,11 +13,22 @@ import { EXPLOSION_RESOLVE_MS, FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS, SOLDIER_MOVE
 import { generateHand } from './generateHand';
 import type { GameState } from './types';
 
+function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
+  const configuredBonusTargets = level.definition.mineBonusTargetCells;
+  const effectiveBonusTargets =
+    configuredBonusTargets && configuredBonusTargets.length > 0
+      ? configuredBonusTargets
+      : (level.definition.forcedMineCells ?? []);
+  return new Set(effectiveBonusTargets.map(([tx, ty]) => `${tx},${ty}`));
+}
+
 export function useMineGame(initialLevelIndex: number) {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(() => initialLevelIndex);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedHandIndex, setSelectedHandIndex] = useState<number | null>(null);
   const [movingSoldier, setMovingSoldier] = useState<{ x: number; y: number; value: number } | null>(null);
+  const [bonusFxKeys, setBonusFxKeys] = useState<string[]>([]);
+  const bonusFxTimeoutsRef = useRef<Map<string, number>>(new Map());
   const boardRef = useRef<HTMLDivElement>(null);
 
   const initGame = useCallback((levelIndex: number) => {
@@ -38,7 +49,13 @@ export function useMineGame(initialLevelIndex: number) {
       explosionMarkCells: [],
       secondsLeft: limit > 0 ? limit : null,
       timerStarted: false,
+      rewardedMineTargets: new Set(),
     });
+    for (const t of bonusFxTimeoutsRef.current.values()) {
+      window.clearTimeout(t);
+    }
+    bonusFxTimeoutsRef.current.clear();
+    setBonusFxKeys([]);
     setSelectedHandIndex(null);
     setMovingSoldier(null);
   }, []);
@@ -131,15 +148,32 @@ export function useMineGame(initialLevelIndex: number) {
     }
 
     const forced = solver.findForced(newPlacedNumbers);
+    // 目標雷的「確認」只採玩家可見邏輯推論，不吃 hidden forced-mine 先驗。
+    const logicOnlySolver = new MineSolver(gameState.level.cells, newPlacedNumbers, {
+      ...mineTopo,
+      forcedMineKeys: new Set<string>(),
+    });
+    const logicOnlyForcedMines = new Set(logicOnlySolver.findForced(newPlacedNumbers).mines);
+    const bonusTargetKeys = effectiveBonusTargetKeys(gameState.level);
     const newRevealedMines = new Set(gameState.revealedMines);
     const newRevealedClear = new Set(gameState.revealedClear);
+    const newlyConfirmedMines: string[] = [];
     const r = FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS;
     const validKeys = new Set(gameState.level.cells.map((c) => `${c.x},${c.y}`));
     const revealMode = mineTopo.neighborMode;
     const bw = gameState.level.width;
     const bh = gameState.level.height;
     for (const m of forced.mines) {
-      if (withinForcedRevealZone(m, x, y, r, validKeys, revealMode, bw, bh)) newRevealedMines.add(m);
+      if (!withinForcedRevealZone(m, x, y, r, validKeys, revealMode, bw, bh)) continue;
+      // 所有紅雷顯示都只採用玩家可見資訊可推得的結果，避免 hidden 先驗讓雷提早變紅。
+      if (!logicOnlyForcedMines.has(m)) continue;
+      if (!newRevealedMines.has(m)) newlyConfirmedMines.push(m);
+      newRevealedMines.add(m);
+    }
+    for (const targetKey of bonusTargetKeys) {
+      if (!logicOnlyForcedMines.has(targetKey)) continue;
+      if (!newRevealedMines.has(targetKey)) newlyConfirmedMines.push(targetKey);
+      newRevealedMines.add(targetKey);
     }
     for (const c of forced.clear) {
       if (withinForcedRevealZone(c, x, y, r, validKeys, revealMode, bw, bh)) newRevealedClear.add(c);
@@ -159,6 +193,28 @@ export function useMineGame(initialLevelIndex: number) {
 
     const totalKnown = newPlacedNumbers.length + newRevealedMines.size + newRevealedClear.size;
     const fillPercentage = (totalKnown / gameState.level.cells.length) * 100;
+    const bonusSecondsPerMine = gameState.level.definition.mineBonusSeconds ?? 5;
+    const newlyRewardedTargets = newlyConfirmedMines.filter(
+      (k) => bonusTargetKeys.has(k) && !gameState.rewardedMineTargets.has(k)
+    );
+    const gainedSeconds =
+      gameState.secondsLeft !== null && bonusSecondsPerMine > 0
+        ? newlyRewardedTargets.length * bonusSecondsPerMine
+        : 0;
+    const nextRewardedMineTargets = new Set(gameState.rewardedMineTargets);
+    for (const k of newlyRewardedTargets) nextRewardedMineTargets.add(k);
+    if (newlyRewardedTargets.length > 0) {
+      setBonusFxKeys((prev) => Array.from(new Set([...prev, ...newlyRewardedTargets])));
+      for (const key of newlyRewardedTargets) {
+        const prevTimeout = bonusFxTimeoutsRef.current.get(key);
+        if (prevTimeout !== undefined) window.clearTimeout(prevTimeout);
+        const timeoutId = window.setTimeout(() => {
+          setBonusFxKeys((prev) => prev.filter((k) => k !== key));
+          bonusFxTimeoutsRef.current.delete(key);
+        }, 850);
+        bonusFxTimeoutsRef.current.set(key, timeoutId);
+      }
+    }
 
     const winPct = gameState.level.definition.coverageGoal * 100;
     if (fillPercentage >= winPct) {
@@ -172,7 +228,13 @@ export function useMineGame(initialLevelIndex: number) {
               hand: finalHand,
               placedInTurn: finalPlacedInTurn,
               status: 'won',
-              message: '報告長官！依電報完成佈雷，任務圓滿達成！',
+              message:
+                gainedSeconds > 0
+                  ? `報告長官！目標雷區確認，時限 +${gainedSeconds} 秒；依電報完成佈雷，任務圓滿達成！`
+                  : '報告長官！依電報完成佈雷，任務圓滿達成！',
+              secondsLeft:
+                prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
+              rewardedMineTargets: nextRewardedMineTargets,
             }
           : null
       );
@@ -186,10 +248,19 @@ export function useMineGame(initialLevelIndex: number) {
               revealedClear: newRevealedClear,
               hand: finalHand,
               placedInTurn: finalPlacedInTurn,
+              secondsLeft:
+                prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
+              rewardedMineTargets: nextRewardedMineTargets,
               message:
-                finalPlacedInTurn === 0
-                  ? '嘀——新電報到達，請選下一個數字。'
-                  : '此格已依令安放。請先選下一封電報上的數字，再標座標。',
+                gainedSeconds > 0
+                  ? `目標雷格確認，時限 +${gainedSeconds} 秒。${
+                      finalPlacedInTurn === 0
+                        ? '嘀——新電報到達，請選下一個數字。'
+                        : '此格已依令安放。請先選下一封電報上的數字，再標座標。'
+                    }`
+                  : finalPlacedInTurn === 0
+                    ? '嘀——新電報到達，請選下一個數字。'
+                    : '此格已依令安放。請先選下一封電報上的數字，再標座標。',
             }
           : null
       );
@@ -217,5 +288,6 @@ export function useMineGame(initialLevelIndex: number) {
     initGame,
     handleCellClick,
     fillPercentage,
+    bonusFxKeys,
   } as const;
 }

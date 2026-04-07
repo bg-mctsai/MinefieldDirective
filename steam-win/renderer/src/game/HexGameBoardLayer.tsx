@@ -2,26 +2,26 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Bomb } from 'lucide-react';
 import { MineRuins } from './MineRuins';
-import { triangleVerticesPx } from './triangleBoardLayout';
+import { hexCenterScreenPx, hexPolygonPoints } from './hexBoardLayout';
 import type { GameState } from './types';
 
-function polyPoints(v: { ax: number; ay: number; bx: number; by: number; cx: number; cy: number }): string {
-  return `${v.ax},${v.ay} ${v.bx},${v.by} ${v.cx},${v.cy}`;
-}
-
-export function TriangleGameBoardLayer({
+export function HexGameBoardLayer({
   gameState,
-  side,
+  r,
   contentW,
   contentH,
+  minX,
+  minY,
   onCellClick,
   bonusFxKeys,
   bonusSeconds,
 }: {
   gameState: GameState;
-  side: number;
+  r: number;
   contentW: number;
   contentH: number;
+  minX: number;
+  minY: number;
   onCellClick: (x: number, y: number) => void;
   bonusFxKeys: Set<string>;
   bonusSeconds: number;
@@ -44,11 +44,11 @@ export function TriangleGameBoardLayer({
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       if (validKey.has(`${x},${y}`)) continue;
-      const v = triangleVerticesPx(x, y, side);
+      const { cx, cy } = hexCenterScreenPx(x, y, r, minX, minY);
       terrainPolys.push(
         <polygon
           key={`terrain-${gameState.gameId}-${x}-${y}`}
-          points={polyPoints(v)}
+          points={hexPolygonPoints(cx, cy, r)}
           className="pointer-events-none fill-slate-900 stroke-none"
           aria-hidden
         />
@@ -66,7 +66,7 @@ export function TriangleGameBoardLayer({
       <g className="pointer-events-none">{terrainPolys}</g>
       {gameState.level.cells.map((cell) => {
         const { x, y } = cell;
-        const v = triangleVerticesPx(x, y, side);
+        const { cx, cy } = hexCenterScreenPx(x, y, r, minX, minY);
         const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
         const isMine = gameState.revealedMines.has(`${x},${y}`);
         const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
@@ -78,10 +78,8 @@ export function TriangleGameBoardLayer({
         const showBonusFx = bonusFxKeys.has(key);
         const neutralBonusTarget = isBonusTarget && !placed && !isConflict;
 
-        const cx = (v.ax + v.bx + v.cx) / 3;
-        const cy = (v.ay + v.by + v.cy) / 3;
-        const numFont = Math.max(11, Math.round(side * 0.34));
-        const iconSize = Math.max(12, Math.round(side * 0.32));
+        const numFont = Math.max(11, Math.round(r * 0.38));
+        const iconSize = Math.max(12, Math.round(r * 0.36));
 
         let fillClass = 'fill-slate-800';
         let strokeClass = 'stroke-slate-600';
@@ -106,11 +104,11 @@ export function TriangleGameBoardLayer({
           <motion.g
             key={`${gameState.gameId}-${x}-${y}`}
             style={{ transformOrigin: `${cx}px ${cy}px` }}
-            whileHover={playing ? { scale: 1.035 } : {}}
+            whileHover={playing ? { scale: 1.04 } : {}}
             transition={{ type: 'spring', stiffness: 400, damping: 24 }}
           >
             <polygon
-              points={polyPoints(v)}
+              points={hexPolygonPoints(cx, cy, r)}
               className={`cursor-pointer stroke-[1.5] transition-colors ${fillClass} ${strokeClass} ${
                 isConflict ? 'animate-pulse' : ''
               }`}
@@ -148,21 +146,21 @@ export function TriangleGameBoardLayer({
             {showExplosionX && postBlast && (
               <g className="pointer-events-none" aria-hidden>
                 <line
-                  x1={cx - side * 0.22}
-                  y1={cy - side * 0.22}
-                  x2={cx + side * 0.22}
-                  y2={cy + side * 0.22}
+                  x1={cx - r * 0.28}
+                  y1={cy - r * 0.28}
+                  x2={cx + r * 0.28}
+                  y2={cy + r * 0.28}
                   className="stroke-rose-400"
-                  strokeWidth={Math.max(3, side * 0.08)}
+                  strokeWidth={Math.max(3, r * 0.09)}
                   strokeLinecap="round"
                 />
                 <line
-                  x1={cx + side * 0.22}
-                  y1={cy - side * 0.22}
-                  x2={cx - side * 0.22}
-                  y2={cy + side * 0.22}
+                  x1={cx + r * 0.28}
+                  y1={cy - r * 0.28}
+                  x2={cx - r * 0.28}
+                  y2={cy + r * 0.28}
                   className="stroke-rose-400"
-                  strokeWidth={Math.max(3, side * 0.08)}
+                  strokeWidth={Math.max(3, r * 0.09)}
                   strokeLinecap="round"
                 />
               </g>
@@ -203,14 +201,14 @@ export function TriangleGameBoardLayer({
             {showBonusFx && (
               <motion.text
                 x={cx}
-                y={cy - side * 0.08}
+                y={cy - r * 0.1}
                 textAnchor="middle"
                 dominantBaseline="central"
-                initial={{ y: cy + side * 0.1, opacity: 0, scale: 0.92 }}
-                animate={{ y: cy - side * 0.42, opacity: 1, scale: 1.04 }}
+                initial={{ y: cy + r * 0.12, opacity: 0, scale: 0.92 }}
+                animate={{ y: cy - r * 0.46, opacity: 1, scale: 1.04 }}
                 transition={{ duration: 0.55, ease: 'easeOut' }}
                 className="pointer-events-none fill-emerald-300 font-black drop-shadow-[0_0_6px_rgba(16,185,129,0.75)]"
-                style={{ fontSize: Math.max(11, Math.round(side * 0.3)) }}
+                style={{ fontSize: Math.max(11, Math.round(r * 0.34)) }}
               >
                 +{bonusSeconds}
               </motion.text>

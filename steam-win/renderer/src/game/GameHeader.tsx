@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { Bomb, ChevronLeft, RefreshCw } from 'lucide-react';
+import { Bomb, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 /** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬 */
 export const GAME_HEADER_CARD_CLASS =
@@ -11,6 +11,8 @@ export function GameHeader({
   coverageGoalPercent,
   onBack,
   onRestart,
+  showNextLevelButton,
+  onNextLevel,
   levelName,
   secondsLeft,
   countdownStarted,
@@ -22,6 +24,9 @@ export function GameHeader({
   coverageGoalPercent: number;
   onBack: () => void;
   onRestart: () => void;
+  /** 過關並按慶祝「確定」後，非最終關時顯示 */
+  showNextLevelButton?: boolean;
+  onNextLevel?: () => void;
   levelName: string;
   /** `null` = 本關不計時 */
   secondsLeft: number | null;
@@ -103,14 +108,26 @@ export function GameHeader({
               </>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onRestart}
-            className="mt-3 shrink-0 self-center rounded-2xl bg-slate-800 p-3 text-slate-300 transition-all hover:bg-slate-700 active:scale-95 sm:mt-0 sm:ml-auto sm:self-auto"
-            title="重新開始"
-          >
-            <RefreshCw size={20} />
-          </button>
+          <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 self-center sm:mt-0 sm:ml-auto sm:justify-end sm:self-auto">
+            {showNextLevelButton && onNextLevel != null && (
+              <button
+                type="button"
+                onClick={onNextLevel}
+                className="inline-flex items-center gap-0.5 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-emerald-900/35 transition-all hover:bg-emerald-500 active:scale-95"
+              >
+                下一關
+                <ChevronRight size={18} strokeWidth={2.5} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onRestart}
+              className="rounded-2xl bg-slate-800 p-3 text-slate-300 transition-all hover:bg-slate-700 active:scale-95"
+              title="重新開始"
+            >
+              <RefreshCw size={20} />
+            </button>
+          </div>
         </div>
 
         {telegraphPanel != null && (

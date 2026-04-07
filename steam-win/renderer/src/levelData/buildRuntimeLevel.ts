@@ -157,7 +157,12 @@ function cellsFromMapLayout(layout: MapLayout): { x: number; y: number }[] {
     }
     case 'HEXAGON': {
       const { width, height } = layout.placeholder;
-      return squareCells({ type: 'SQUARE', width, height });
+      return squareCells({
+        type: 'SQUARE',
+        width,
+        height,
+        forbiddenCells: layout.forbiddenCells,
+      });
     }
     case 'MIXED': {
       const all: { x: number; y: number }[] = [];

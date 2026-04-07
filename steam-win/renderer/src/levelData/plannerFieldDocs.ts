@@ -18,7 +18,8 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
     'SQUARE=矩形格網；MIXED=多區塊合併；CROSS=十字；DIAMOND=菱形；TRIANGLE／HEXAGON=特殊（占位時仍可能為方格）。',
   'mapLayout.width': '（type=SQUARE）寬度格數。',
   'mapLayout.height': '（type=SQUARE）高度格數。',
-  'mapLayout.forbiddenCells': '（type=SQUARE，可選）障礙座標 [[x,y],…]，該格不可部署。',
+  'mapLayout.forbiddenCells':
+    '（type=SQUARE／TRIANGLE／HEXAGON，可選）障礙座標 [[x,y],…]，該格不可部署；HEXAGON 時索引與 placeholder 矩形及畫面蜂巢格一致。',
   'mapLayout.prePlaced': '（type=SQUARE，可選）開局已揭示提示 [{ pos:[x,y], value:數字 }, …]。',
   'mapLayout.sectors': '（type=MIXED）區塊陣列；每項含 id、shape（SQUARE|HEXAGON|TRIANGLE）、offset{x,y}、size[w,h]。',
   'mapLayout.placeholder': '（type=TRIANGLE 或 HEXAGON）暫用方格寬高，待真幾何接線後替換。',
@@ -43,6 +44,9 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   'mapCloudOverlay.periodSec': '沙帶移動速度基準（秒）；值愈大移動愈慢（建議 10～22；預設 18）。',
   'mapCloudOverlay.opacity': '0～1，沙帶通過時的濃度；愈高格子愈不清楚（建議 0.45～0.70；預設 0.52）。',
   'mapCloudOverlay.blurPx': '柔邊模糊強度 px（建議 32～56；愈大愈霧；預設 44）。',
+  forcedMineCells: '可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。',
+  mineBonusTargetCells: '可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。',
+  mineBonusSeconds: '可選；每個目標地雷觸發時加秒數（預設 5）。',
 
   rewards: '通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。',
 };

@@ -17,4 +17,6 @@ export interface GameState {
   secondsLeft: number | null;
   /** 限時關：首次從長官電報選定電碼後才開始倒數 */
   timerStarted: boolean;
+  /** 已領過加秒獎勵的目標雷格，避免重複加秒 */
+  rewardedMineTargets: Set<string>;
 }

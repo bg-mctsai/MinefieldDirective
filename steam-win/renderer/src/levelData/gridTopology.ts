@@ -1,7 +1,8 @@
 import type { GridSystem } from './types';
+import { hexEdgeNeighborKeys } from './hexGrid';
 import { triangleEdgeNeighborKeys } from './triangleGrid';
 
-export type NeighborMode = 'MOORE' | 'TRIANGLE';
+export type NeighborMode = 'MOORE' | 'TRIANGLE' | 'HEXAGON';
 
 const cellKey = (x: number, y: number) => `${x},${y}`;
 
@@ -26,11 +27,14 @@ export function logicNeighborKeys(
   boardH: number
 ): string[] {
   if (mode === 'MOORE') return mooreNeighborKeys(x, y, validKeys);
+  if (mode === 'HEXAGON') return hexEdgeNeighborKeys(x, y, boardW, boardH, validKeys);
   return triangleEdgeNeighborKeys(x, y, boardW, boardH, validKeys);
 }
 
 export function neighborModeForGridSystem(gs: GridSystem): NeighborMode {
-  return gs === 'TRIANGLE' ? 'TRIANGLE' : 'MOORE';
+  if (gs === 'TRIANGLE') return 'TRIANGLE';
+  if (gs === 'HEXAGON') return 'HEXAGON';
+  return 'MOORE';
 }
 
 /** 敗北台詞用：兩格是否在「邏輯鄰接圖」上相鄰（三角為邊鄰接，其餘為八鄰） */
@@ -70,28 +74,32 @@ export function withinForcedRevealZone(
     return Math.max(Math.abs(tx - centerX), Math.abs(ty - centerY)) <= maxDist;
   }
 
-  const goal = targetKey;
-  const start = cellKey(centerX, centerY);
-  if (goal === start) return true;
+  if (mode === 'TRIANGLE' || mode === 'HEXAGON') {
+    const goal = targetKey;
+    const start = cellKey(centerX, centerY);
+    if (goal === start) return true;
 
-  const queue: { x: number; y: number; d: number }[] = [{ x: centerX, y: centerY, d: 0 }];
-  const seen = new Set<string>([start]);
+    const queue: { x: number; y: number; d: number }[] = [{ x: centerX, y: centerY, d: 0 }];
+    const seen = new Set<string>([start]);
 
-  while (queue.length > 0) {
-    const cur = queue.shift()!;
-    if (cur.d >= maxDist) continue;
-    const nextD = cur.d + 1;
-    for (const nk of logicNeighborKeys(cur.x, cur.y, validKeys, 'TRIANGLE', boardW, boardH)) {
-      if (nk === goal) return true;
-      if (seen.has(nk)) continue;
-      seen.add(nk);
-      const c = nk.indexOf(',');
-      queue.push({
-        x: Number(nk.slice(0, c)),
-        y: Number(nk.slice(c + 1)),
-        d: nextD,
-      });
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      if (cur.d >= maxDist) continue;
+      const nextD = cur.d + 1;
+      for (const nk of logicNeighborKeys(cur.x, cur.y, validKeys, mode, boardW, boardH)) {
+        if (nk === goal) return true;
+        if (seen.has(nk)) continue;
+        seen.add(nk);
+        const c = nk.indexOf(',');
+        queue.push({
+          x: Number(nk.slice(0, c)),
+          y: Number(nk.slice(c + 1)),
+          d: nextD,
+        });
+      }
     }
+    return false;
   }
+
   return false;
 }

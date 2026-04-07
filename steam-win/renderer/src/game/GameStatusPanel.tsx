@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, Crown, Map, Trophy } from 'lucide-react';
+import { Crown, Map } from 'lucide-react';
 import type { GameState } from './types';
 
 function messageColorClass(status: GameState['status']): string {
@@ -41,7 +41,7 @@ export function GameStatusPanel({
   currentLevelIndex,
   levelCount,
   fillPercentage,
-  onNextLevel,
+  showInlineWinActions,
   onReturnToMission,
   onReplayFinalLevel,
 }: {
@@ -49,12 +49,18 @@ export function GameStatusPanel({
   currentLevelIndex: number;
   levelCount: number;
   fillPercentage: number;
-  onNextLevel: () => void;
+  /** 過關慶祝按「確定」後才顯示最終關操作列 */
+  showInlineWinActions: boolean;
   onReturnToMission?: () => void;
   onReplayFinalLevel?: () => void;
 }) {
   const isFinalLevel = currentLevelIndex >= levelCount - 1;
-  const showWinPanel = gameState.status === 'won' && (!isFinalLevel || onReturnToMission);
+  /** 非最終關的「下一關」改在 GameHeader；此處僅保留最終關操作列 */
+  const showWinPanel =
+    showInlineWinActions &&
+    gameState.status === 'won' &&
+    isFinalLevel &&
+    Boolean(onReturnToMission);
 
   return (
     <div className="mt-2 w-full max-w-6xl">
@@ -68,30 +74,6 @@ export function GameStatusPanel({
             transition={{ duration: 0.18 }}
             className="w-full"
           >
-            {!isFinalLevel && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-emerald-500/85 bg-slate-900/95 px-3 py-2 shadow-md shadow-emerald-950/20 sm:gap-3 sm:px-4 sm:py-2.5">
-                <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-900/35">
-                    <Trophy size={20} className="text-emerald-400" />
-                  </div>
-                  <div className="min-w-0 text-left">
-                    <p className="text-sm font-black leading-tight text-white sm:text-base">任務成功！</p>
-                    <p className="text-[11px] font-bold leading-tight text-emerald-500 sm:text-xs">
-                      覆蓋率 {fillPercentage.toFixed(1)}%
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={onNextLevel}
-                  className="inline-flex shrink-0 items-center gap-0.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-black text-white shadow-sm shadow-emerald-900/30 transition-all hover:bg-emerald-500 active:scale-[0.98] sm:px-4 sm:text-sm"
-                >
-                  下一關
-                  <ChevronRight className="shrink-0" size={16} strokeWidth={2.5} />
-                </button>
-              </div>
-            )}
-
             {isFinalLevel && onReturnToMission && (
               <div className="flex flex-col gap-2 rounded-xl border-2 border-amber-400/85 bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 px-3 py-2.5 shadow-md shadow-amber-950/20 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">

@@ -79,6 +79,11 @@ function weightsCh4(): CommandConfig['weights'] {
   return { '1': 28, '2': 34, '3': 38 };
 }
 
+/** 蜂巢防線 41～50：六角鄰最多 6，電報數字僅 1～6；手牌上限 3（與 levels.json 一致） */
+function weightsCh4Honeycomb(): CommandConfig['weights'] {
+  return { '1': 18, '2': 22, '3': 20, '4': 18, '5': 12, '6': 8 };
+}
+
 function weightsCh5(): CommandConfig['weights'] {
   // 企劃：六角鄰居上限 6；核心尚未支援 0，1–6 加權偏高
   return { '1': 18, '2': 22, '3': 20, '4': 18, '5': 12, '6': 8, '7': 1, '8': 1 };
@@ -100,13 +105,14 @@ function defaultCommands(ch: number, levelId: number): CommandConfig {
     return { maxHand: 4, poolType, weights: weightsCh1() };
   }
   let maxHand = ch >= 5 ? 5 : 4;
-  /** 三角高地 31～40：長官電報固定 3 道並陳，從中擇一執行 */
-  if (ch === 4 && levelId >= 31 && levelId <= 40) {
+  /** 第四章 31～50：長官電報同時最多 3 道（手牌上限 3） */
+  if (ch === 4 && levelId >= 31 && levelId <= 50) {
     maxHand = 3;
   }
   let weights: CommandConfig['weights'];
   if (ch === 2) weights = weightsCh2();
   else if (ch === 3) weights = weightsCh3();
+  else if (ch === 4 && levelId >= 41) weights = weightsCh4Honeycomb();
   else if (ch === 4) weights = weightsCh4();
   else if (ch === 5) weights = weightsCh5();
   else if (ch === 6) weights = weightsCh6();
@@ -119,7 +125,7 @@ function defaultCommands(ch: number, levelId: number): CommandConfig {
   return { maxHand, poolType, weights };
 }
 
-function defaultEvents(ch: number, timeLimit: number): LevelEvent[] {
+function defaultEvents(ch: number, timeLimit: number, levelId: number): LevelEvent[] {
   if (ch <= 2) return [];
   if (ch === 3) {
     return [
@@ -129,6 +135,12 @@ function defaultEvents(ch: number, timeLimit: number): LevelEvent[] {
     ];
   }
   if (ch === 4) {
+    if (levelId >= 41) {
+      return [
+        { trigger: 'PROGRESS', threshold: 0.38, type: 'JAMMING', duration: 18 },
+        { trigger: 'TIME_LEFT', threshold: 40, type: 'JAMMING', duration: 12 },
+      ];
+    }
     return [{ trigger: 'PROGRESS', threshold: 0.5, type: 'SANDSTORM', duration: 8 }];
   }
   if (ch === 5) {
@@ -171,7 +183,7 @@ function defaultRewards(ch: number, levelId: number): LevelRewards {
       todo: ['TODO: 實作情報官、偽裝指令、混合格鄰接'],
     };
   }
-  if (ch === 5) todo.push('TODO: 六角格鄰居與畫面呈現');
+  if ((ch === 4 && levelId >= 41) || ch === 5) todo.push('TODO: 六角格鄰居與畫面呈現');
   if (ch === 6) todo.push('TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）');
   if (ch === 7) todo.push('TODO: 超大型異形輪廓地圖美術與格點');
   if (levelId === 100) {
@@ -183,8 +195,16 @@ function defaultRewards(ch: number, levelId: number): LevelRewards {
 function titleFor(levelId: number, chapter: number): string {
   if (levelId === 100) return '神之眼';
   if (levelId === 71) return '異次元邊界';
+  if (levelId >= 31 && levelId <= 40) return `三角高地 · 第 ${levelId} 戰`;
+  if (levelId >= 41 && levelId <= 50) return `蜂巢防線 · 第 ${levelId} 戰`;
   return `${CHAPTER_NAMES[chapter]} · 第 ${levelId} 戰`;
 }
+
+/** 41 關為全戰役首次六角占位網格；簡報僅掛首戰避免與後段關重複 */
+const HONEYCOMB_CHAPTER_ENTRY_BRIEFING: readonly string[] = [
+  '聽好。蜂巢幽閉是實戰——你貪快或腦袋當機，旁邊的人可能替你付命，不是付學分。',
+  '對面干擾再吵也一樣：數字一亮就鎖座標下手，別給我找藉口——這裡失手會死人，陣亡表不寫不可抗力。',
+] as const;
 
 /** 第一章 1～10：覆蓋率 0.70～0.75 線性遞增 */
 function coverageCh1(levelId: number): number {
@@ -195,6 +215,7 @@ function coverageFor(ch: number, levelId: number): number {
   if (levelId === 100) return 1;
   if (ch === 1 && levelId >= 1 && levelId <= 10) return coverageCh1(levelId);
   if (ch <= 2) return 0.7;
+  if (ch === 4 && levelId >= 41) return 0.8;
   if (ch <= 4) return 0.75;
   if (ch <= 5) return 0.8;
   if (ch <= 6) return 0.85;
@@ -210,6 +231,16 @@ function timeLimitFor(ch: number, levelId: number): number {
   if (ch === 2) return 84 + (levelId - 11) * 8;
   if (ch === 3) return 60 + ((levelId - 21) % 6) * 12;
   if (ch === 4) {
+    if (levelId >= 41) {
+      const seed = `minefield-campaign-v1-L${levelId}-ch4`;
+      const layout = buildCh4HexMapLayout(levelId, seed);
+      if (layout.type !== 'HEXAGON') return 60;
+      const { width, height } = layout.placeholder;
+      const area = width * height;
+      const nVoid = layout.forbiddenCells?.length ?? 0;
+      const playable = area - nVoid;
+      return Math.round(playable * 0.9);
+    }
     const phase = ((levelId - 31) % 10 + 10) % 10;
     const times = [60, 68, 66, 66, 74, 74, 56, 56, 60, 84];
     return times[phase]!;
@@ -232,6 +263,30 @@ const CH4_TRIANGLE_LAYOUTS: { width: number; height: number }[] = [
   { width: 9, height: 8 },
   { width: 10, height: 10 },
 ];
+
+/**
+ * 41～42：完整蜂巢占位矩形（無禁格）。
+ * 43～50：同尺寸內以種子隨機挖 `forbiddenCells` 形成空格區（不可佈署）。
+ */
+export function buildCh4HexMapLayout(levelId: number, seed: string): MapLayout {
+  const phase = levelId - 41;
+  const { width, height } = CH4_TRIANGLE_LAYOUTS[phase]!;
+  if (levelId <= 42) {
+    return { type: 'HEXAGON', placeholder: { width, height } };
+  }
+  const area = width * height;
+  const roll = mulberry32(hashSeed(`${seed}-hex-terrain-n`))();
+  const frac = 0.12 + roll * 0.14;
+  let nForbidden = Math.floor(area * frac);
+  const maxF = Math.max(6, Math.floor(area * 0.32));
+  nForbidden = Math.min(Math.max(nForbidden, 6), maxF);
+  const forbiddenCells = seededForbiddenCells(`${seed}-hex-terrain-cells`, width, height, nForbidden);
+  return {
+    type: 'HEXAGON',
+    placeholder: { width, height },
+    forbiddenCells,
+  };
+}
 
 /**
  * 31～32：完整三角鑲嵌（教學手感）。
@@ -290,6 +345,9 @@ function mapLayoutFor(levelId: number, chapter: number, seed: string): MapLayout
     };
   }
   if (chapter === 4) {
+    if (levelId >= 41) {
+      return buildCh4HexMapLayout(levelId, seed);
+    }
     return buildCh4TriangleMapLayout(levelId, seed);
   }
   if (chapter === 5) {
@@ -353,9 +411,9 @@ function mapLayoutFor(levelId: number, chapter: number, seed: string): MapLayout
   };
 }
 
-function gridSystemFor(chapter: number): LevelDefinition['gridSystem'] {
+function gridSystemFor(chapter: number, levelId: number): LevelDefinition['gridSystem'] {
   if (chapter <= 2) return 'SQUARE';
-  if (chapter === 4) return 'TRIANGLE';
+  if (chapter === 4) return levelId >= 41 ? 'HEXAGON' : 'TRIANGLE';
   if (chapter === 5) return 'HEXAGON';
   if (chapter === 6) return 'MIXED';
   return 'SQUARE';
@@ -390,20 +448,24 @@ export function createLevelDefinition(levelId: number): LevelDefinition {
   const timeLimit = timeLimitFor(chapter, levelId);
   const mapLayout = mapLayoutFor(levelId, chapter, initialSeed);
 
-  return {
+  const def: LevelDefinition = {
     levelId,
     chapter,
     title: titleFor(levelId, chapter),
-    gridSystem: gridSystemFor(chapter),
+    gridSystem: gridSystemFor(chapter, levelId),
     coverageGoal,
     timeLimit,
     initialSeed,
     mapLayout,
     commands: defaultCommands(chapter, levelId),
-    events: defaultEvents(chapter, timeLimit),
+    events: defaultEvents(chapter, timeLimit, levelId),
     mapCloudOverlay: mapCloudOverlayFor(levelId),
     rewards: defaultRewards(chapter, levelId),
   };
+  if (levelId === 41) {
+    def.chapterEntryBriefing = [...HONEYCOMB_CHAPTER_ENTRY_BRIEFING];
+  }
+  return def;
 }
 
 /** 執行時關卡資料讀取 `levels.json`；若只改此檔邏輯，請執行 `npm run export-levels-json` 重新產生 JSON。 */
