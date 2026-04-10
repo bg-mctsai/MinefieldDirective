@@ -132,6 +132,7 @@ export function LevelStrategyGuide({
                       <li>{m.hintsLine}</li>
                       {m.forbiddenLine && <li>{m.forbiddenLine}</li>}
                       {m.cloudLine && <li>{m.cloudLine}</li>}
+                      {m.dynamicMineLine && <li className="text-cyan-400">{m.dynamicMineLine}</li>}
                     </ul>
                     <div className="border-t border-slate-800 pt-3">
                       <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">戰場事件</p>

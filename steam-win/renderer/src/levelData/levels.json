@@ -1,6 +1,6 @@
 {
   "_企劃欄位說明": {
-    "讀我": "下方 levels 為 100 關資料陣列；編輯後請維持合法 JSON（雙引號、逗號、無註解）。若改動 levelDefinitionsFactory 邏輯，請在專案根執行 npm run export-levels-json 覆寫本檔。",
+    "讀我": "下方 levels 為 100 關資料陣列（單一真相來源）；編輯後請維持合法 JSON（雙引號、逗號、無註解）。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。",
     "levelId": "關卡編號 1～100；第 N 筆資料應對應關卡 N。",
     "chapter": "章節編號 1～7，對應戰役分章。",
     "title": "關卡標題（介面顯示用）。",
@@ -34,6 +34,9 @@
     "forcedMineCells": "可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。",
     "mineBonusTargetCells": "可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。",
     "mineBonusSeconds": "可選；每個目標地雷觸發時加秒數（預設 5）。",
+    "dynamicMinePerMove": "可選；true 時每次玩家成功佈署後，在鄰居皆無數字的隨機空格新增一顆廢雷（深海要塞機制）。廢雷佔格、不可再放數字，但不計入鄰格數字的雷數（與企劃「孤立廢雷」一致）。",
+    "commandSlotReceiveJamming": "可選；true 時為信號干擾區：每道待辦電碼 UI 上 1～8 往返輪播；玩家點選一道電報時鎖定當下顯示數字並停止該格輪播，再點格以該數字佈署（見 signalJamming.ts、useMineGame）。",
+    "commandSlotJammingStepMs": "可選；信號干擾時輪播「每換一個數字」的間隔（毫秒）。未填用程式預設；過小／過大會被 clamp（見 resolveSignalJammingStepMs）。",
     "rewards": "通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。"
   },
   "levels": [
@@ -75,9 +78,6 @@
       "coverageGoal": 0.706,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L2-ch1",
-      "forcedMineCells": [[1, 1]],
-      "mineBonusTargetCells": [[1, 1]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 6,
@@ -104,9 +104,6 @@
       "coverageGoal": 0.711,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L3-ch1",
-      "forcedMineCells": [[4, 2]],
-      "mineBonusTargetCells": [[4, 2]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 6,
@@ -133,9 +130,6 @@
       "coverageGoal": 0.717,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L4-ch1",
-      "forcedMineCells": [[2, 3]],
-      "mineBonusTargetCells": [[2, 3]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 7,
@@ -162,9 +156,6 @@
       "coverageGoal": 0.722,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L5-ch1",
-      "forcedMineCells": [[5, 4]],
-      "mineBonusTargetCells": [[5, 4]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 7,
@@ -191,9 +182,6 @@
       "coverageGoal": 0.728,
       "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L6-ch1",
-      "forcedMineCells": [[1, 4], [8, 1]],
-      "mineBonusTargetCells": [[1, 4], [8, 1]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 10,
@@ -220,9 +208,6 @@
       "coverageGoal": 0.733,
       "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L7-ch1",
-      "forcedMineCells": [[2, 6], [7, 2]],
-      "mineBonusTargetCells": [[2, 6], [7, 2]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 10,
@@ -251,9 +236,6 @@
       "coverageGoal": 0.739,
       "timeLimit": 79,
       "initialSeed": "minefield-campaign-v1-L8-ch1",
-      "forcedMineCells": [[3, 5], [9, 2]],
-      "mineBonusTargetCells": [[3, 5], [9, 2]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 12,
@@ -282,9 +264,6 @@
       "coverageGoal": 0.744,
       "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L9-ch1",
-      "forcedMineCells": [[4, 7], [10, 3], [1, 1]],
-      "mineBonusTargetCells": [[4, 7], [10, 3], [1, 1]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 12,
@@ -313,9 +292,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 101,
       "initialSeed": "minefield-campaign-v1-L10-ch1",
-      "forcedMineCells": [[2, 9], [9, 2], [6, 6]],
-      "mineBonusTargetCells": [[2, 9], [9, 2], [6, 6]],
-      "mineBonusSeconds": 5,
       "mapLayout": {
         "type": "SQUARE",
         "width": 12,
@@ -3257,7 +3233,7 @@
     {
       "levelId": 51,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 51 戰",
+      "title": "深海要塞 · 第 51 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
@@ -3270,7 +3246,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3303,14 +3279,14 @@
         ]
       },
       "chapterEntryBriefing": [
-        "聽好。蜂巢幽閉是實戰——你貪快或腦袋當機，旁邊的人可能替你付命，不是付學分。",
-        "對面干擾再吵也一樣：數字一亮就鎖座標下手，別給我找藉口——這裡失手會死人，陣亡表不寫不可抗力。"
+        "下到深海要塞了。這裡的水壓會把腦子擠扁——每次你動手佈雷，海底暗流就會把一顆廢雷推進場內。",
+        "那些廢雷不聽你的命令，位置隨機、無法拆除。你得在越來越擁擠的雷區裡精準操作——手慢，淹死；手快亂來，炸死。"
       ]
     },
     {
       "levelId": 52,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 52 戰",
+      "title": "深海要塞 · 第 52 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
@@ -3323,7 +3299,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3359,7 +3335,7 @@
     {
       "levelId": 53,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 53 戰",
+      "title": "深海要塞 · 第 53 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
@@ -3372,7 +3348,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3408,7 +3384,7 @@
     {
       "levelId": 54,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 54 戰",
+      "title": "深海要塞 · 第 54 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
@@ -3421,7 +3397,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3457,7 +3433,7 @@
     {
       "levelId": 55,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 55 戰",
+      "title": "深海要塞 · 第 55 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
@@ -3470,7 +3446,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3506,7 +3482,7 @@
     {
       "levelId": 56,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 56 戰",
+      "title": "深海要塞 · 第 56 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
@@ -3519,7 +3495,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3555,7 +3531,7 @@
     {
       "levelId": 57,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 57 戰",
+      "title": "深海要塞 · 第 57 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
@@ -3568,7 +3544,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3604,7 +3580,7 @@
     {
       "levelId": 58,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 58 戰",
+      "title": "深海要塞 · 第 58 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
@@ -3617,7 +3593,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3653,7 +3629,7 @@
     {
       "levelId": 59,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 59 戰",
+      "title": "深海要塞 · 第 59 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
@@ -3666,7 +3642,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3702,7 +3678,7 @@
     {
       "levelId": 60,
       "chapter": 5,
-      "title": "蜂巢幽閉 · 第 60 戰",
+      "title": "深海要塞 · 第 60 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
@@ -3715,7 +3691,7 @@
         }
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 18,
@@ -3750,8 +3726,8 @@
     },
     {
       "levelId": 61,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 61 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 61 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
@@ -3764,43 +3740,32 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {},
+      "chapterEntryBriefing": [
+        "這裡是信號干擾區。長官還是會一次塞三道電報過來，但接收不良——你看到的數字會自己上下轉。",
+        "每道電碼在 1 到 8 之間往返輪播；先選一道，等畫面上的數字對準真實電碼，再點格佈雷。對不準就別亂按。"
+      ]
     },
     {
       "levelId": 62,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 62 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 62 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
@@ -3813,43 +3778,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 63,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 63 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 63 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
@@ -3862,43 +3812,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 64,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 64 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 64 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
@@ -3911,43 +3846,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 65,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 65 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 65 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
@@ -3960,43 +3880,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 66,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 66 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 66 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
@@ -4009,43 +3914,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 67,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 67 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 67 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
@@ -4058,43 +3948,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 68,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 68 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 68 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
@@ -4107,43 +3982,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 69,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 69 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 69 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
@@ -4156,43 +4016,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 70,
-      "chapter": 5,
-      "title": "蜂巢幽閉 · 第 70 戰",
+      "chapter": 7,
+      "title": "信號干擾區 · 第 70 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
@@ -4205,43 +4050,28 @@
         }
       },
       "commands": {
-        "maxHand": 5,
-        "poolType": "WEIGHTED",
+        "maxHand": 3,
+        "poolType": "RANDOM",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
+          "1": 1,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "6": 1,
           "7": 1,
           "8": 1
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      }
+      "events": [],
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "rewards": {}
     },
     {
       "levelId": 71,
       "chapter": 6,
-      "title": "異次元邊界",
+      "title": "維度裂縫 · 第 71 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 100,
@@ -4250,33 +4080,45 @@
         "type": "MIXED",
         "sectors": [
           {
-            "id": "sec_1",
+            "id": "left",
             "shape": "SQUARE",
             "offset": {
               "x": 0,
               "y": 0
             },
             "size": [
-              5,
+              4,
               10
             ]
           },
           {
-            "id": "sec_2",
+            "id": "mid",
             "shape": "HEXAGON",
             "offset": {
-              "x": 5,
+              "x": 4,
               "y": 0
             },
             "size": [
-              5,
+              4,
+              10
+            ]
+          },
+          {
+            "id": "right",
+            "shape": "TRIANGLE",
+            "offset": {
+              "x": 8,
+              "y": 0
+            },
+            "size": [
+              4,
               10
             ]
           }
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4318,14 +4160,14 @@
         ]
       },
       "chapterEntryBriefing": [
-        "眼睛睜大。離開新兵營了——方陣蜂巢三角硬縫一張圖，縫線上搞混鄰接，死的是真兵不是你家的存檔。",
+        "維度裂縫：方陣、蜂巢、三角三種地形同一張圖接縫，邊界鄰接一錯就是實戰代價，不是你家的讀檔。",
         "沙暴、脈衝、增援輪流砸臉照樣打；電報只認數字，別給我在邊界翻車還想只要重開——這裡沒有讀檔。"
       ]
     },
     {
       "levelId": 72,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 72 戰",
+      "title": "維度裂縫 · 第 72 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 106,
@@ -4359,7 +4201,7 @@
           },
           {
             "id": "sec_c",
-            "shape": "SQUARE",
+            "shape": "HEXAGON",
             "offset": {
               "x": 0,
               "y": 6
@@ -4372,7 +4214,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4414,7 +4256,7 @@
     {
       "levelId": 73,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 73 戰",
+      "title": "維度裂縫 · 第 73 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 112,
@@ -4423,33 +4265,45 @@
         "type": "MIXED",
         "sectors": [
           {
-            "id": "hex_block",
+            "id": "left",
             "shape": "HEXAGON",
             "offset": {
               "x": 0,
               "y": 0
             },
             "size": [
-              7,
+              5,
               8
             ]
           },
           {
-            "id": "sq_bridge",
-            "shape": "SQUARE",
+            "id": "mid",
+            "shape": "TRIANGLE",
             "offset": {
-              "x": 7,
-              "y": 3
+              "x": 5,
+              "y": 0
             },
             "size": [
               5,
-              5
+              8
+            ]
+          },
+          {
+            "id": "right",
+            "shape": "SQUARE",
+            "offset": {
+              "x": 10,
+              "y": 0
+            },
+            "size": [
+              5,
+              8
             ]
           }
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4491,7 +4345,7 @@
     {
       "levelId": 74,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 74 戰",
+      "title": "維度裂縫 · 第 74 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 118,
@@ -4538,7 +4392,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4580,7 +4434,7 @@
     {
       "levelId": 75,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 75 戰",
+      "title": "維度裂縫 · 第 75 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 124,
@@ -4589,33 +4443,45 @@
         "type": "MIXED",
         "sectors": [
           {
-            "id": "sec_1",
-            "shape": "SQUARE",
+            "id": "left",
+            "shape": "HEXAGON",
             "offset": {
               "x": 0,
               "y": 0
             },
             "size": [
-              5,
+              4,
               10
             ]
           },
           {
-            "id": "sec_2",
-            "shape": "HEXAGON",
+            "id": "mid",
+            "shape": "TRIANGLE",
             "offset": {
-              "x": 5,
+              "x": 4,
               "y": 0
             },
             "size": [
-              5,
+              4,
+              10
+            ]
+          },
+          {
+            "id": "right",
+            "shape": "SQUARE",
+            "offset": {
+              "x": 8,
+              "y": 0
+            },
+            "size": [
+              4,
               10
             ]
           }
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4657,7 +4523,7 @@
     {
       "levelId": 76,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 76 戰",
+      "title": "維度裂縫 · 第 76 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 100,
@@ -4691,7 +4557,7 @@
           },
           {
             "id": "sec_c",
-            "shape": "SQUARE",
+            "shape": "HEXAGON",
             "offset": {
               "x": 0,
               "y": 6
@@ -4704,7 +4570,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4746,7 +4612,7 @@
     {
       "levelId": 77,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 77 戰",
+      "title": "維度裂縫 · 第 77 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 106,
@@ -4755,33 +4621,45 @@
         "type": "MIXED",
         "sectors": [
           {
-            "id": "hex_block",
-            "shape": "HEXAGON",
+            "id": "left",
+            "shape": "TRIANGLE",
             "offset": {
               "x": 0,
               "y": 0
             },
             "size": [
-              7,
+              5,
               8
             ]
           },
           {
-            "id": "sq_bridge",
+            "id": "mid",
             "shape": "SQUARE",
             "offset": {
-              "x": 7,
-              "y": 3
+              "x": 5,
+              "y": 0
             },
             "size": [
               5,
-              5
+              8
+            ]
+          },
+          {
+            "id": "right",
+            "shape": "HEXAGON",
+            "offset": {
+              "x": 10,
+              "y": 0
+            },
+            "size": [
+              5,
+              8
             ]
           }
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4823,7 +4701,7 @@
     {
       "levelId": 78,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 78 戰",
+      "title": "維度裂縫 · 第 78 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 112,
@@ -4870,7 +4748,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4912,7 +4790,7 @@
     {
       "levelId": 79,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 79 戰",
+      "title": "維度裂縫 · 第 79 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 118,
@@ -4921,33 +4799,45 @@
         "type": "MIXED",
         "sectors": [
           {
-            "id": "sec_1",
-            "shape": "SQUARE",
+            "id": "left",
+            "shape": "TRIANGLE",
             "offset": {
               "x": 0,
               "y": 0
             },
             "size": [
-              5,
+              4,
               10
             ]
           },
           {
-            "id": "sec_2",
-            "shape": "HEXAGON",
+            "id": "mid",
+            "shape": "SQUARE",
             "offset": {
-              "x": 5,
+              "x": 4,
               "y": 0
             },
             "size": [
-              5,
+              4,
+              10
+            ]
+          },
+          {
+            "id": "right",
+            "shape": "HEXAGON",
+            "offset": {
+              "x": 8,
+              "y": 0
+            },
+            "size": [
+              4,
               10
             ]
           }
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -4989,7 +4879,7 @@
     {
       "levelId": 80,
       "chapter": 6,
-      "title": "異次元裂縫 · 第 80 戰",
+      "title": "維度裂縫 · 第 80 戰",
       "gridSystem": "MIXED",
       "coverageGoal": 0.85,
       "timeLimit": 124,
@@ -5023,7 +4913,7 @@
           },
           {
             "id": "sec_c",
-            "shape": "SQUARE",
+            "shape": "HEXAGON",
             "offset": {
               "x": 0,
               "y": 6
@@ -5036,7 +4926,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5113,7 +5003,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5202,7 +5092,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5279,7 +5169,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5368,7 +5258,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5445,7 +5335,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5534,7 +5424,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5611,7 +5501,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5700,7 +5590,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5777,7 +5667,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5866,7 +5756,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 12,
@@ -5981,7 +5871,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6104,7 +5994,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6227,7 +6117,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6354,7 +6244,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6485,7 +6375,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6572,7 +6462,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6663,7 +6553,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6758,7 +6648,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6857,7 +6747,7 @@
         ]
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 28,
@@ -6910,7 +6800,7 @@
         "height": 12
       },
       "commands": {
-        "maxHand": 5,
+        "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
           "1": 35,

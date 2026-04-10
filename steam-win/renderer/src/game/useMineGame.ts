@@ -6,12 +6,55 @@ import {
   lossConflictHighlightCells,
   lossExplosionMarkCells,
   lossUiTopologyFromLevel,
+  mergeTopologyWithDynamicMines,
   mineSolverTopologyFromLevel,
 } from '../gameLogic';
-import { withinForcedRevealZone } from '../levelData/gridTopology';
-import { EXPLOSION_RESOLVE_MS, FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS, SOLDIER_MOVE_MS } from './constants';
+import {
+  logicNeighborKeys,
+  neighborModeForGridSystem,
+  withinForcedRevealZone,
+} from '../levelData/gridTopology';
+import {
+  EXPLOSION_RESOLVE_MS,
+  FORCED_AUTO_REVEAL_CHEBYSHEV_RADIUS,
+  LAST_COUNTDOWN_SOUND_SECONDS,
+  LOSS_EXPLOSION_CHAIN_SETTLE_MS,
+  LOSS_EXPLOSION_FIRST_DELAY_MS,
+  LOSS_EXPLOSION_STAGGER_MS,
+  SOLDIER_MOVE_MS,
+} from './constants';
+import { sortLossExplosionCells, timeoutLossExplosionKeys } from './lossExplosionChain';
+import { playExplosionPop } from './playExplosionPop';
+import { playCountdownTick, playPlaceNumberSound, playTimeUpChirp } from './playGameSfx';
 import { generateHand } from './generateHand';
+import { signalJammingDisplayedDigit } from './signalJamming';
 import type { GameState } from './types';
+
+/**
+ * 深海要塞：在鄰居皆無已放數字的空格中隨機挑一格作為新增地雷位置。
+ * 回傳 cellKey（"x,y"）或 null（無合法位置時不新增）。
+ */
+function pickDynamicMinePosition(
+  cells: { x: number; y: number }[],
+  placedNumbers: { x: number; y: number }[],
+  occupied: Set<string>,
+  validKeys: Set<string>,
+  boardW: number,
+  boardH: number,
+  neighborMode: ReturnType<typeof neighborModeForGridSystem>,
+): string | null {
+  const numberKeys = new Set(placedNumbers.map((p) => `${p.x},${p.y}`));
+  const candidates: string[] = [];
+  for (const cell of cells) {
+    const key = `${cell.x},${cell.y}`;
+    if (occupied.has(key)) continue;
+    const nbs = logicNeighborKeys(cell.x, cell.y, validKeys, neighborMode, boardW, boardH);
+    if (nbs.some((nk) => numberKeys.has(nk))) continue;
+    candidates.push(key);
+  }
+  if (candidates.length === 0) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
 
 function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
   const configuredBonusTargets = level.definition.mineBonusTargetCells;
@@ -47,9 +90,14 @@ export function useMineGame(initialLevelIndex: number) {
       message: '長官電報已收。先選一封電報上的數字，再標定佈雷座標。',
       conflictCells: [],
       explosionMarkCells: [],
+      lossSequentialExplosionKeys: [],
+      lossExplosionWaveIndex: -1,
       secondsLeft: limit > 0 ? limit : null,
       timerStarted: false,
       rewardedMineTargets: new Set(),
+      dynamicMines: new Set(),
+      jammingEpochMs: level.definition.commandSlotReceiveJamming ? Date.now() : 0,
+      jammingLockedSlot: null,
     });
     for (const t of bonusFxTimeoutsRef.current.values()) {
       window.clearTimeout(t);
@@ -72,7 +120,13 @@ export function useMineGame(initialLevelIndex: number) {
       setGameState((prev) => {
         if (!prev || prev.status !== 'playing' || prev.secondsLeft === null) return prev;
         const next = prev.secondsLeft - 1;
-        if (next > 0) return { ...prev, secondsLeft: next };
+        if (next > 0) {
+          if (next <= LAST_COUNTDOWN_SOUND_SECONDS) {
+            queueMicrotask(() => playCountdownTick(next));
+          }
+          return { ...prev, secondsLeft: next };
+        }
+        queueMicrotask(() => playTimeUpChirp());
         return {
           ...prev,
           status: 'exploding',
@@ -80,6 +134,12 @@ export function useMineGame(initialLevelIndex: number) {
           secondsLeft: 0,
           conflictCells: [],
           explosionMarkCells: [],
+          lossSequentialExplosionKeys: timeoutLossExplosionKeys(
+            prev.revealedMines,
+            prev.dynamicMines,
+            prev.level.definition.forcedMineCells,
+          ),
+          lossExplosionWaveIndex: -1,
         };
       });
     }, 1000);
@@ -89,17 +149,59 @@ export function useMineGame(initialLevelIndex: number) {
 
   useEffect(() => {
     if (!gameState || gameState.status !== 'exploding') return;
+    const seq = gameState.lossSequentialExplosionKeys;
+    const wi = gameState.lossExplosionWaveIndex;
+
+    if (seq.length === 0) {
+      const t = window.setTimeout(() => {
+        setGameState((prev) => (prev?.status === 'exploding' ? { ...prev, status: 'lost' } : prev));
+      }, EXPLOSION_RESOLVE_MS);
+      return () => clearTimeout(t);
+    }
+
+    if (wi >= seq.length) {
+      const t = window.setTimeout(() => {
+        setGameState((prev) => (prev?.status === 'exploding' ? { ...prev, status: 'lost' } : prev));
+      }, LOSS_EXPLOSION_CHAIN_SETTLE_MS);
+      return () => clearTimeout(t);
+    }
+
+    const delay = wi < 0 ? LOSS_EXPLOSION_FIRST_DELAY_MS : LOSS_EXPLOSION_STAGGER_MS;
     const t = window.setTimeout(() => {
-      setGameState((prev) => (prev?.status === 'exploding' ? { ...prev, status: 'lost' } : prev));
-    }, EXPLOSION_RESOLVE_MS);
+      const nextIdx = wi + 1;
+      playExplosionPop(nextIdx);
+      setGameState((prev) => {
+        if (!prev || prev.status !== 'exploding') return prev;
+        return { ...prev, lossExplosionWaveIndex: nextIdx };
+      });
+    }, delay);
     return () => clearTimeout(t);
-  }, [gameState?.gameId, gameState?.status]);
+  }, [gameState?.gameId, gameState?.status, gameState?.lossExplosionWaveIndex, gameState?.lossSequentialExplosionKeys]);
 
   const selectHand = useCallback((index: number) => {
     setSelectedHandIndex(index);
     setGameState((prev) => {
-      if (!prev || prev.secondsLeft === null || prev.timerStarted) return prev;
-      return { ...prev, timerStarted: true };
+      if (!prev) return prev;
+      const jam = Boolean(prev.level.definition.commandSlotReceiveJamming && prev.jammingEpochMs > 0);
+      const jammingLockedSlot = jam
+        ? {
+            slotIndex: index,
+            value: signalJammingDisplayedDigit(
+              prev.jammingEpochMs,
+              index,
+              Date.now(),
+              prev.level.definition.commandSlotJammingStepMs,
+            ),
+          }
+        : null;
+
+      if (prev.secondsLeft === null) {
+        return { ...prev, jammingLockedSlot };
+      }
+      if (!prev.timerStarted) {
+        return { ...prev, timerStarted: true, jammingLockedSlot };
+      }
+      return jam ? { ...prev, jammingLockedSlot } : prev;
     });
   }, []);
 
@@ -109,14 +211,35 @@ export function useMineGame(initialLevelIndex: number) {
     const cellKey = `${x},${y}`;
     if (gameState.placedNumbers.some((p) => p.x === x && p.y === y)) return;
     if (gameState.revealedMines.has(cellKey)) return;
+    if (gameState.dynamicMines.has(cellKey)) return;
 
-    const newValue = gameState.hand[selectedHandIndex];
+    const jamActive =
+      Boolean(gameState.level.definition.commandSlotReceiveJamming) && gameState.jammingEpochMs > 0;
+    let newValue: number;
+    if (jamActive) {
+      const lock = gameState.jammingLockedSlot;
+      if (!lock || lock.slotIndex !== selectedHandIndex) {
+        setGameState((prev) =>
+          prev
+            ? {
+                ...prev,
+                message: '先點一道長官電報，鎖定當下數字，再點格佈雷。',
+              }
+            : null,
+        );
+        return;
+      }
+      newValue = lock.value;
+    } else {
+      newValue = gameState.hand[selectedHandIndex];
+    }
 
     setMovingSoldier({ x, y, value: newValue });
     await new Promise((resolve) => setTimeout(resolve, SOLDIER_MOVE_MS));
 
     const newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: newValue }];
-    const mineTopo = mineSolverTopologyFromLevel(gameState.level);
+    const baseTopo = mineSolverTopologyFromLevel(gameState.level);
+    const mineTopo = mergeTopologyWithDynamicMines(baseTopo, gameState.dynamicMines);
     const solver = new MineSolver(gameState.level.cells, newPlacedNumbers, mineTopo);
     const conflictDetails = solver.getConflicts();
 
@@ -129,6 +252,7 @@ export function useMineGame(initialLevelIndex: number) {
         { x, y },
         lossTopo
       );
+      const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
       const message = formatLossExplanation(conflictDetails, { x, y, value: newValue }, lossTopo);
       setGameState((prev) =>
         prev
@@ -139,6 +263,8 @@ export function useMineGame(initialLevelIndex: number) {
               placedNumbers: newPlacedNumbers,
               conflictCells,
               explosionMarkCells,
+              lossSequentialExplosionKeys,
+              lossExplosionWaveIndex: -1,
             }
           : null
       );
@@ -146,6 +272,8 @@ export function useMineGame(initialLevelIndex: number) {
       setMovingSoldier(null);
       return;
     }
+
+    playPlaceNumberSound(newValue);
 
     const forced = solver.findForced(newPlacedNumbers);
     // 目標雷的「確認」只採玩家可見邏輯推論，不吃 hidden forced-mine 先驗。
@@ -186,12 +314,34 @@ export function useMineGame(initialLevelIndex: number) {
     let finalHand = newHand;
     let finalPlacedInTurn = nextPlacedInTurn;
 
+    const newDynamicMines = new Set(gameState.dynamicMines);
+    if (gameState.level.definition.dynamicMinePerMove) {
+      const occupiedKeys = new Set<string>();
+      for (const p of newPlacedNumbers) occupiedKeys.add(`${p.x},${p.y}`);
+      for (const k of newRevealedMines) occupiedKeys.add(k);
+      for (const k of newDynamicMines) occupiedKeys.add(k);
+      for (const k of mineTopo.forcedMineKeys ?? []) occupiedKeys.add(k);
+      for (const k of mineTopo.ghostMineKeys ?? []) occupiedKeys.add(k);
+      const validKeys = new Set(gameState.level.cells.map((c) => `${c.x},${c.y}`));
+      const nMode = neighborModeForGridSystem(gameState.level.definition.gridSystem);
+      const mineKey = pickDynamicMinePosition(
+        gameState.level.cells,
+        newPlacedNumbers,
+        occupiedKeys,
+        validKeys,
+        gameState.level.width,
+        gameState.level.height,
+        nMode,
+      );
+      if (mineKey) newDynamicMines.add(mineKey);
+    }
+
     if (nextPlacedInTurn === 2) {
-      finalHand = generateHand(gameState.level, newPlacedNumbers);
+      finalHand = generateHand(gameState.level, newPlacedNumbers, newDynamicMines);
       finalPlacedInTurn = 0;
     }
 
-    const totalKnown = newPlacedNumbers.length + newRevealedMines.size + newRevealedClear.size;
+    const totalKnown = newPlacedNumbers.length + newRevealedMines.size + newRevealedClear.size + newDynamicMines.size;
     const fillPercentage = (totalKnown / gameState.level.cells.length) * 100;
     const bonusSecondsPerMine = gameState.level.definition.mineBonusSeconds ?? 5;
     const newlyRewardedTargets = newlyConfirmedMines.filter(
@@ -235,10 +385,14 @@ export function useMineGame(initialLevelIndex: number) {
               secondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
               rewardedMineTargets: nextRewardedMineTargets,
+              dynamicMines: newDynamicMines,
+              jammingLockedSlot: null,
             }
           : null
       );
     } else {
+      const dynamicMineMsg =
+        newDynamicMines.size > gameState.dynamicMines.size ? '　⚠ 暗流推入一顆廢雷！' : '';
       setGameState((prev) =>
         prev
           ? {
@@ -251,16 +405,20 @@ export function useMineGame(initialLevelIndex: number) {
               secondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
               rewardedMineTargets: nextRewardedMineTargets,
+              dynamicMines: newDynamicMines,
+              jammingLockedSlot: null,
               message:
                 gainedSeconds > 0
                   ? `目標雷格確認，時限 +${gainedSeconds} 秒。${
                       finalPlacedInTurn === 0
                         ? '嘀——新電報到達，請選下一個數字。'
                         : '此格已依令安放。請先選下一封電報上的數字，再標座標。'
-                    }`
-                  : finalPlacedInTurn === 0
-                    ? '嘀——新電報到達，請選下一個數字。'
-                    : '此格已依令安放。請先選下一封電報上的數字，再標座標。',
+                    }${dynamicMineMsg}`
+                  : `${
+                      finalPlacedInTurn === 0
+                        ? '嘀——新電報到達，請選下一個數字。'
+                        : '此格已依令安放。請先選下一封電報上的數字，再標座標。'
+                    }${dynamicMineMsg}`,
             }
           : null
       );
@@ -271,7 +429,7 @@ export function useMineGame(initialLevelIndex: number) {
   };
 
   const fillPercentage = gameState
-    ? ((gameState.placedNumbers.length + gameState.revealedMines.size + gameState.revealedClear.size) /
+    ? ((gameState.placedNumbers.length + gameState.revealedMines.size + gameState.revealedClear.size + gameState.dynamicMines.size) /
         gameState.level.cells.length) *
       100
     : 0;

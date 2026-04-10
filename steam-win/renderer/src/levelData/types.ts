@@ -142,5 +142,15 @@ export interface LevelDefinition {
   mineBonusTargetCells?: [number, number][];
   /** 可選：每個目標地雷確認時加的秒數；未填時預設 5 */
   mineBonusSeconds?: number;
+  /** 可選：每次玩家成功佈署後，隨機在「鄰居皆無數字」的空格新增一顆廢雷（佔格、不計入鄰格數字雷數） */
+  dynamicMinePerMove?: boolean;
+  /**
+   * 信號干擾區：每道待辦電碼在 UI 上 1～8 往返輪播；點選電報鎖定當下數字後再點格佈署。
+   */
+  commandSlotReceiveJamming?: boolean;
+  /**
+   * 信號干擾：輪播每換一個數字的間隔（毫秒）。未填時用程式預設；過小／過大會被 clamp。
+   */
+  commandSlotJammingStepMs?: number;
   rewards: LevelRewards;
 }

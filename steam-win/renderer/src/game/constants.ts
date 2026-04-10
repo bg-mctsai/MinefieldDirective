@@ -33,8 +33,20 @@ export function boardCellPxForLevel(width: number, height: number): number {
 /** 小兵移動動畫時間（ms） */
 export const SOLDIER_MOVE_MS = 600;
 
-/** 爆炸後轉為失敗狀態的延遲（ms） */
+/** 剩餘秒數 ≤ 此值時每秒播放倒數滴答（與 UI 紅字門檻一致） */
+export const LAST_COUNTDOWN_SOUND_SECONDS = 10;
+
+/** 爆炸後轉為失敗狀態的延遲（ms）（無連鎖序列時） */
 export const EXPLOSION_RESOLVE_MS = 1500;
+
+/** 違規地雷連鎖：第一顆延遲 */
+export const LOSS_EXPLOSION_FIRST_DELAY_MS = 160;
+
+/** 違規地雷連鎖：顆與顆之間間隔 */
+export const LOSS_EXPLOSION_STAGGER_MS = 220;
+
+/** 連鎖最後一顆播完後，多久切到「任務失敗」畫面 */
+export const LOSS_EXPLOSION_CHAIN_SETTLE_MS = 520;
 
 /**
  * 自動標出「必定為雷／必定安全」時，只套用離本次埋數格多遠以內（切比雪夫距離）。

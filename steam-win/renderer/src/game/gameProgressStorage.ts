@@ -2,6 +2,8 @@ export const LS_HIGHEST_CLEARED_LEVEL = 'md:highestClearedLevel';
 
 export const LEVEL_MIN = 1;
 export const LEVEL_MAX = 100;
+const FORCE_UNLOCK_ALL_LEVELS =
+  import.meta.env.DEV || import.meta.env.VITE_UNLOCK_ALL_LEVELS === '1';
 
 export type GameProgress = {
   highestClearedLevel: number; // 0..100 (0 means no level cleared)
@@ -38,6 +40,7 @@ export function saveGameProgress(progress: GameProgress) {
 }
 
 export function isLevelUnlocked(levelId: number, highestClearedLevel: number): boolean {
+  if (FORCE_UNLOCK_ALL_LEVELS) return true;
   if (!Number.isFinite(levelId)) return false;
   const id = clampInt(levelId, LEVEL_MIN, LEVEL_MAX);
   const unlockedMax = highestClearedLevel + 1;

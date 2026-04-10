@@ -1,5 +1,6 @@
 import type { Level } from '../gameLogic';
 import type { GridSystem, LevelEvent, MapLayout } from '../levelData/types';
+import { resolveSignalJammingStepMs } from './signalJamming';
 
 const CHAPTER_NAMES = [
   '',
@@ -8,13 +9,18 @@ const CHAPTER_NAMES = [
   '荒漠記憶',
   '三角高地',
   '蜂巢幽閉',
-  '異次元裂縫',
+  '深海要塞',
+  '信號干擾區',
+  '維度裂縫',
+  '熔岩核心',
   '終焉防線',
 ] as const;
 
 function chapterDisplayName(chapter: number, levelId: number): string {
   if (levelId >= 31 && levelId <= 40) return '三角高地';
   if (levelId >= 41 && levelId <= 50) return '蜂巢防線';
+  if (levelId >= 51 && levelId <= 60) return '深海要塞';
+  if (levelId >= 61 && levelId <= 70) return '信號干擾區';
   return CHAPTER_NAMES[chapter] ?? `第 ${chapter} 章`;
 }
 
@@ -99,6 +105,8 @@ export type LevelStrategyGuideModel = {
   forbiddenLine: string | null;
   /** 有設定 mapCloudOverlay 時（例：第 21～30 關荒漠雲層） */
   cloudLine: string | null;
+  /** 深海要塞：動態地雷機制描述 */
+  dynamicMineLine: string | null;
   eventsLines: string[];
   logicNeighborLine: string;
 };
@@ -125,7 +133,11 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
     boundaryLine: `盤面邊界框：寬${level.width}×高${level.height}（可部署格數 ${level.cells.length}）`,
     coveragePercent: Math.round(d.coverageGoal * 1000) / 10,
     timeLine: d.timeLimit > 0 ? `任務時限：${d.timeLimit} 秒。` : '任務時限：無（不計時）。',
-    handLine: `待辦電碼上限：同時最多 ${d.commands.maxHand} 道（選定後再標格執行）。`,
+    handLine:
+      `待辦電碼上限：同時最多 ${d.commands.maxHand} 道（選定後再標格執行）。` +
+      (d.commandSlotReceiveJamming
+        ? `　信號干擾：未選定前每道電碼在介面上 1～8 往返輪播；點選一道電報即鎖定當下數字並停止該格輪播，再點地圖佈署。輪播間隔 ${resolveSignalJammingStepMs(d.commandSlotJammingStepMs)} 毫秒／步（可由 levels.json 的 commandSlotJammingStepMs 調整）。`
+        : ''),
     poolLine,
     digitsLine,
     hintsLine:
@@ -136,6 +148,9 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
       forbidden !== null ? `場上有 ${forbidden} 格障礙／禁區，無法部署。` : null,
     cloudLine: d.mapCloudOverlay
       ? '戰場有飄動沙塵迷霧（CSS 漸層＋模糊動畫）沿全圖巡迴，中心並以 backdrop 模糊棋格（僅畫面，不擋點格、不影響邏輯）。'
+      : null,
+    dynamicMineLine: d.dynamicMinePerMove
+      ? '⚠ 深海暗流：每次成功佈署後，場上會隨機出現一顆廢雷（青色炸彈標示）。廢雷佔格且不可再佈數字，但**不計入**任何鄰格數字的雷數——若誤以為能當真雷去湊數，盤面會直接衝突。廢雷只會生成在「鄰居尚無數字」的空格。'
       : null,
     eventsLines: d.events.length ? d.events.map((ev) => formatEvent(ev, d.timeLimit)) : ['本關無動態戰場事件。'],
     logicNeighborLine:

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Bomb } from 'lucide-react';
+import type { LossChainPhase } from './lossExplosionChain';
 import { MineRuins } from './MineRuins';
 
 export interface GameCellProps {
@@ -22,6 +23,12 @@ export interface GameCellProps {
   showBonusFx?: boolean;
   /** 浮字顯示的秒數值 */
   bonusSeconds?: number;
+  /** 深海要塞：動態新增的地雷（與 forcedMine 邏輯相同，視覺以青色區分） */
+  isDynamicMine?: boolean;
+  /** 敗北連鎖：違規地雷逐一爆；`none` 表示不在連鎖序列 */
+  lossChainPhase?: LossChainPhase;
+  /** 連鎖進度鍵，僅 `popping` 時用於重播 MineRuins 動畫 */
+  lossChainPopKey?: number;
   status: string;
   onClick: (x: number, y: number) => void;
 }
@@ -39,6 +46,9 @@ const GameCellComponent = ({
   isBonusTargetRewarded = false,
   showBonusFx = false,
   bonusSeconds = 5,
+  isDynamicMine = false,
+  lossChainPhase = 'none',
+  lossChainPopKey = 0,
   status,
   onClick,
 }: GameCellProps) => {
@@ -47,91 +57,130 @@ const GameCellComponent = ({
   const iconSize = Math.max(14, Math.round(cellSizePx * 0.45));
   /** 加秒目標格：邏輯上可已揭示為雷，但畫面維持中性，不套用紅色「已確認雷」 */
   const neutralBonusTarget = Boolean(isBonusTarget && !placed && !isConflict);
+  const chainLive = lossChainPhase === 'live' && status === 'exploding';
+  const chainDeadStone = (lossChainPhase === 'dead' && postBlast) || false;
+  const tooltipText = isConflict
+    ? '衝突格：此格與周邊雷數矛盾'
+    : placed
+      ? `已佈署數字 ${placed.value}`
+      : isDynamicMine
+        ? '廢雷：會佔格，但不計入任何鄰格雷數'
+        : neutralBonusTarget
+          ? `目標地雷：確認可獲得 +${bonusSeconds} 秒`
+          : isMine || lossChainPhase !== 'none'
+            ? '地雷：會計入周圍數字雷數'
+            : '空格：可放置數字';
   return (
-  <motion.div
-    whileHover={status === 'playing' ? { scale: 1.05, backgroundColor: '#1e293b' } : {}}
-    onClick={() => onClick(x, y)}
-    style={{ width: cellSizePx, height: cellSizePx, minWidth: cellSizePx, minHeight: cellSizePx }}
-    className={`relative flex cursor-pointer items-center justify-center rounded-xl border transition-all
-      ${
-        isConflict
+    <motion.div
+      whileHover={status === 'playing' && !isDynamicMine ? { scale: 1.05, backgroundColor: '#1e293b' } : {}}
+      onClick={() => onClick(x, y)}
+      title={tooltipText}
+      aria-label={tooltipText}
+      style={{ width: cellSizePx, height: cellSizePx, minWidth: cellSizePx, minHeight: cellSizePx }}
+      className={`relative flex cursor-pointer items-center justify-center rounded-xl border transition-all
+      ${isConflict
           ? 'z-10 animate-pulse border-2 border-white bg-red-600 shadow-lg ring-4 ring-red-500/50'
           : placed
             ? 'border-2 border-amber-500 bg-amber-900/40'
-            : postBlast && isMine
-              ? 'border border-stone-600/70 bg-stone-950/55'
-              : neutralBonusTarget
-                ? 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
-                : isMine
+            : isDynamicMine
+              ? 'border border-cyan-700 bg-cyan-950/50'
+              : chainDeadStone || (postBlast && isMine && lossChainPhase === 'none')
+                ? 'border border-stone-600/70 bg-stone-950/55'
+                : chainLive
                   ? 'border border-red-900 bg-red-950/40'
-                  : 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
-      }
+                  : neutralBonusTarget
+                    ? 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
+                    : isMine
+                      ? 'border border-red-900 bg-red-950/40'
+                      : 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
+        }
     `}
-  >
-    {placed && (
-      <motion.span
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        style={{ fontSize: numFont }}
-        className={`font-black leading-none ${isConflict ? 'text-white' : 'text-amber-400'}`}
-      >
-        {placed.value}
-      </motion.span>
-    )}
-    {isMine && !placed && !neutralBonusTarget && (
-      <div className="pointer-events-none flex items-center justify-center">
-        {postBlast ? (
-          <MineRuins x={x} y={y} exploding={isExploding} />
-        ) : (
-          <Bomb size={iconSize} className="text-red-400 opacity-60" />
-        )}
-      </div>
-    )}
-    {showExplosionX && postBlast && (
-      <div
-        className="pointer-events-none absolute inset-0.5 z-20 flex items-center justify-center"
-        aria-hidden
-      >
-        <svg
-          viewBox="0 0 100 100"
-          className="h-[82%] w-[82%] text-rose-400 drop-shadow-[0_0_6px_rgba(0,0,0,0.85)]"
-          fill="none"
+    >
+      {placed && (
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          style={{ fontSize: numFont }}
+          className={`font-black leading-none ${isConflict ? 'text-white' : 'text-amber-400'}`}
         >
-          <line x1="18" y1="18" x2="82" y2="82" stroke="currentColor" strokeWidth="11" strokeLinecap="round" />
-          <line x1="82" y1="18" x2="18" y2="82" stroke="currentColor" strokeWidth="11" strokeLinecap="round" />
-        </svg>
-      </div>
-    )}
-    {neutralBonusTarget && !postBlast && (
-      <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center">
-        <Bomb
-          size={Math.max(16, Math.round(cellSizePx * 0.44))}
-          className={
-            isBonusTargetRewarded
-              ? 'text-white/50 drop-shadow-[0_0_2px_rgba(0,0,0,0.65)]'
-              : 'text-white/80 drop-shadow-[0_0_3px_rgba(0,0,0,0.8)]'
-          }
-        />
-      </div>
-    )}
-    {postBlast && isMine && neutralBonusTarget && (
-      <div className="pointer-events-none flex items-center justify-center">
-        <MineRuins x={x} y={y} exploding={isExploding} />
-      </div>
-    )}
-    {showBonusFx && (
-      <motion.div
-        initial={{ y: 6, opacity: 0, scale: 0.92 }}
-        animate={{ y: -14, opacity: 1, scale: 1.04 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
-        className="pointer-events-none absolute z-[22] font-black text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.75)]"
-        style={{ fontSize: Math.max(12, Math.round(cellSizePx * 0.38)) }}
-      >
-        +{bonusSeconds}
-      </motion.div>
-    )}
-  </motion.div>
+          {placed.value}
+        </motion.span>
+      )}
+      {isDynamicMine && !placed && (
+        <motion.div
+          initial={{ scale: 0, rotate: -90 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+          className="pointer-events-none flex items-center justify-center"
+        >
+          <Bomb size={iconSize} className="text-cyan-400 opacity-75 drop-shadow-[0_0_4px_rgba(34,211,238,0.5)]" />
+        </motion.div>
+      )}
+      {!placed && !isDynamicMine && lossChainPhase !== 'none' && (
+        <div className="pointer-events-none flex items-center justify-center">
+          {lossChainPhase === 'live' && status === 'exploding' && (
+            <Bomb size={iconSize} className="text-red-400 opacity-60" />
+          )}
+          {lossChainPhase === 'popping' && status === 'exploding' && (
+            <MineRuins key={`lc-${lossChainPopKey}`} x={x} y={y} exploding />
+          )}
+          {lossChainPhase === 'dead' && postBlast && <MineRuins x={x} y={y} exploding={false} />}
+        </div>
+      )}
+      {isMine && !placed && !neutralBonusTarget && !isDynamicMine && lossChainPhase === 'none' && (
+        <div className="pointer-events-none flex items-center justify-center">
+          {postBlast ? (
+            <MineRuins x={x} y={y} exploding={isExploding} />
+          ) : (
+            <Bomb size={iconSize} className="text-red-400 opacity-60" />
+          )}
+        </div>
+      )}
+      {showExplosionX && postBlast && (
+        <div
+          className="pointer-events-none absolute inset-0.5 z-20 flex items-center justify-center"
+          aria-hidden
+        >
+          <svg
+            viewBox="0 0 100 100"
+            className="h-[82%] w-[82%] text-rose-400 drop-shadow-[0_0_6px_rgba(0,0,0,0.85)]"
+            fill="none"
+          >
+            <line x1="18" y1="18" x2="82" y2="82" stroke="currentColor" strokeWidth="11" strokeLinecap="round" />
+            <line x1="82" y1="18" x2="18" y2="82" stroke="currentColor" strokeWidth="11" strokeLinecap="round" />
+          </svg>
+        </div>
+      )}
+      {neutralBonusTarget && !postBlast && (
+        <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center">
+          <Bomb
+            size={Math.max(16, Math.round(cellSizePx * 0.44))}
+            className={
+              isBonusTargetRewarded
+                ? 'text-white/50 drop-shadow-[0_0_2px_rgba(0,0,0,0.65)]'
+                : 'text-white/80 drop-shadow-[0_0_3px_rgba(0,0,0,0.8)]'
+            }
+          />
+        </div>
+      )}
+      {postBlast && isMine && neutralBonusTarget && (
+        <div className="pointer-events-none flex items-center justify-center">
+          <MineRuins x={x} y={y} exploding={isExploding} />
+        </div>
+      )}
+      {showBonusFx && (
+        <motion.div
+          initial={{ y: 6, opacity: 0, scale: 0.92 }}
+          animate={{ y: -14, opacity: 1, scale: 1.04 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          className="pointer-events-none absolute z-[22] font-black text-emerald-300 drop-shadow-[0_0_6px_rgba(16,185,129,0.75)]"
+          style={{ fontSize: Math.max(12, Math.round(cellSizePx * 0.38)) }}
+        >
+          +{bonusSeconds}
+        </motion.div>
+      )}
+    </motion.div>
   );
 };
 

@@ -13,5 +13,11 @@
     "allowImportingTsExtensions": true,
     "paths": { "@/*": ["./renderer/src/*"] }
   },
-  "include": ["renderer/src/**/*.ts", "renderer/src/**/*.tsx", "renderer/src/**/*.json", "vite.config.ts"]
+  "include": [
+    "renderer/src/**/*.ts",
+    "renderer/src/**/*.tsx",
+    "renderer/src/**/*.json",
+    "vite.config.ts",
+    "scripts/**/*.ts"
+  ]
 }

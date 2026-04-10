@@ -1,4 +1,6 @@
 import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
+import { resolveSignalJammingStepMs, signalJammingDisplayedDigit } from './signalJamming';
 import type { GameState } from './types';
 
 function telegraphHint(
@@ -7,7 +9,15 @@ function telegraphHint(
 ): string {
   if (gameState.status === 'exploding') return '！！！連環爆炸中！！！';
   if (gameState.status !== 'playing') return '任務結束。';
-  if (selectedHandIndex === null) return '先選電碼，再點格佈雷';
+  const jam = Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
+  if (selectedHandIndex === null) {
+    return jam ? '先選一道長官電報；數字會 1～8 往返輪播（接收不良）' : '先選電碼，再點格佈雷';
+  }
+  if (jam) {
+    return selectedHandIndex === null
+      ? '點一道電報即可鎖定當下數字，再點格佈雷'
+      : '數字已鎖定，請點目標格佈雷';
+  }
   return `電碼「${gameState.hand[selectedHandIndex]}」—請點目標格`;
 }
 
@@ -25,6 +35,18 @@ export function CommanderTelegraphRow({
 }) {
   const hint = telegraphHint(gameState, selectedHandIndex);
   const n = gameState.hand.length;
+  const jamming =
+    gameState.status === 'playing' &&
+    Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
+
+  const jammingStepMs = resolveSignalJammingStepMs(gameState.level.definition.commandSlotJammingStepMs);
+
+  const [, setJammingFrame] = useState(0);
+  useEffect(() => {
+    if (!jamming) return;
+    const id = window.setInterval(() => setJammingFrame((x) => x + 1), Math.max(40, jammingStepMs / 2));
+    return () => clearInterval(id);
+  }, [jamming, jammingStepMs, gameState.gameId, gameState.jammingEpochMs]);
 
   return (
     <div
@@ -60,9 +82,21 @@ export function CommanderTelegraphRow({
           gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
         }}
       >
-        {gameState.hand.map((num, idx) => (
+        {gameState.hand.map((num, idx) => {
+          const lock = gameState.jammingLockedSlot;
+          const displayNum = jamming
+            ? lock && lock.slotIndex === idx
+              ? lock.value
+              : signalJammingDisplayedDigit(
+                  gameState.jammingEpochMs,
+                  idx,
+                  Date.now(),
+                  gameState.level.definition.commandSlotJammingStepMs,
+                )
+            : num;
+          return (
           <motion.button
-            key={`${gameState.gameId}-${idx}-${num}`}
+            key={`${gameState.gameId}-slot-${idx}`}
             type="button"
             whileHover={gameState.status === 'playing' ? { y: -2, scale: 1.03 } : {}}
             whileTap={gameState.status === 'playing' ? { scale: 0.95 } : {}}
@@ -79,9 +113,10 @@ export function CommanderTelegraphRow({
                 }
               `}
           >
-            {num}
+            {displayNum}
           </motion.button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

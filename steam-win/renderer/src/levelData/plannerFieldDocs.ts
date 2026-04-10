@@ -3,7 +3,7 @@
  * 每個名詞只說明一次；企劃改關卡請編輯同檔的 `levels` 陣列。
  */
 export const PLANNER_FIELD_DOCS: Record<string, string> = {
-  讀我: '下方 levels 為 100 關資料陣列；編輯後請維持合法 JSON（雙引號、逗號、無註解）。若改動 levelDefinitionsFactory 邏輯，請在專案根執行 npm run export-levels-json 覆寫本檔。',
+  讀我: '下方 levels 為 100 關資料陣列（單一真相來源）；編輯後請維持合法 JSON（雙引號、逗號、無註解）。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。',
 
   levelId: '關卡編號 1～100；第 N 筆資料應對應關卡 N。',
   chapter: '章節編號 1～7，對應戰役分章。',
@@ -47,6 +47,14 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   forcedMineCells: '可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。',
   mineBonusTargetCells: '可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。',
   mineBonusSeconds: '可選；每個目標地雷觸發時加秒數（預設 5）。',
+  dynamicMinePerMove:
+    '可選；true 時每次玩家成功佈署後，在鄰居皆無數字的隨機空格新增一顆廢雷（深海要塞機制）。廢雷佔格、不可再放數字，但不計入鄰格數字的雷數（與企劃「孤立廢雷」一致）。',
+
+  commandSlotReceiveJamming:
+    '可選；true 時為信號干擾區：每道待辦電碼 UI 上 1～8 往返輪播；玩家點選一道電報時鎖定當下顯示數字並停止該格輪播，再點格以該數字佈署（見 signalJamming.ts、useMineGame）。',
+
+  commandSlotJammingStepMs:
+    '可選；信號干擾時輪播「每換一個數字」的間隔（毫秒）。未填用程式預設；過小／過大會被 clamp（見 resolveSignalJammingStepMs）。',
 
   rewards: '通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。',
 };

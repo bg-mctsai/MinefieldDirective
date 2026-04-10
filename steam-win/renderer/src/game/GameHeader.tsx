@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Bomb, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { LAST_COUNTDOWN_SOUND_SECONDS } from './constants';
 
 /** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬 */
 export const GAME_HEADER_CARD_CLASS =
@@ -94,7 +95,7 @@ export function GameHeader({
                         ? 'text-slate-500'
                         : secondsLeft <= 0
                           ? 'text-red-500'
-                          : secondsLeft <= 10
+                          : secondsLeft <= LAST_COUNTDOWN_SOUND_SECONDS
                             ? 'text-amber-400'
                             : 'text-sky-400'
                     }`}

@@ -1,4 +1,4 @@
-import { MineSolver, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
+import { MineSolver, mergeTopologyWithDynamicMines, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
 
 function allowedValuesFromCommands(level: Level): number[] {
   const w = level.definition.commands.weights;
@@ -33,14 +33,19 @@ function handSize(level: Level): number {
 }
 
 /** 產生下一組「長官電報」待辦電碼（含輕量解題採樣，避免全盤暴力） */
-export function generateHand(level: Level, placedNumbers: { x: number; y: number; value: number }[]): number[] {
+export function generateHand(
+  level: Level,
+  placedNumbers: { x: number; y: number; value: number }[],
+  dynamicMines?: Set<string>,
+): number[] {
   const allowed = allowedValuesFromCommands(level);
   const validNumbers = new Set<number>();
   const emptyCells = level.cells.filter((c) => !placedNumbers.some((p) => p.x === c.x && p.y === c.y));
   const sampleCells = emptyCells.sort(() => Math.random() - 0.5).slice(0, 8);
 
   const shuffledAllowed = [...allowed].sort(() => Math.random() - 0.5);
-  const mineTopo = mineSolverTopologyFromLevel(level);
+  const baseTopo = mineSolverTopologyFromLevel(level);
+  const mineTopo = dynamicMines ? mergeTopologyWithDynamicMines(baseTopo, dynamicMines) : baseTopo;
 
   for (const cell of sampleCells) {
     for (const v of shuffledAllowed) {

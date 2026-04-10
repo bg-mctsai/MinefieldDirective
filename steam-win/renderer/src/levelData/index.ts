@@ -3,11 +3,7 @@ import levelDefinitionsJson from './levels.json';
 
 export * from './types';
 export { buildPlayableLevel, type PlayableLevel } from './buildRuntimeLevel';
-export {
-  buildCh4HexMapLayout,
-  buildCh4TriangleMapLayout,
-  createLevelDefinition,
-} from './levelDefinitionsFactory';
+export { buildCh4HexMapLayout, buildCh4TriangleMapLayout } from './ch4MapLayout';
 export { PLANNER_FIELD_DOCS } from './plannerFieldDocs';
 
 type LevelsJsonRoot = {

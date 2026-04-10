@@ -3,7 +3,10 @@ import { motion } from 'motion/react';
 import { Bomb } from 'lucide-react';
 import { MineRuins } from './MineRuins';
 import { triangleVerticesPx } from './triangleBoardLayout';
+import { lossChainPhaseForKey } from './lossExplosionChain';
 import type { GameState } from './types';
+import { boardCellTooltipText } from './boardCellTooltipText';
+import { useSvgBoardTooltip } from './useSvgBoardTooltip';
 
 function polyPoints(v: { ax: number; ay: number; bx: number; by: number; cx: number; cy: number }): string {
   return `${v.ax},${v.ay} ${v.bx},${v.by} ${v.cx},${v.cy}`;
@@ -39,6 +42,7 @@ export function TriangleGameBoardLayer({
       : (gameState.level.definition.forcedMineCells ?? []);
   const bonusTargetKeys = new Set(effectiveBonusTargets.map(([tx, ty]) => `${tx},${ty}`));
   const rewardedTargetKeys = gameState.rewardedMineTargets;
+  const { onPolygonEnter, onPolygonMove, onPolygonLeave, tooltipEl } = useSvgBoardTooltip();
 
   const terrainPolys: ReactNode[] = [];
   for (let y = 0; y < h; y++) {
@@ -57,6 +61,7 @@ export function TriangleGameBoardLayer({
   }
 
   return (
+    <>
     <svg
       width={contentW}
       height={contentH}
@@ -70,13 +75,19 @@ export function TriangleGameBoardLayer({
         const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
         const isMine = gameState.revealedMines.has(`${x},${y}`);
         const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
-        const isExploding = gameState.status === 'exploding' && isMine;
-        const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
         const key = `${x},${y}`;
+        const lossChainPhase = lossChainPhaseForKey(
+          key,
+          gameState.lossSequentialExplosionKeys,
+          gameState.lossExplosionWaveIndex,
+        );
+        const isExploding = gameState.status === 'exploding' && isMine && lossChainPhase === 'none';
+        const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
         const isBonusTarget = bonusTargetKeys.has(key);
         const isBonusTargetRewarded = rewardedTargetKeys.has(key);
         const showBonusFx = bonusFxKeys.has(key);
         const neutralBonusTarget = isBonusTarget && !placed && !isConflict;
+        const isDynamicMine = gameState.dynamicMines.has(key);
 
         const cx = (v.ax + v.bx + v.cx) / 3;
         const cy = (v.ay + v.by + v.cy) / 3;
@@ -91,9 +102,15 @@ export function TriangleGameBoardLayer({
         } else if (placed) {
           fillClass = 'fill-amber-950/90';
           strokeClass = 'stroke-amber-500';
-        } else if (postBlast && isMine) {
+        } else if (isDynamicMine) {
+          fillClass = 'fill-cyan-950/55';
+          strokeClass = 'stroke-cyan-700';
+        } else if ((postBlast && isMine && lossChainPhase === 'none') || (lossChainPhase === 'dead' && postBlast)) {
           fillClass = 'fill-stone-950/80';
           strokeClass = 'stroke-stone-600';
+        } else if (lossChainPhase === 'live' && gameState.status === 'exploding') {
+          fillClass = 'fill-red-950/50';
+          strokeClass = 'stroke-red-900';
         } else if (neutralBonusTarget) {
           fillClass = 'fill-slate-800';
           strokeClass = 'stroke-slate-600';
@@ -101,6 +118,15 @@ export function TriangleGameBoardLayer({
           fillClass = 'fill-red-950/50';
           strokeClass = 'stroke-red-900';
         }
+        const tooltipText = boardCellTooltipText({
+          isConflict,
+          placedValue: placed?.value,
+          isDynamicMine,
+          neutralBonusTarget,
+          isMine,
+          lossChainPhase,
+          bonusSeconds,
+        });
 
         return (
           <motion.g
@@ -115,6 +141,9 @@ export function TriangleGameBoardLayer({
                 isConflict ? 'animate-pulse' : ''
               }`}
               onClick={() => onCellClick(x, y)}
+              onMouseEnter={(e) => onPolygonEnter(tooltipText, e)}
+              onMouseMove={onPolygonMove}
+              onMouseLeave={onPolygonLeave}
             />
             {placed && (
               <text
@@ -128,7 +157,7 @@ export function TriangleGameBoardLayer({
                 {placed.value}
               </text>
             )}
-            {isMine && !placed && !neutralBonusTarget && (
+            {!placed && !neutralBonusTarget && lossChainPhase !== 'none' && (
               <foreignObject
                 x={cx - iconSize / 2}
                 y={cy - iconSize / 2}
@@ -137,7 +166,30 @@ export function TriangleGameBoardLayer({
                 className="pointer-events-none overflow-visible"
               >
                 <div className="flex h-full w-full items-center justify-center">
-                  {postBlast ? (
+                  {lossChainPhase === 'live' && gameState.status === 'exploding' && (
+                    <Bomb size={iconSize} className="text-red-400 opacity-60" />
+                  )}
+                  {lossChainPhase === 'popping' && gameState.status === 'exploding' && (
+                    <MineRuins key={`lc-${gameState.lossExplosionWaveIndex}`} x={x} y={y} exploding />
+                  )}
+                  {lossChainPhase === 'dead' && postBlast && (
+                    <MineRuins x={x} y={y} exploding={false} />
+                  )}
+                </div>
+              </foreignObject>
+            )}
+            {isMine && !placed && !neutralBonusTarget && lossChainPhase === 'none' && (
+              <foreignObject
+                x={cx - iconSize / 2}
+                y={cy - iconSize / 2}
+                width={iconSize}
+                height={iconSize}
+                className="pointer-events-none overflow-visible"
+              >
+                <div className="flex h-full w-full items-center justify-center">
+                  {isDynamicMine ? (
+                    <Bomb size={iconSize} className="text-cyan-400 opacity-75 drop-shadow-[0_0_4px_rgba(34,211,238,0.5)]" />
+                  ) : postBlast ? (
                     <MineRuins x={x} y={y} exploding={isExploding} />
                   ) : (
                     <Bomb size={iconSize} className="text-red-400 opacity-60" />
@@ -219,5 +271,7 @@ export function TriangleGameBoardLayer({
         );
       })}
     </svg>
+    {tooltipEl}
+    </>
   );
 }

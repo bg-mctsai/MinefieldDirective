@@ -5,6 +5,7 @@ import { Soldier } from './Soldier';
 import { TriangleGameBoardLayer } from './TriangleGameBoardLayer';
 import { HexGameBoardLayer } from './HexGameBoardLayer';
 import { BOARD_GAP_PX, boardCellPxForLevel } from './constants';
+import { lossChainPhaseForKey } from './lossExplosionChain';
 import { triangleBoardContentSizePx, triangleSidePxForLevel } from './triangleBoardLayout';
 import { hexBoardContentSizePx, hexRadiusPxForLevel } from './hexBoardLayout';
 import type { GameState } from './types';
@@ -152,11 +153,17 @@ export function GameBoard({
             );
 
           const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
-          const isMine = gameState.revealedMines.has(`${x},${y}`);
-          const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
-          const isExploding = gameState.status === 'exploding' && isMine;
-          const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
           const key = `${x},${y}`;
+          const isDynMine = gameState.dynamicMines.has(key);
+          const isMine = gameState.revealedMines.has(key);
+          const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
+          const lossChainPhase = lossChainPhaseForKey(
+            key,
+            gameState.lossSequentialExplosionKeys,
+            gameState.lossExplosionWaveIndex,
+          );
+          const isExploding = gameState.status === 'exploding' && isMine && lossChainPhase === 'none';
+          const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
           const isBonusTarget = bonusTargetKeys.has(key);
           const isBonusTargetRewarded = rewardedTargetKeys.has(key);
           const showBonusFx = bonusFxKeySet.has(key);
@@ -176,6 +183,9 @@ export function GameBoard({
               isBonusTargetRewarded={isBonusTargetRewarded}
               showBonusFx={showBonusFx}
               bonusSeconds={bonusSeconds}
+              isDynamicMine={isDynMine}
+              lossChainPhase={lossChainPhase}
+              lossChainPopKey={gameState.lossExplosionWaveIndex}
               status={gameState.status}
               onClick={onCellClick}
             />

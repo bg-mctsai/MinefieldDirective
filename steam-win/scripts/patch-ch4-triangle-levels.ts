@@ -6,7 +6,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildCh4TriangleMapLayout } from '../renderer/src/levelData/levelDefinitionsFactory.ts';
+import { buildCh4TriangleMapLayout } from '../renderer/src/levelData/ch4MapLayout.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const path = join(__dirname, '../renderer/src/levelData/levels.json');
@@ -17,10 +17,6 @@ for (const L of raw.levels) {
   if (L.levelId < 31 || L.levelId > 50) continue;
   if (L.gridSystem !== 'TRIANGLE') continue;
   L.mapLayout = buildCh4TriangleMapLayout(L.levelId, L.initialSeed);
-  const cmd = L as { commands?: { maxHand?: number } };
-  if (cmd.commands && L.levelId >= 31 && L.levelId <= 40) {
-    cmd.commands.maxHand = 3;
-  }
 }
 
 writeFileSync(path, `${JSON.stringify(raw, null, 2)}\n`, 'utf8');

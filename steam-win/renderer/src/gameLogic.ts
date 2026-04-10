@@ -180,6 +180,10 @@ export type MineSolverTopology = {
   boardWidth: number;
   boardHeight: number;
   forcedMineKeys?: Set<string>;
+  /**
+   * 深海廢雷：佔格、不可放數字，但**不計入**任何鄰格數字的雷數（與 forcedMineKeys 不同）。
+   */
+  ghostMineKeys?: Set<string>;
 };
 
 export function mineSolverTopologyFromLevel(level: PlayableLevel): MineSolverTopology {
@@ -190,6 +194,15 @@ export function mineSolverTopologyFromLevel(level: PlayableLevel): MineSolverTop
     boardHeight: level.height,
     forcedMineKeys,
   };
+}
+
+/** 將動態地雷掛在拓撲的 ghostMineKeys（不計入數字約束，僅佔格） */
+export function mergeTopologyWithDynamicMines(
+  base: MineSolverTopology,
+  dynamicMines: Set<string>,
+): MineSolverTopology {
+  if (dynamicMines.size === 0) return base;
+  return { ...base, ghostMineKeys: new Set(dynamicMines) };
 }
 
 export type LossUiTopology = {
@@ -218,6 +231,7 @@ export class MineSolver {
   private boardW: number;
   private boardH: number;
   private forcedMineKeys: Set<string>;
+  private ghostMineKeys: Set<string>;
 
   constructor(
     validCells: { x: number; y: number }[],
@@ -233,6 +247,7 @@ export class MineSolver {
     this.boardW = topology?.boardWidth ?? 0;
     this.boardH = topology?.boardHeight ?? 0;
     this.forcedMineKeys = topology?.forcedMineKeys ?? new Set<string>();
+    this.ghostMineKeys = topology?.ghostMineKeys ?? new Set<string>();
 
     // Pre-calculate neighbors for constraints
     this.constraints.forEach((c, idx) => {
@@ -268,7 +283,7 @@ export class MineSolver {
     const varToConstraints = new Map<string, number[]>();
     for (let i = 0; i < n; i++) {
       for (const nk of this.constraintNeighbors.get(i)!) {
-        if (numberCells.has(nk) || this.forcedMineKeys.has(nk)) continue;
+        if (numberCells.has(nk) || this.forcedMineKeys.has(nk) || this.ghostMineKeys.has(nk)) continue;
         let arr = varToConstraints.get(nk);
         if (!arr) {
           arr = [];
@@ -291,7 +306,7 @@ export class MineSolver {
         const i = stack.pop()!;
         cIdx.push(i);
         for (const nk of this.constraintNeighbors.get(i)!) {
-          if (numberCells.has(nk)) continue;
+          if (numberCells.has(nk) || this.forcedMineKeys.has(nk) || this.ghostMineKeys.has(nk)) continue;
           varSet.add(nk);
           const others = varToConstraints.get(nk);
           if (!others) continue;
@@ -316,6 +331,7 @@ export class MineSolver {
       let mineCount = 0;
       let unknownCount = 0;
       for (const n of neighbors) {
+        if (this.ghostMineKeys.has(n)) continue;
         const val = currentMines.get(n) ?? (this.forcedMineKeys.has(n) ? 1 : undefined);
         if (val !== undefined) {
           if (val === 1) mineCount++;
@@ -335,6 +351,7 @@ export class MineSolver {
       const neighbors = this.constraintNeighbors.get(i)!;
       let mineCount = 0;
       for (const n of neighbors) {
+        if (this.ghostMineKeys.has(n)) continue;
         if ((currentMines.get(n) ?? (this.forcedMineKeys.has(n) ? 1 : 0)) === 1) mineCount++;
       }
       if (mineCount !== c.value) return false;
@@ -413,6 +430,11 @@ export class MineSolver {
       let forcedMines = 0;
       let possibleMines = 0;
       for (const n of neighbors) {
+        if (this.ghostMineKeys.has(n)) continue;
+        if (this.forcedMineKeys.has(n)) {
+          forcedMines++;
+          continue;
+        }
         if (mineSet.has(n)) forcedMines++;
         if (!clearSet.has(n)) possibleMines++;
       }
@@ -454,7 +476,8 @@ export class MineSolver {
    */
   public getConflicts(): ConflictDetail[] | null {
     const numberCellKeys = new Set(this.constraints.map((c) => `${c.x},${c.y}`));
-    for (const k of this.forcedMineKeys) {
+    const blockNumberOnKeys = new Set([...this.forcedMineKeys, ...this.ghostMineKeys]);
+    for (const k of blockNumberOnKeys) {
       if (!numberCellKeys.has(k)) continue;
       const comma = k.indexOf(',');
       const x = Number(k.slice(0, comma));
