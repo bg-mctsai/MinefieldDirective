@@ -1,5 +1,33 @@
 import type { Level } from '../gameLogic';
 
+/** 佈署中：鄰焰共振關卡會先有 approach（小兵），再有 resonance（格上底數遞增到最終值） */
+export type MovingSoldierState =
+  | {
+      x: number;
+      y: number;
+      /** 含鄰格加成後的最終值 */
+      value: number;
+      /** 電報／鎖定顯示的底數 */
+      baseValue: number;
+      /** 邏輯鄰格已佈數字格數；0 時僅 phase approach */
+      neighborBonus: number;
+      phase: 'approach';
+    }
+  | {
+      x: number;
+      y: number;
+      value: number;
+      baseValue: number;
+      neighborBonus: number;
+      phase: 'resonance';
+      /** 共振動畫當下顯示的數字（baseValue … value） */
+      resonanceShown: number;
+      /** 造成 +1 的鄰格（順序＝每段飛行對應的熱源） */
+      resonanceContributorCells: { x: number; y: number }[];
+      /** 當前「+1」飛行起點；null 表示飛行結束、格上為穩態數字 */
+      flightFrom: { x: number; y: number } | null;
+    };
+
 export interface GameState {
   gameId: number;
   level: Level;
@@ -29,4 +57,9 @@ export interface GameState {
   jammingEpochMs: number;
   /** 信號干擾：玩家點選某道電報時鎖定的顯示數字（該格停止輪播）；佈署後清空 */
   jammingLockedSlot: { slotIndex: number; value: number } | null;
+  /**
+   * 引爆危機：各炸點剩餘倒數秒數。key = "x,y"；從 Map 中刪除代表已解除。
+   * 非引爆危機關卡為空 Map。
+   */
+  blastPointsCountdown: Map<string, number>;
 }

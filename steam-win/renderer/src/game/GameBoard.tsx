@@ -8,7 +8,9 @@ import { BOARD_GAP_PX, boardCellPxForLevel } from './constants';
 import { lossChainPhaseForKey } from './lossExplosionChain';
 import { triangleBoardContentSizePx, triangleSidePxForLevel } from './triangleBoardLayout';
 import { hexBoardContentSizePx, hexRadiusPxForLevel } from './hexBoardLayout';
-import type { GameState } from './types';
+import type { GameState, MovingSoldierState } from './types';
+import { NeighborBonusPlusOneFlight } from './NeighborBonusPlusOneFlight';
+import { NeighborResonancePlaceOverlay } from './NeighborResonancePlaceOverlay';
 
 export function GameBoard({
   gameState,
@@ -18,7 +20,7 @@ export function GameBoard({
   bonusFxKeys,
 }: {
   gameState: GameState;
-  movingSoldier: { x: number; y: number; value: number } | null;
+  movingSoldier: MovingSoldierState | null;
   onCellClick: (x: number, y: number) => void;
   boardRef: RefObject<HTMLDivElement | null>;
   bonusFxKeys: string[];
@@ -38,6 +40,13 @@ export function GameBoard({
   const rewardedTargetKeys = gameState.rewardedMineTargets;
   const bonusFxKeySet = new Set(bonusFxKeys);
   const bonusSeconds = gameState.level.definition.mineBonusSeconds ?? 5;
+  const blastPointsCountdown = gameState.blastPointsCountdown;
+  const allBlastPointKeys = new Set(
+    (gameState.level.definition.blastPoints ?? []).map((bp) => `${bp.pos[0]},${bp.pos[1]}`),
+  );
+  const digitOutpostKeys = new Set(
+    (gameState.level.definition.digitOutposts ?? []).map(([ox, oy]) => `${ox},${oy}`),
+  );
 
   if (isTriangle) {
     const side = triangleSidePxForLevel(w, h);
@@ -65,7 +74,26 @@ export function GameBoard({
             <MapCloudOverlay config={cloud} boardWidthPx={contentW} boardHeightPx={contentH} />
           )}
 
-          {movingSoldier && (
+          {movingSoldier?.phase === 'resonance' && (
+            <NeighborResonancePlaceOverlay
+              layout="triangle"
+              x={movingSoldier.x}
+              y={movingSoldier.y}
+              shownValue={movingSoldier.resonanceShown}
+              cellSize={side}
+            />
+          )}
+          {movingSoldier?.phase === 'resonance' && movingSoldier.flightFrom && (
+            <NeighborBonusPlusOneFlight
+              layout="triangle"
+              fromX={movingSoldier.flightFrom.x}
+              fromY={movingSoldier.flightFrom.y}
+              toX={movingSoldier.x}
+              toY={movingSoldier.y}
+              cellSize={side}
+            />
+          )}
+          {movingSoldier && movingSoldier.phase !== 'resonance' && (
             <Soldier
               x={movingSoldier.x}
               y={movingSoldier.y}
@@ -106,7 +134,28 @@ export function GameBoard({
             <MapCloudOverlay config={cloud} boardWidthPx={contentW} boardHeightPx={contentH} />
           )}
 
-          {movingSoldier && (
+          {movingSoldier?.phase === 'resonance' && (
+            <NeighborResonancePlaceOverlay
+              layout="hex"
+              x={movingSoldier.x}
+              y={movingSoldier.y}
+              shownValue={movingSoldier.resonanceShown}
+              cellSize={r}
+              hexMin={{ x: minX, y: minY }}
+            />
+          )}
+          {movingSoldier?.phase === 'resonance' && movingSoldier.flightFrom && (
+            <NeighborBonusPlusOneFlight
+              layout="hex"
+              fromX={movingSoldier.flightFrom.x}
+              fromY={movingSoldier.flightFrom.y}
+              toX={movingSoldier.x}
+              toY={movingSoldier.y}
+              cellSize={r}
+              hexMin={{ x: minX, y: minY }}
+            />
+          )}
+          {movingSoldier && movingSoldier.phase !== 'resonance' && (
             <Soldier
               x={movingSoldier.x}
               y={movingSoldier.y}
@@ -155,7 +204,9 @@ export function GameBoard({
           const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
           const key = `${x},${y}`;
           const isDynMine = gameState.dynamicMines.has(key);
-          const isMine = gameState.revealedMines.has(key);
+          // 仍在倒數的炸點：由 countdown overlay 顯示，不渲染地雷圖示
+          // 已解除的炸點（不在 blastPointsCountdown 中）：正常顯示地雷圖示
+          const isMine = !blastPointsCountdown.has(key) && gameState.revealedMines.has(key);
           const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
           const lossChainPhase = lossChainPhaseForKey(
             key,
@@ -167,6 +218,7 @@ export function GameBoard({
           const isBonusTarget = bonusTargetKeys.has(key);
           const isBonusTargetRewarded = rewardedTargetKeys.has(key);
           const showBonusFx = bonusFxKeySet.has(key);
+          const blastPointCountdown = blastPointsCountdown.get(key);
 
           return (
             <GameCell
@@ -183,6 +235,8 @@ export function GameBoard({
               isBonusTargetRewarded={isBonusTargetRewarded}
               showBonusFx={showBonusFx}
               bonusSeconds={bonusSeconds}
+              blastPointCountdown={blastPointCountdown}
+              isDigitOutpost={digitOutpostKeys.has(key)}
               isDynamicMine={isDynMine}
               lossChainPhase={lossChainPhase}
               lossChainPopKey={gameState.lossExplosionWaveIndex}
@@ -196,7 +250,26 @@ export function GameBoard({
           <MapCloudOverlay config={cloud} boardWidthPx={boardWidthPx} boardHeightPx={boardHeightPx} />
         )}
 
-        {movingSoldier && (
+        {movingSoldier?.phase === 'resonance' && (
+          <NeighborResonancePlaceOverlay
+            layout="square"
+            x={movingSoldier.x}
+            y={movingSoldier.y}
+            shownValue={movingSoldier.resonanceShown}
+            cellSize={cellSize}
+          />
+        )}
+        {movingSoldier?.phase === 'resonance' && movingSoldier.flightFrom && (
+          <NeighborBonusPlusOneFlight
+            layout="square"
+            fromX={movingSoldier.flightFrom.x}
+            fromY={movingSoldier.flightFrom.y}
+            toX={movingSoldier.x}
+            toY={movingSoldier.y}
+            cellSize={cellSize}
+          />
+        )}
+        {movingSoldier && movingSoldier.phase !== 'resonance' && (
           <Soldier x={movingSoldier.x} y={movingSoldier.y} cellSize={cellSize} layout="square" />
         )}
       </div>

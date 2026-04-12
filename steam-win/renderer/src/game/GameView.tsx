@@ -9,6 +9,8 @@ import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGu
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
 import { VictoryCelebrationOverlay } from './VictoryCelebrationOverlay';
 import { LEVEL_MAX, isLevelUnlocked, saveGameProgress } from './gameProgressStorage';
+import { chapterCampaignTagline } from './levelStrategyGuideModel';
+import { campaignLevelHeaderTitle } from './campaignLevelUi';
 
 export default function GameView({
   initialLevelIndex: initialLevelProp,
@@ -83,9 +85,9 @@ export default function GameView({
   if (!gameState) return null;
 
   const briefingLines = gameState.level.definition.chapterEntryBriefing;
-  const chapterHeading = gameState.level.name.includes(' · ')
-    ? gameState.level.name.split(' · ')[0]!
-    : gameState.level.name;
+  const ch = gameState.level.definition.chapter;
+  const chapterHeading =
+    chapterCampaignTagline(ch).trim() || `第 ${ch} 章`;
   const showChapterBriefing =
     gameState.status === 'playing' &&
     Boolean(briefingLines?.length) &&
@@ -106,7 +108,7 @@ export default function GameView({
         onRestart={() => initGame(currentLevelIndex)}
         showNextLevelButton={winInlineActionsUnlocked && !isLastLevel}
         onNextLevel={handleNextLevel}
-        levelName={gameState.level.name}
+        levelName={campaignLevelHeaderTitle(gameState.level)}
         secondsLeft={gameState.secondsLeft}
         countdownStarted={gameState.timerStarted}
         guideButton={<LevelStrategyGuideTrigger onClick={() => setStrategyGuideOpen(true)} />}

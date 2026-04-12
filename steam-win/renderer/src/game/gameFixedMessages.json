@@ -1,0 +1,44 @@
+{
+  "gameStatus": {
+    "initTelegraph": "長官電報已收。先選一封電報上的數字，再標定佈雷座標。",
+    "timeUpExplosion": "時限已盡，雷區未能完成佈署——引爆！長官：「撤！」",
+    "blastPointExplosion": "炸點引爆！周圍雷區未能及時確認——戰線崩潰！長官：「撤！」",
+    "digitOutpostIncomplete": "覆蓋率已達標，但戰術據點尚未全部佈署數字——視同違令，全線引爆！長官：「撤！」",
+    "digitOutpostRevealedAsMine": "戰術據點被推為地雷——據點只能佈數字，不得為雷！全線引爆，長官：「撤！」",
+    "jammingSelectTelegraphFirst": "先點一道長官電報，鎖定當下數字，再點格佈雷。"
+  },
+  "afterPlace": {
+    "newHandArrived": "嘀——新電報到達，請選下一個數字。",
+    "awaitNextTelegraph": "此格已依令安放。請先選下一封電報上的數字，再標座標。",
+    "mineBonusPrefix": "目標雷格確認，時限 +{seconds} 秒。",
+    "dynamicMinePushed": "　⚠ 暗流推入一顆廢雷！"
+  },
+  "victoryStatus": {
+    "withTimeBonus": "報告長官！目標雷區確認，時限 +{seconds} 秒；依電報完成佈雷，任務圓滿達成！",
+    "plain": "報告長官！依電報完成佈雷，任務圓滿達成！"
+  },
+  "lossCommander": {
+    "adjacentNeighborConflict": "長官回電大罵：「電報要你埋『{v}』，你選那格跟鄰格『{other}』打架？重選座標！」",
+    "correctDigitWrongCell": "長官回電大罵：「電報數字是『{v}』沒錯，你格選錯了還敢回報？重來！」",
+    "digitMismatchClue": "長官回電大罵：「電報叫你埋『{v}』，跟盤面『{w}』兜不攏——誰准你這樣執行？重來！」",
+    "genericUnsatisfiable": "長官回電大罵：「照電報數字『{v}』去佈，盤面卻兜不攏——執行錯誤，重來！」"
+  },
+  "commanderRowHint": {
+    "chainExploding": "！！！連環爆炸中！！！",
+    "missionOver": "任務結束。",
+    "selectTelegraphJammingIdle": "先選一道長官電報；數字會 1～8 往返輪播（接收不良）",
+    "selectTelegraphNormal": "先選電碼，再點格佈雷",
+    "digitLockedPickCell": "數字已鎖定，請點目標格佈雷",
+    "pickTargetCellWithDigit": "電碼「{digit}」—請點目標格"
+  },
+  "cellTooltip": {
+    "conflict": "衝突格：此格與周邊雷數矛盾",
+    "placedDigit": "已佈署數字 {value}",
+    "blastPoint": "計時地雷：倒數結束前必須將周圍所有格填滿，否則引爆",
+    "dynamicJunkMine": "廢雷：會佔格，但不計入任何鄰格雷數",
+    "bonusTargetMine": "目標地雷：確認可獲得 +{seconds} 秒",
+    "mineCounts": "地雷：會計入周圍數字雷數",
+    "emptyPlaceable": "空格：可放置數字",
+    "digitOutpost": "戰術據點：必須在此格佈署數字；若邏輯上此格為雷亦視同失敗。達覆蓋率仍未填仍引爆。"
+  }
+}

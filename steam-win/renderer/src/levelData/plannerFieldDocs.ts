@@ -3,17 +3,21 @@
  * 每個名詞只說明一次；企劃改關卡請編輯同檔的 `levels` 陣列。
  */
 export const PLANNER_FIELD_DOCS: Record<string, string> = {
-  讀我: '下方 levels 為 100 關資料陣列（單一真相來源）；編輯後請維持合法 JSON（雙引號、逗號、無註解）。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。',
+  讀我:
+    '下方 levels 為 100 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。',
 
   levelId: '關卡編號 1～100；第 N 筆資料應對應關卡 N。',
-  chapter: '章節編號 1～7，對應戰役分章。',
+  chapter: '章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。',
   title: '關卡標題（介面顯示用）。',
   gridSystem: '地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。',
   coverageGoal: '過關覆蓋率目標，0～1（例：0.7 = 70%；1 = 100%）。',
   timeLimit: '時間限制（秒）；0 表示不計時。',
   initialSeed: '盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。',
 
-  mapLayout: '地圖幾何根物件；必含 type，其餘欄位依 type 擇一填寫。',
+  mapRef:
+    '可選；地圖幾何外置時填此字串（通常等於 levelId 之字串），對應檔案 levelData/maps/{mapRef}.json，內容為 { "mapLayout": … }。與關卡內嵌 mapLayout 二擇一；兩者併存時以內嵌 mapLayout 為準。',
+
+  mapLayout: '地圖幾何根物件；必含 type，其餘欄位依 type 擇一填寫（可改寫入外置 maps 檔，見 mapRef）。',
   'mapLayout.type':
     'SQUARE=矩形格網；MIXED=多區塊合併；CROSS=十字；DIAMOND=菱形；TRIANGLE／HEXAGON=特殊（占位時仍可能為方格）。',
   'mapLayout.width': '（type=SQUARE）寬度格數。',
@@ -37,10 +41,10 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   'events.count': '（type=REINFORCE）隨機鎖定空格數量。',
 
   chapterEntryBriefing:
-    '可選；各章第一關常用。進入關卡時顯示的長官簡報台詞（長官發電報、士兵依數字佈雷之世界觀），字串陣列（建議 2～5 句）。執行 npm run export-levels-json 時會自舊版 levels.json 合併保留此欄。',
+    '（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。',
 
   mapCloudOverlay:
-    '可選；沙塵暴視覺效果：多條不規則橫向沙帶從兩側交替飄入飄出（僅畫面、不擋點擊）。第 21～30 關預設啟用。',
+    '可選；沙塵暴視覺效果：多條不規則橫向沙帶從兩側交替飄入飄出（僅畫面、不擋點擊）。',
   'mapCloudOverlay.periodSec': '沙帶移動速度基準（秒）；值愈大移動愈慢（建議 10～22；預設 18）。',
   'mapCloudOverlay.opacity': '0～1，沙帶通過時的濃度；愈高格子愈不清楚（建議 0.45～0.70；預設 0.52）。',
   'mapCloudOverlay.blurPx': '柔邊模糊強度 px（建議 32～56；愈大愈霧；預設 44）。',
@@ -55,6 +59,18 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
 
   commandSlotJammingStepMs:
     '可選；信號干擾時輪播「每換一個數字」的間隔（毫秒）。未填用程式預設；過小／過大會被 clamp（見 resolveSignalJammingStepMs）。',
+
+  blastPoints:
+    '可選；引爆危機章節——地圖上的定時炸點陣列。每個炸點含 pos[x,y]、countdownSec（倒數秒數）、defuseBonusSec（解除後加秒；未填預設 0）。歸零前若周圍格子邏輯未確認所有地雷，即觸發爆炸失敗。',
+  'blastPoints[].pos': '炸點座標 [x, y]，與 mapLayout 格子索引一致（0-based）。',
+  'blastPoints[].countdownSec': '炸點倒數秒數；獨立於主計時器，歸零即輸。',
+  'blastPoints[].defuseBonusSec': '可選；解除炸點後加入主計時器的獎勵秒數（未填為 0）。',
+
+  digitOutposts:
+    '可選；戰術據點座標 [[x,y],…]（須為可部署格）。每格必須有數字佈署（含開局 prePlaced）；覆蓋率達標仍有據點未填數字則失敗。據點若被邏輯揭示為紅雷或出現動態廢雷佔格亦立即失敗。廢雷生成會排除據點座標。',
+
+  neighborPlacedDigitBonus:
+    '可選；本機制唯一開關：僅當設為 true 時啟用，程式不依 chapter／levelId 推斷。true 時實際放下數字 = 電報底數 + 與目標格「邏輯相鄰」且已佈數字之鄰格個數（含開局 prePlaced／提示格）。鄰接規則與盤面 solver 相同。',
 
   rewards: '通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。',
 };

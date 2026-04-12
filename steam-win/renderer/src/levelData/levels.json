@@ -1,14 +1,15 @@
-{
+﻿{
   "_企劃欄位說明": {
-    "讀我": "下方 levels 為 100 關資料陣列（單一真相來源）；編輯後請維持合法 JSON（雙引號、逗號、無註解）。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。",
+    "讀我": "下方 levels 為 100 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。",
     "levelId": "關卡編號 1～100；第 N 筆資料應對應關卡 N。",
-    "chapter": "章節編號 1～7，對應戰役分章。",
+    "chapter": "章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。",
     "title": "關卡標題（介面顯示用）。",
     "gridSystem": "地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。",
     "coverageGoal": "過關覆蓋率目標，0～1（例：0.7 = 70%；1 = 100%）。",
     "timeLimit": "時間限制（秒）；0 表示不計時。",
     "initialSeed": "盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。",
-    "mapLayout": "地圖幾何根物件；必含 type，其餘欄位依 type 擇一填寫。",
+    "mapRef": "可選；地圖幾何外置時填此字串（通常等於 levelId 之字串），對應檔案 levelData/maps/{mapRef}.json，內容為 { \"mapLayout\": … }。與關卡內嵌 mapLayout 二擇一；兩者併存時以內嵌 mapLayout 為準。",
+    "mapLayout": "地圖幾何根物件；必含 type，其餘欄位依 type 擇一填寫（可改寫入外置 maps 檔，見 mapRef）。",
     "mapLayout.type": "SQUARE=矩形格網；MIXED=多區塊合併；CROSS=十字；DIAMOND=菱形；TRIANGLE／HEXAGON=特殊（占位時仍可能為方格）。",
     "mapLayout.width": "（type=SQUARE）寬度格數。",
     "mapLayout.height": "（type=SQUARE）高度格數。",
@@ -26,8 +27,8 @@
     "events.type": "SANDSTORM／JAMMING／EMP 等附 duration（秒）；REINFORCE 為鎖定格數，附 count。",
     "events.duration": "（非 REINFORCE）事件持續秒數。",
     "events.count": "（type=REINFORCE）隨機鎖定空格數量。",
-    "chapterEntryBriefing": "可選；各章第一關常用。進入關卡時顯示的長官簡報台詞（長官發電報、士兵依數字佈雷之世界觀），字串陣列（建議 2～5 句）。執行 npm run export-levels-json 時會自舊版 levels.json 合併保留此欄。",
-    "mapCloudOverlay": "可選；沙塵暴視覺效果：多條不規則橫向沙帶從兩側交替飄入飄出（僅畫面、不擋點擊）。第 21～30 關預設啟用。",
+    "chapterEntryBriefing": "（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。",
+    "mapCloudOverlay": "可選；沙塵暴視覺效果：多條不規則橫向沙帶從兩側交替飄入飄出（僅畫面、不擋點擊）。",
     "mapCloudOverlay.periodSec": "沙帶移動速度基準（秒）；值愈大移動愈慢（建議 10～22；預設 18）。",
     "mapCloudOverlay.opacity": "0～1，沙帶通過時的濃度；愈高格子愈不清楚（建議 0.45～0.70；預設 0.52）。",
     "mapCloudOverlay.blurPx": "柔邊模糊強度 px（建議 32～56；愈大愈霧；預設 44）。",
@@ -37,6 +38,12 @@
     "dynamicMinePerMove": "可選；true 時每次玩家成功佈署後，在鄰居皆無數字的隨機空格新增一顆廢雷（深海要塞機制）。廢雷佔格、不可再放數字，但不計入鄰格數字的雷數（與企劃「孤立廢雷」一致）。",
     "commandSlotReceiveJamming": "可選；true 時為信號干擾區：每道待辦電碼 UI 上 1～8 往返輪播；玩家點選一道電報時鎖定當下顯示數字並停止該格輪播，再點格以該數字佈署（見 signalJamming.ts、useMineGame）。",
     "commandSlotJammingStepMs": "可選；信號干擾時輪播「每換一個數字」的間隔（毫秒）。未填用程式預設；過小／過大會被 clamp（見 resolveSignalJammingStepMs）。",
+    "blastPoints": "可選；引爆危機章節——地圖上的定時炸點陣列。每個炸點含 pos[x,y]、countdownSec（倒數秒數）、defuseBonusSec（解除後加秒；未填預設 0）。歸零前若周圍格子邏輯未確認所有地雷，即觸發爆炸失敗。",
+    "blastPoints[].pos": "炸點座標 [x, y]，與 mapLayout 格子索引一致（0-based）。",
+    "blastPoints[].countdownSec": "炸點倒數秒數；獨立於主計時器，歸零即輸。",
+    "blastPoints[].defuseBonusSec": "可選；解除炸點後加入主計時器的獎勵秒數（未填為 0）。",
+    "digitOutposts": "可選；戰術據點座標 [[x,y],…]（須為可部署格）。每格必須有數字佈署（含開局 prePlaced）；覆蓋率達標仍有據點未填數字則失敗。據點若被邏輯揭示為紅雷或出現動態廢雷佔格亦立即失敗。廢雷生成會排除據點座標。",
+    "neighborPlacedDigitBonus": "可選；本機制唯一開關：僅當設為 true 時啟用，程式不依 chapter／levelId 推斷。true 時實際放下數字 = 電報底數 + 與目標格「邏輯相鄰」且已佈數字之鄰格個數（含開局 prePlaced／提示格）。鄰接規則與盤面 solver 相同。",
     "rewards": "通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。"
   },
   "levels": [
@@ -48,11 +55,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L1-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 5,
-        "height": 5
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -65,10 +67,7 @@
       },
       "events": [],
       "rewards": {},
-      "chapterEntryBriefing": [
-        "眼睛睜大。這裡是新兵訓練營，不是觀光區。",
-        "長官會一次發多封電報過來，你要照收到的數字去佈雷，別給我搞砸了——頂多重練，沒人會因為你失手送命。"
-      ]
+      "mapRef": "1"
     },
     {
       "levelId": 2,
@@ -78,11 +77,6 @@
       "coverageGoal": 0.706,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L2-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 6,
-        "height": 4
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -94,7 +88,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "2"
     },
     {
       "levelId": 3,
@@ -104,11 +99,6 @@
       "coverageGoal": 0.711,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L3-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 6,
-        "height": 6
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -120,7 +110,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "3"
     },
     {
       "levelId": 4,
@@ -130,11 +121,6 @@
       "coverageGoal": 0.717,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L4-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 7,
-        "height": 5
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -146,7 +132,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "4"
     },
     {
       "levelId": 5,
@@ -156,11 +143,6 @@
       "coverageGoal": 0.722,
       "timeLimit": 0,
       "initialSeed": "minefield-campaign-v1-L5-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 7,
-        "height": 7
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -172,7 +154,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "5"
     },
     {
       "levelId": 6,
@@ -182,11 +165,6 @@
       "coverageGoal": 0.728,
       "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L6-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 6
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -198,7 +176,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "6"
     },
     {
       "levelId": 7,
@@ -208,11 +187,6 @@
       "coverageGoal": 0.733,
       "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L7-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 8
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -226,7 +200,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "7"
     },
     {
       "levelId": 8,
@@ -236,11 +211,6 @@
       "coverageGoal": 0.739,
       "timeLimit": 79,
       "initialSeed": "minefield-campaign-v1-L8-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 8
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -254,7 +224,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "8"
     },
     {
       "levelId": 9,
@@ -264,11 +235,6 @@
       "coverageGoal": 0.744,
       "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L9-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 10
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -282,7 +248,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "9"
     },
     {
       "levelId": 10,
@@ -292,11 +259,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 101,
       "initialSeed": "minefield-campaign-v1-L10-ch1",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -308,7 +270,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "10"
     },
     {
       "levelId": 11,
@@ -318,11 +281,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 84,
       "initialSeed": "minefield-campaign-v1-L11-ch2",
-      "mapLayout": {
-        "type": "CROSS",
-        "width": 11,
-        "height": 11
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -337,10 +295,7 @@
       },
       "events": [],
       "rewards": {},
-      "chapterEntryBriefing": [
-        "聽好。已經不是訓練營了——巷戰封鎖線逾時失守，賠上去的是人命，不是重練。",
-        "倒數在跑，在無規則的窄巷中別迷路了；來電報就盡速佈雷，別給我拖到防線被撕開才發現陣亡名單有你。"
-      ]
+      "mapRef": "11"
     },
     {
       "levelId": 12,
@@ -350,10 +305,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 92,
       "initialSeed": "minefield-campaign-v1-L12-ch2",
-      "mapLayout": {
-        "type": "DIAMOND",
-        "radius": 4
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -367,7 +318,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "12"
     },
     {
       "levelId": 13,
@@ -377,11 +329,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 100,
       "initialSeed": "minefield-campaign-v1-L13-ch2",
-      "mapLayout": {
-        "type": "CROSS",
-        "width": 11,
-        "height": 11
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -395,7 +342,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "13"
     },
     {
       "levelId": 14,
@@ -405,10 +353,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 108,
       "initialSeed": "minefield-campaign-v1-L14-ch2",
-      "mapLayout": {
-        "type": "DIAMOND",
-        "radius": 4
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -422,7 +366,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "14"
     },
     {
       "levelId": 15,
@@ -432,11 +377,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 116,
       "initialSeed": "minefield-campaign-v1-L15-ch2",
-      "mapLayout": {
-        "type": "CROSS",
-        "width": 11,
-        "height": 11
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -450,7 +390,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "15"
     },
     {
       "levelId": 16,
@@ -460,10 +401,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 124,
       "initialSeed": "minefield-campaign-v1-L16-ch2",
-      "mapLayout": {
-        "type": "DIAMOND",
-        "radius": 4
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -477,7 +414,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "16"
     },
     {
       "levelId": 17,
@@ -487,11 +425,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 132,
       "initialSeed": "minefield-campaign-v1-L17-ch2",
-      "mapLayout": {
-        "type": "CROSS",
-        "width": 11,
-        "height": 11
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -505,7 +438,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "17"
     },
     {
       "levelId": 18,
@@ -515,10 +449,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 140,
       "initialSeed": "minefield-campaign-v1-L18-ch2",
-      "mapLayout": {
-        "type": "DIAMOND",
-        "radius": 4
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -532,7 +462,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "18"
     },
     {
       "levelId": 19,
@@ -542,11 +473,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 148,
       "initialSeed": "minefield-campaign-v1-L19-ch2",
-      "mapLayout": {
-        "type": "CROSS",
-        "width": 11,
-        "height": 11
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -560,7 +486,8 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "19"
     },
     {
       "levelId": 20,
@@ -570,10 +497,6 @@
       "coverageGoal": 0.7,
       "timeLimit": 156,
       "initialSeed": "minefield-campaign-v1-L20-ch2",
-      "mapLayout": {
-        "type": "DIAMOND",
-        "radius": 4
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -587,39 +510,17 @@
         }
       },
       "events": [],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "20"
     },
     {
       "levelId": 21,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 21 戰",
+      "title": "乾谷據點 · 第 21 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L21-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            9,
-            8
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            7,
-            2
-          ],
-          [
-            9,
-            0
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -634,31 +535,17 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          2,
+          1
+        ],
+        [
+          6,
+          6
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 11,
-        "opacity": 0.88,
-        "blurPx": 28
-      },
       "rewards": {
         "unlockCharacterIds": [
           "engineer"
@@ -667,46 +554,16 @@
           "TODO: 實作工程師角色技能與 UI 解鎖"
         ]
       },
-      "chapterEntryBriefing": [
-        "眼睛睜大。這裡不是操場，是荒漠前線——沙暴遮住數字你還瞎搞，後面的人是真的會死。",
-        "能看見就記格，煙幕掃來前先下得了手就下；長官電報不停、覆蓋照驗，別給我裝沒收到——這裡沒有『弄錯重來』。"
-      ]
+      "mapRef": "21"
     },
     {
       "levelId": 22,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 22 戰",
+      "title": "乾谷據點 · 第 22 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L22-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            9,
-            7
-          ],
-          [
-            8,
-            7
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            9,
-            0
-          ],
-          [
-            7,
-            3
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -721,72 +578,28 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          1,
+          5
+        ],
+        [
+          4,
+          5
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 12.6,
-        "opacity": 0.9,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "22"
     },
     {
       "levelId": 23,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 23 戰",
+      "title": "乾谷據點 · 第 23 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 84,
       "initialSeed": "minefield-campaign-v1-L23-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            7,
-            7
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            3,
-            9
-          ],
-          [
-            5,
-            9
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            5,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -801,76 +614,32 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          0,
+          0
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          8,
+          2
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 14.2,
-        "opacity": 0.92,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "23"
     },
     {
       "levelId": 24,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 24 戰",
+      "title": "乾谷據點 · 第 24 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 96,
       "initialSeed": "minefield-campaign-v1-L24-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            3,
-            9
-          ],
-          [
-            0,
-            0
-          ],
-          [
-            8,
-            5
-          ],
-          [
-            1,
-            7
-          ],
-          [
-            5,
-            8
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            3,
-            8
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -885,60 +654,36 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          2,
+          2
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          6,
+          2
+        ],
+        [
+          9,
+          9
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 15.8,
-        "opacity": 0.88,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "24"
     },
     {
       "levelId": 25,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 25 戰",
+      "title": "乾谷據點 · 第 25 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 108,
       "initialSeed": "minefield-campaign-v1-L25-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            8,
-            8
-          ],
-          [
-            1,
-            2
-          ],
-          [
-            2,
-            2
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -953,64 +698,32 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          0,
+          1
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          7,
+          7
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 17.4,
-        "opacity": 0.9,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "25"
     },
     {
       "levelId": 26,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 26 戰",
+      "title": "乾谷據點 · 第 26 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 120,
       "initialSeed": "minefield-campaign-v1-L26-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            7,
-            0
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            0,
-            2
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -1025,68 +738,28 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          5,
+          5
+        ],
+        [
+          8,
+          8
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 11,
-        "opacity": 0.92,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "26"
     },
     {
       "levelId": 27,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 27 戰",
+      "title": "乾谷據點 · 第 27 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L27-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            0,
-            6
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            8,
-            6
-          ],
-          [
-            3,
-            6
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -1101,72 +774,32 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          1,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          9,
+          9
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 12.6,
-        "opacity": 0.88,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "27"
     },
     {
       "levelId": 28,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 28 戰",
+      "title": "乾谷據點 · 第 28 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L28-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            3,
-            4
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            9,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -1181,76 +814,36 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          0,
+          0
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          1,
+          8
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 14.2,
-        "opacity": 0.9,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "28"
     },
     {
       "levelId": 29,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 29 戰",
+      "title": "乾谷據點 · 第 29 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 84,
       "initialSeed": "minefield-campaign-v1-L29-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            8,
-            6
-          ],
-          [
-            0,
-            2
-          ],
-          [
-            0,
-            6
-          ],
-          [
-            4,
-            8
-          ],
-          [
-            6,
-            8
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            6,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -1265,60 +858,32 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          1,
+          1
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          9,
+          0
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 15.8,
-        "opacity": 0.92,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "29"
     },
     {
       "levelId": 30,
       "chapter": 3,
-      "title": "荒漠記憶 · 第 30 戰",
+      "title": "乾谷據點 · 第 30 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.75,
       "timeLimit": 96,
       "initialSeed": "minefield-campaign-v1-L30-ch3",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 10,
-        "height": 10,
-        "forbiddenCells": [
-          [
-            2,
-            5
-          ],
-          [
-            9,
-            7
-          ],
-          [
-            5,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 4,
         "poolType": "WEIGHTED",
@@ -1333,32 +898,31 @@
           "8": 3
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.08,
-          "type": "SANDSTORM",
-          "duration": 18
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "SANDSTORM",
-          "duration": 22
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "SANDSTORM",
-          "duration": 18
-        }
+      "events": [],
+      "digitOutposts": [
+        [
+          0,
+          0
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          7,
+          7
+        ],
+        [
+          1,
+          8
+        ],
+        [
+          8,
+          2
+        ]
       ],
-      "mapCloudOverlay": {
-        "periodSec": 17.4,
-        "opacity": 0.88,
-        "blurPx": 28
-      },
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "30"
     },
     {
       "levelId": 31,
@@ -1368,13 +932,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L31-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 8,
-          "height": 9
-        }
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1393,11 +950,7 @@
         }
       ],
       "rewards": {},
-      "chapterEntryBriefing": [
-        "醒醒。三角格從這章起——搞錯鄰接不是扣操行，是把人帶進真火力，會死人。",
-        "數字還是周邊幾顆雷；照電報佈雷、覆蓋達標，別給我搞錯還嘴硬，訓練營那套重來在這裡不適用。",
-        "先給你兩關純三角盤熟手感；第 33 戰起戰場會隨機碎裂，禁佈格每局不同，別當觀光。"
-      ]
+      "mapRef": "31"
     },
     {
       "levelId": 32,
@@ -1407,13 +960,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L32-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 9,
-          "height": 9
-        }
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1431,7 +977,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "32"
     },
     {
       "levelId": 33,
@@ -1441,75 +988,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 66,
       "initialSeed": "minefield-campaign-v1-L33-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 10,
-          "height": 8
-        },
-        "forbiddenCells": [
-          [
-            5,
-            5
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            8,
-            4
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            7,
-            2
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            0,
-            1
-          ],
-          [
-            9,
-            3
-          ],
-          [
-            9,
-            0
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            3,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1527,7 +1005,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "33"
     },
     {
       "levelId": 34,
@@ -1537,75 +1016,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 66,
       "initialSeed": "minefield-campaign-v1-L34-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 8,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            5,
-            7
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            6,
-            8
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            0,
-            7
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            4,
-            7
-          ],
-          [
-            7,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1623,7 +1033,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "34"
     },
     {
       "levelId": 35,
@@ -1633,79 +1044,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L35-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 9,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            5,
-            5
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            1,
-            4
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            8,
-            0
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            2
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            1,
-            8
-          ],
-          [
-            8,
-            7
-          ],
-          [
-            8,
-            8
-          ],
-          [
-            4,
-            3
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1723,7 +1061,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "35"
     },
     {
       "levelId": 36,
@@ -1733,67 +1072,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L36-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 10,
-          "height": 9
-        },
-        "forbiddenCells": [
-          [
-            9,
-            3
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            9,
-            6
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            8,
-            8
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            9,
-            2
-          ],
-          [
-            0,
-            5
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            8,
-            6
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1818,7 +1096,8 @@
         "todo": [
           "TODO: 實作老兵角色與三角格邏輯"
         ]
-      }
+      },
+      "mapRef": "36"
     },
     {
       "levelId": 37,
@@ -1828,71 +1107,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 56,
       "initialSeed": "minefield-campaign-v1-L37-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 7,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            4,
-            7
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            5,
-            9
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            0,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1910,7 +1124,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "37"
     },
     {
       "levelId": 38,
@@ -1920,55 +1135,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 56,
       "initialSeed": "minefield-campaign-v1-L38-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 10,
-          "height": 7
-        },
-        "forbiddenCells": [
-          [
-            5,
-            3
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            9,
-            3
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            0,
-            6
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            8,
-            4
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            8,
-            1
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1986,7 +1152,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "38"
     },
     {
       "levelId": 39,
@@ -1996,75 +1163,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L39-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 9,
-          "height": 8
-        },
-        "forbiddenCells": [
-          [
-            3,
-            6
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            8,
-            1
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            0,
-            3
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            1,
-            2
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            2,
-            7
-          ],
-          [
-            8,
-            0
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2082,7 +1180,8 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "39"
     },
     {
       "levelId": 40,
@@ -2092,107 +1191,6 @@
       "coverageGoal": 0.75,
       "timeLimit": 84,
       "initialSeed": "minefield-campaign-v1-L40-ch4",
-      "mapLayout": {
-        "type": "TRIANGLE",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            5,
-            9
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            8,
-            3
-          ],
-          [
-            8,
-            0
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            9,
-            3
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            5,
-            8
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            0,
-            5
-          ],
-          [
-            1,
-            8
-          ],
-          [
-            7,
-            9
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            9,
-            4
-          ],
-          [
-            6,
-            9
-          ],
-          [
-            7,
-            0
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2210,23 +1208,17 @@
           "duration": 8
         }
       ],
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "40"
     },
     {
       "levelId": 41,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 41 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L41-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 8,
-          "height": 9
-        }
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2258,26 +1250,16 @@
           "TODO: 六角格鄰居與畫面呈現"
         ]
       },
-      "chapterEntryBriefing": [
-        "聽好。蜂巢幽閉是實戰——你貪快或腦袋當機，旁邊的人可能替你付命，不是付學分。",
-        "對面干擾再吵也一樣：數字一亮就鎖座標下手，別給我找藉口——這裡失手會死人，陣亡表不寫不可抗力。"
-      ]
+      "mapRef": "41"
     },
     {
       "levelId": 42,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 42 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L42-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 9,
-          "height": 9
-        }
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2308,85 +1290,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "42"
     },
     {
       "levelId": 43,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 43 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L43-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 8
-        },
-        "forbiddenCells": [
-          [
-            3,
-            4
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            9,
-            6
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            0,
-            0
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            9,
-            5
-          ],
-          [
-            7,
-            7
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            8,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2417,97 +1331,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "43"
     },
     {
       "levelId": 44,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 44 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 56,
       "initialSeed": "minefield-campaign-v1-L44-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 8,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            6,
-            2
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            0,
-            4
-          ],
-          [
-            7,
-            9
-          ],
-          [
-            0,
-            2
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            0,
-            8
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            4,
-            9
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2538,117 +1372,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "44"
     },
     {
       "levelId": 45,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 45 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L45-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 9,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            1,
-            2
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            7,
-            2
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            3,
-            7
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            8,
-            0
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            8,
-            8
-          ],
-          [
-            0,
-            4
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            6,
-            9
-          ],
-          [
-            1,
-            4
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            3,
-            9
-          ],
-          [
-            8,
-            1
-          ],
-          [
-            8,
-            9
-          ],
-          [
-            8,
-            5
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2679,85 +1413,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "45"
     },
     {
       "levelId": 46,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 46 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L46-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 9
-        },
-        "forbiddenCells": [
-          [
-            1,
-            7
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            8,
-            2
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            5,
-            8
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            0,
-            3
-          ],
-          [
-            9,
-            4
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            8,
-            5
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2788,73 +1454,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "46"
     },
     {
       "levelId": 47,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 47 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 52,
       "initialSeed": "minefield-campaign-v1-L47-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 7,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            0,
-            6
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            5,
-            9
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            2,
-            8
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2885,85 +1495,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "47"
     },
     {
       "levelId": 48,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 48 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 50,
       "initialSeed": "minefield-campaign-v1-L48-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 7
-        },
-        "forbiddenCells": [
-          [
-            5,
-            3
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            9,
-            1
-          ],
-          [
-            0,
-            2
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            0,
-            1
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            3,
-            6
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -2994,61 +1536,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "48"
     },
     {
       "levelId": 49,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 49 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L49-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 9,
-          "height": 8
-        },
-        "forbiddenCells": [
-          [
-            7,
-            0
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            4,
-            2
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            1,
-            4
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3079,125 +1577,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "49"
     },
     {
       "levelId": 50,
-      "chapter": 4,
+      "chapter": 5,
       "title": "蜂巢防線 · 第 50 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L50-ch4",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        },
-        "forbiddenCells": [
-          [
-            3,
-            6
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            8,
-            2
-          ],
-          [
-            7,
-            9
-          ],
-          [
-            1,
-            8
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            0,
-            9
-          ],
-          [
-            8,
-            5
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            9,
-            1
-          ],
-          [
-            4,
-            9
-          ],
-          [
-            0,
-            1
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            5,
-            9
-          ]
-        ]
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3228,23 +1618,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "50"
     },
     {
       "levelId": 51,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 51 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L51-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3278,26 +1662,16 @@
           "TODO: 六角格鄰居與畫面呈現"
         ]
       },
-      "chapterEntryBriefing": [
-        "下到深海要塞了。這裡的水壓會把腦子擠扁——每次你動手佈雷，海底暗流就會把一顆廢雷推進場內。",
-        "那些廢雷不聽你的命令，位置隨機、無法拆除。你得在越來越擁擠的雷區裡精準操作——手慢，淹死；手快亂來，炸死。"
-      ]
+      "mapRef": "51"
     },
     {
       "levelId": 52,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 52 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
-      "initialSeed": "minefield-campaign-v1-L52-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L52-ch5-d3e3e0b1",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3330,23 +1704,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "52"
     },
     {
       "levelId": 53,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 53 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L53-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 12,
-          "height": 12
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L53-ch5-bbecf6ff",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3379,23 +1747,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "53"
     },
     {
       "levelId": 54,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 54 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
-      "initialSeed": "minefield-campaign-v1-L54-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L54-ch5-34a684b5",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3428,23 +1790,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "54"
     },
     {
       "levelId": 55,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 55 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
-      "initialSeed": "minefield-campaign-v1-L55-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L55-ch5-9e656d2e",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3477,23 +1833,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "55"
     },
     {
       "levelId": 56,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 56 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
-      "initialSeed": "minefield-campaign-v1-L56-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 12,
-          "height": 12
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L56-ch5-7a1a9a14",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3526,23 +1876,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "56"
     },
     {
       "levelId": 57,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 57 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
-      "initialSeed": "minefield-campaign-v1-L57-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L57-ch5-373fecbd",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3575,23 +1919,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "57"
     },
     {
       "levelId": 58,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 58 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L58-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L58-ch5-ba8efb67",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3624,23 +1962,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "58"
     },
     {
       "levelId": 59,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 59 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
-      "initialSeed": "minefield-campaign-v1-L59-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 12,
-          "height": 12
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L59-ch5-9de16337",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3673,23 +2005,17 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "59"
     },
     {
       "levelId": 60,
-      "chapter": 5,
+      "chapter": 6,
       "title": "深海要塞 · 第 60 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
-      "initialSeed": "minefield-campaign-v1-L60-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L60-ch5-5a7160e6",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3722,7 +2048,8 @@
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
         ]
-      }
+      },
+      "mapRef": "60"
     },
     {
       "levelId": 61,
@@ -3731,14 +2058,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
-      "initialSeed": "minefield-campaign-v1-L61-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L61-ch7-88c6cebb",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3757,10 +2077,7 @@
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
       "rewards": {},
-      "chapterEntryBriefing": [
-        "這裡是信號干擾區。長官還是會一次塞三道電報過來，但接收不良——你看到的數字會自己上下轉。",
-        "每道電碼在 1 到 8 之間往返輪播；先選一道，等畫面上的數字對準真實電碼，再點格佈雷。對不準就別亂按。"
-      ]
+      "mapRef": "61"
     },
     {
       "levelId": 62,
@@ -3769,14 +2086,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
-      "initialSeed": "minefield-campaign-v1-L62-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 12,
-          "height": 12
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L62-ch7-309c3e55",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3794,7 +2104,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "62"
     },
     {
       "levelId": 63,
@@ -3803,14 +2114,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L63-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L63-ch7-893b56a5",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3828,7 +2132,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "63"
     },
     {
       "levelId": 64,
@@ -3837,14 +2142,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
-      "initialSeed": "minefield-campaign-v1-L64-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L64-ch7-38378ceb",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3862,7 +2160,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "64"
     },
     {
       "levelId": 65,
@@ -3871,14 +2170,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
-      "initialSeed": "minefield-campaign-v1-L65-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 12,
-          "height": 12
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3896,7 +2188,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "65"
     },
     {
       "levelId": 66,
@@ -3905,14 +2198,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 90,
-      "initialSeed": "minefield-campaign-v1-L66-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L66-ch7-f5d69fa9",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3930,7 +2216,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "66"
     },
     {
       "levelId": 67,
@@ -3939,14 +2226,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 98,
-      "initialSeed": "minefield-campaign-v1-L67-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L67-ch7-28d0d8ae",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3964,7 +2244,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "67"
     },
     {
       "levelId": 68,
@@ -3973,14 +2254,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L68-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 12,
-          "height": 12
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L68-ch7-68d7b054",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -3998,7 +2272,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "68"
     },
     {
       "levelId": 69,
@@ -4007,14 +2282,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 114,
-      "initialSeed": "minefield-campaign-v1-L69-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 10,
-          "height": 10
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L69-ch7-632085dd",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -4032,7 +2300,8 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "69"
     },
     {
       "levelId": 70,
@@ -4041,14 +2310,7 @@
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
       "timeLimit": 122,
-      "initialSeed": "minefield-campaign-v1-L70-ch5",
-      "mapLayout": {
-        "type": "HEXAGON",
-        "placeholder": {
-          "width": 11,
-          "height": 11
-        }
-      },
+      "initialSeed": "minefield-campaign-v1-L70-ch7-2251ab8d",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
@@ -4066,1207 +2328,737 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
-      "rewards": {}
+      "rewards": {},
+      "mapRef": "70"
     },
     {
       "levelId": 71,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 71 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 71 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 100,
-      "initialSeed": "minefield-campaign-v1-L71-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 90,
+      "initialSeed": "minefield-campaign-v1-L71-ch8-23dc551d",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
-      "events": [
+      "blastPoints": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
+          "pos": [
+            4,
+            4
+          ],
+          "countdownSec": 35,
+          "defuseBonusSec": 15
         }
       ],
+      "events": [],
       "rewards": {
-        "unlockCharacterIds": [
-          "intel_officer"
-        ],
         "todo": [
-          "TODO: 實作情報官、偽裝指令、混合格鄰接"
+          "TODO: 實作 blastPoints 倒數 UI（格子上顯示倒數秒數動畫）",
+          "TODO: 倒數歸零 → 爆炸動畫 → 強制失敗"
         ]
       },
-      "chapterEntryBriefing": [
-        "維度裂縫：方陣、蜂巢、三角三種地形同一張圖接縫，邊界鄰接一錯就是實戰代價，不是你家的讀檔。",
-        "沙暴、脈衝、增援輪流砸臉照樣打；電報只認數字，別給我在邊界翻車還想只要重開——這裡沒有讀檔。"
-      ]
+      "mapRef": "71"
     },
     {
       "levelId": 72,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 72 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 72 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L72-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_a",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_b",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 6,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_c",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 6
-            },
-            "size": [
-              12,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 95,
+      "initialSeed": "minefield-campaign-v1-L72-ch8-4b889058",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
-      "events": [
+      "blastPoints": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 30,
+          "defuseBonusSec": 12
         },
         {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
+          "pos": [
+            7,
+            6
+          ],
+          "countdownSec": 30,
+          "defuseBonusSec": 12
         }
       ],
+      "events": [],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 兩炸點同時倒數，測試 UI 清晰度"
         ]
-      }
+      },
+      "mapRef": "72"
     },
     {
       "levelId": 73,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 73 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 73 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 112,
-      "initialSeed": "minefield-campaign-v1-L73-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              5,
-              8
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 5,
-              "y": 0
-            },
-            "size": [
-              5,
-              8
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 10,
-              "y": 0
-            },
-            "size": [
-              5,
-              8
-            ]
-          }
-        ]
-      },
+      "timeLimit": 100,
+      "initialSeed": "minefield-campaign-v1-L73-ch8-67155d30",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            2,
+            3
+          ],
+          "countdownSec": 28,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            7,
+            7
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 10
+        }
+      ],
       "events": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.4,
           "type": "SANDSTORM",
           "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 沙塵暴遮住炸點倒數數字，須靠記憶判斷"
         ]
-      }
+      },
+      "mapRef": "73"
     },
     {
       "levelId": 74,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 74 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 74 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 118,
-      "initialSeed": "minefield-campaign-v1-L74-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 105,
+      "initialSeed": "minefield-campaign-v1-L74-ch8-3a736261",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 8
+        },
+        {
+          "pos": [
+            5,
+            7
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 8
+        },
+        {
+          "pos": [
+            9,
+            3
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 8
+        }
+      ],
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 55,
           "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
+          "duration": 7
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 三炸點首登場 + EMP 組合"
         ]
-      }
+      },
+      "mapRef": "74"
     },
     {
       "levelId": 75,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 75 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 75 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 124,
-      "initialSeed": "minefield-campaign-v1-L75-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 108,
+      "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            1,
+            4
+          ],
+          "countdownSec": 22,
+          "defuseBonusSec": 8
+        },
+        {
+          "pos": [
+            5,
+            2
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 8
+        },
+        {
+          "pos": [
+            9,
+            7
+          ],
+          "countdownSec": 22,
+          "defuseBonusSec": 8
+        }
+      ],
       "events": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.35,
           "type": "SANDSTORM",
-          "duration": 10
+          "duration": 12
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.62,
+          "threshold": 0.65,
           "type": "REINFORCE",
           "count": 2
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 炸點倒數不等長，考驗排程優先序"
         ]
-      }
+      },
+      "mapRef": "75"
     },
     {
       "levelId": 76,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 76 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 76 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 100,
-      "initialSeed": "minefield-campaign-v1-L76-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_a",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_b",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 6,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_c",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 6
-            },
-            "size": [
-              12,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 105,
+      "initialSeed": "minefield-campaign-v1-L76-ch8-7a01e404",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
+          "1": 8,
+          "2": 12,
           "3": 18,
           "4": 18,
-          "5": 14,
+          "5": 16,
           "6": 12,
           "7": 8,
           "8": 4
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 6
+        },
+        {
+          "pos": [
+            6,
+            7
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 6
+        },
+        {
+          "pos": [
+            10,
+            3
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 6
+        }
+      ],
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 60,
           "type": "EMP",
           "duration": 8
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.55,
           "type": "SANDSTORM",
           "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: EMP + 沙塵暴組合壓力測試"
         ]
-      }
+      },
+      "mapRef": "76"
     },
     {
       "levelId": 77,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 77 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 77 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L77-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              5,
-              8
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 5,
-              "y": 0
-            },
-            "size": [
-              5,
-              8
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 10,
-              "y": 0
-            },
-            "size": [
-              5,
-              8
-            ]
-          }
-        ]
-      },
+      "timeLimit": 110,
+      "initialSeed": "minefield-campaign-v1-L77-ch8-302d0ade",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
+          "1": 8,
+          "2": 12,
           "3": 18,
           "4": 18,
-          "5": 14,
+          "5": 16,
           "6": 12,
           "7": 8,
           "8": 4
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 22,
+          "defuseBonusSec": 6
+        },
+        {
+          "pos": [
+            9,
+            2
+          ],
+          "countdownSec": 22,
+          "defuseBonusSec": 6
+        },
+        {
+          "pos": [
+            5,
+            8
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 6
+        }
+      ],
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 60,
           "type": "EMP",
           "duration": 8
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.38,
           "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
+          "duration": 12
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 三炸點上二下一配置"
         ]
-      }
+      },
+      "mapRef": "77"
     },
     {
       "levelId": 78,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 78 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 78 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
       "timeLimit": 112,
-      "initialSeed": "minefield-campaign-v1-L78-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L78-ch8-e959a386",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
+          "1": 8,
+          "2": 12,
           "3": 18,
           "4": 18,
-          "5": 14,
+          "5": 16,
           "6": 12,
           "7": 8,
           "8": 4
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            1,
+            3
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 5
+        },
+        {
+          "pos": [
+            11,
+            3
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 5
+        },
+        {
+          "pos": [
+            6,
+            9
+          ],
+          "countdownSec": 18,
+          "defuseBonusSec": 5
+        }
+      ],
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 65,
           "type": "EMP",
           "duration": 8
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
+          "threshold": 0.6,
           "type": "REINFORCE",
-          "count": 2
+          "count": 3
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 十字配置炸點，上下兩點倒數更短"
         ]
-      }
+      },
+      "mapRef": "78"
     },
     {
       "levelId": 79,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 79 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 79 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
       "timeLimit": 118,
-      "initialSeed": "minefield-campaign-v1-L79-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L79-ch8-0d094db3",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
+          "1": 8,
+          "2": 12,
+          "3": 16,
           "4": 18,
-          "5": 14,
+          "5": 16,
           "6": 12,
-          "7": 8,
-          "8": 4
+          "7": 10,
+          "8": 6
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 22,
+          "defuseBonusSec": 5
+        },
+        {
+          "pos": [
+            6,
+            1
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 5
+        },
+        {
+          "pos": [
+            10,
+            8
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 5
+        }
+      ],
       "events": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.3,
           "type": "SANDSTORM",
-          "duration": 10
+          "duration": 12
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.62,
+          "threshold": 0.6,
           "type": "REINFORCE",
           "count": 2
         }
       ],
       "rewards": {
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 三炸點最大難度登場，測試整體壓力曲線"
         ]
-      }
+      },
+      "mapRef": "79"
     },
     {
       "levelId": 80,
-      "chapter": 6,
-      "title": "維度裂縫 · 第 80 戰",
-      "gridSystem": "MIXED",
+      "chapter": 8,
+      "title": "引爆危機 · 第 80 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 124,
-      "initialSeed": "minefield-campaign-v1-L80-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_a",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_b",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 6,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_c",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 6
-            },
-            "size": [
-              12,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 130,
+      "initialSeed": "minefield-campaign-v1-L80-ch8-5e527d3c",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
+          "1": 6,
+          "2": 10,
+          "3": 16,
           "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "5": 18,
+          "6": 14,
+          "7": 10,
+          "8": 6
         }
       },
+      "blastPoints": [
+        {
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 18,
+          "defuseBonusSec": 4
+        },
+        {
+          "pos": [
+            7,
+            1
+          ],
+          "countdownSec": 15,
+          "defuseBonusSec": 4
+        },
+        {
+          "pos": [
+            12,
+            9
+          ],
+          "countdownSec": 16,
+          "defuseBonusSec": 4
+        }
+      ],
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 75,
           "type": "EMP",
           "duration": 8
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.3,
           "type": "SANDSTORM",
-          "duration": 10
+          "duration": 12
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.62,
+          "threshold": 0.65,
           "type": "REINFORCE",
-          "count": 2
+          "count": 3
         }
       ],
       "rewards": {
+        "narrativeFlag": "ch8_cleared",
         "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
+          "TODO: 第八章終戰，五炸點倒數最短至 15 秒，三事件全開",
+          "TODO: 通關時顯示章節結算動畫"
         ]
-      }
+      },
+      "mapRef": "80"
     },
     {
       "levelId": 81,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 81 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 81 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 100,
-      "initialSeed": "minefield-campaign-v1-L81-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "hex_block",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              7,
-              8
-            ]
-          },
-          {
-            "id": "sq_bridge",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 7,
-              "y": 3
-            },
-            "size": [
-              5,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 95,
+      "initialSeed": "minefield-campaign-v1-L81-ch9-b5064a16",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "events": [],
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "81"
     },
     {
       "levelId": 82,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 82 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 82 戰",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L82-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 98,
+      "initialSeed": "minefield-campaign-v1-L82-ch9-091929ff",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "events": [],
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "82"
     },
     {
       "levelId": 83,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 83 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 83 戰",
+      "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 112,
-      "initialSeed": "minefield-campaign-v1-L83-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_1",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              5,
-              10
-            ]
-          },
-          {
-            "id": "sec_2",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 5,
-              "y": 0
-            },
-            "size": [
-              5,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 102,
+      "initialSeed": "minefield-campaign-v1-L83-ch9-a027e43e",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
+          "1": 18,
+          "2": 22,
+          "3": 20,
           "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "5": 12,
+          "6": 8
         }
       },
       "events": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.35,
           "type": "SANDSTORM",
           "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "83"
     },
     {
       "levelId": 84,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 84 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 84 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 118,
-      "initialSeed": "minefield-campaign-v1-L84-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_a",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_b",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 6,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_c",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 6
-            },
-            "size": [
-              12,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 110,
+      "initialSeed": "minefield-campaign-v1-L84-ch9-00e0b334",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
@@ -5274,90 +3066,36 @@
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 52,
           "type": "EMP",
           "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "84"
     },
     {
       "levelId": 85,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 85 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 85 戰",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 124,
-      "initialSeed": "minefield-campaign-v1-L85-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "hex_block",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              7,
-              8
-            ]
-          },
-          {
-            "id": "sq_bridge",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 7,
-              "y": 3
-            },
-            "size": [
-              5,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 118,
+      "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "events": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.38,
           "type": "SANDSTORM",
           "duration": 10
         },
@@ -5368,322 +3106,141 @@
           "count": 2
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "85"
     },
     {
       "levelId": 86,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 86 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 86 戰",
+      "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 100,
-      "initialSeed": "minefield-campaign-v1-L86-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 122,
+      "initialSeed": "minefield-campaign-v1-L86-ch9-613a3ba5",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
+          "1": 18,
+          "2": 22,
+          "3": 20,
           "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "5": 12,
+          "6": 8
         }
       },
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 58,
           "type": "EMP",
           "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "86"
     },
     {
       "levelId": 87,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 87 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 87 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 106,
-      "initialSeed": "minefield-campaign-v1-L87-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_1",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              5,
-              10
-            ]
-          },
-          {
-            "id": "sec_2",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 5,
-              "y": 0
-            },
-            "size": [
-              5,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 128,
+      "initialSeed": "minefield-campaign-v1-L87-ch9-d91760e8",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
       "events": [
         {
+          "trigger": "PROGRESS",
+          "threshold": 0.34,
+          "type": "SANDSTORM",
+          "duration": 11
+        },
+        {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 50,
           "type": "EMP",
           "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "87"
     },
     {
       "levelId": 88,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 88 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 88 戰",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 112,
-      "initialSeed": "minefield-campaign-v1-L88-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "sec_a",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_b",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 6,
-              "y": 0
-            },
-            "size": [
-              6,
-              6
-            ]
-          },
-          {
-            "id": "sec_c",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 6
-            },
-            "size": [
-              12,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 134,
+      "initialSeed": "minefield-campaign-v1-L88-ch9-80a3f5ed",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "events": [
         {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
           "trigger": "PROGRESS",
-          "threshold": 0.32,
+          "threshold": 0.36,
           "type": "SANDSTORM",
-          "duration": 10
+          "duration": 12
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.62,
+          "threshold": 0.64,
           "type": "REINFORCE",
-          "count": 2
+          "count": 3
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "88"
     },
     {
       "levelId": 89,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 89 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 89 戰",
+      "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 118,
-      "initialSeed": "minefield-campaign-v1-L89-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "hex_block",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              7,
-              8
-            ]
-          },
-          {
-            "id": "sq_bridge",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 7,
-              "y": 3
-            },
-            "size": [
-              5,
-              5
-            ]
-          }
-        ]
-      },
+      "timeLimit": 142,
+      "initialSeed": "minefield-campaign-v1-L89-ch9-47a960aa",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 14,
-          "3": 18,
+          "1": 18,
+          "2": 22,
+          "3": 20,
           "4": 18,
-          "5": 14,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "5": 12,
+          "6": 8
         }
       },
       "events": [
         {
           "trigger": "TIME_LEFT",
-          "threshold": 48,
+          "threshold": 72,
           "type": "EMP",
           "duration": 8
         },
@@ -5691,185 +3248,54 @@
           "trigger": "PROGRESS",
           "threshold": 0.32,
           "type": "SANDSTORM",
-          "duration": 10
+          "duration": 12
         },
         {
           "trigger": "PROGRESS",
-          "threshold": 0.62,
+          "threshold": 0.6,
           "type": "REINFORCE",
-          "count": 2
+          "count": 3
         }
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "mapRef": "89"
     },
     {
       "levelId": 90,
-      "chapter": 6,
-      "title": "異次元裂縫 · 第 90 戰",
-      "gridSystem": "MIXED",
+      "chapter": 9,
+      "title": "鄰焰共振 · 第 90 戰",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 124,
-      "initialSeed": "minefield-campaign-v1-L90-ch6",
-      "mapLayout": {
-        "type": "MIXED",
-        "sectors": [
-          {
-            "id": "left",
-            "shape": "SQUARE",
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "mid",
-            "shape": "HEXAGON",
-            "offset": {
-              "x": 4,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          },
-          {
-            "id": "right",
-            "shape": "TRIANGLE",
-            "offset": {
-              "x": 8,
-              "y": 0
-            },
-            "size": [
-              4,
-              10
-            ]
-          }
-        ]
-      },
+      "timeLimit": 152,
+      "initialSeed": "minefield-campaign-v1-L90-ch9-2a6ed127",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
+          "1": 10,
           "2": 14,
           "3": 18,
           "4": 18,
           "5": 14,
-          "6": 12,
+          "6": 10,
           "7": 8,
           "8": 4
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.32,
-          "type": "SANDSTORM",
-          "duration": 10
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 混合地形接縫鄰接表（見 logic_mixed_grid.md）"
-        ]
-      }
+      "neighborPlacedDigitBonus": true,
+      "rewards": {},
+      "events": [],
+      "mapRef": "90"
     },
     {
       "levelId": 91,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 91 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 110,
-      "initialSeed": "minefield-campaign-v1-L91-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            2,
-            4
-          ],
-          [
-            4,
-            11
-          ],
-          [
-            9,
-            1
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            9,
-            9
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            11,
-            1
-          ],
-          [
-            10,
-            9
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            7,
-            11
-          ],
-          [
-            4,
-            9
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            10,
-            8
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L91-ch7-9272f445",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -5909,90 +3335,16 @@
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
       },
-      "chapterEntryBriefing": [
-        "聽好。最後防線，後面沒路退——搞砸不是重修，是戰歿報表往上送，那種回不來的死。",
-        "干擾、沙幕、脈衝全砸臉也一樣：照電報、達覆蓋，別給我撐不住還訴苦——訴苦救不回死人。"
-      ]
+      "mapRef": "91"
     },
     {
       "levelId": 92,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 92 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 122,
-      "initialSeed": "minefield-campaign-v1-L92-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            5,
-            4
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            8,
-            10
-          ],
-          [
-            8,
-            0
-          ],
-          [
-            9,
-            1
-          ],
-          [
-            9,
-            3
-          ],
-          [
-            4,
-            7
-          ],
-          [
-            11,
-            9
-          ],
-          [
-            5,
-            9
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            8,
-            2
-          ],
-          [
-            9,
-            6
-          ],
-          [
-            0,
-            8
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            2,
-            9
-          ],
-          [
-            5,
-            2
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L92-ch7-6f04e8cc",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6031,91 +3383,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "92"
     },
     {
       "levelId": 93,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 93 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 134,
-      "initialSeed": "minefield-campaign-v1-L93-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            1,
-            8
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            10
-          ],
-          [
-            10,
-            3
-          ],
-          [
-            3,
-            10
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            9,
-            1
-          ],
-          [
-            7,
-            10
-          ],
-          [
-            8,
-            5
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            11,
-            9
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            9,
-            4
-          ],
-          [
-            10,
-            7
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            1,
-            9
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L93-ch7-80064bd7",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6154,95 +3432,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "93"
     },
     {
       "levelId": 94,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 94 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 146,
-      "initialSeed": "minefield-campaign-v1-L94-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            11,
-            7
-          ],
-          [
-            4,
-            2
-          ],
-          [
-            10,
-            7
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            11,
-            10
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            11,
-            1
-          ],
-          [
-            6,
-            10
-          ],
-          [
-            11,
-            3
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            10,
-            3
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            10,
-            1
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            11,
-            6
-          ],
-          [
-            0,
-            4
-          ],
-          [
-            8,
-            0
-          ],
-          [
-            4,
-            10
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L94-ch7-934bf733",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6281,99 +3481,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "94"
     },
     {
       "levelId": 95,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 95 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 110,
-      "initialSeed": "minefield-campaign-v1-L95-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            1,
-            8
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            4,
-            11
-          ],
-          [
-            2,
-            9
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            8
-          ],
-          [
-            10,
-            5
-          ],
-          [
-            10,
-            7
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            8,
-            4
-          ],
-          [
-            10,
-            11
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            3,
-            5
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L95-ch7-e1d69eef",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6412,55 +3530,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "95"
     },
     {
       "levelId": 96,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 96 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 122,
-      "initialSeed": "minefield-campaign-v1-L96-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            6,
-            1
-          ],
-          [
-            8,
-            9
-          ],
-          [
-            3,
-            10
-          ],
-          [
-            11,
-            4
-          ],
-          [
-            0,
-            9
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            10,
-            11
-          ],
-          [
-            9,
-            11
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L96-ch7-c1f41741",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6499,59 +3579,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "96"
     },
     {
       "levelId": 97,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 97 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 134,
-      "initialSeed": "minefield-campaign-v1-L97-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            8,
-            6
-          ],
-          [
-            5,
-            8
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            10,
-            8
-          ],
-          [
-            9,
-            4
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            1,
-            10
-          ],
-          [
-            0,
-            4
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L97-ch7-5a727a4d",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6590,63 +3628,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "97"
     },
     {
       "levelId": 98,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 98 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 146,
-      "initialSeed": "minefield-campaign-v1-L98-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            10,
-            6
-          ],
-          [
-            11,
-            7
-          ],
-          [
-            9,
-            11
-          ],
-          [
-            8,
-            2
-          ],
-          [
-            0,
-            5
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            8,
-            0
-          ],
-          [
-            4,
-            11
-          ],
-          [
-            10,
-            3
-          ],
-          [
-            6,
-            0
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L98-ch7-1b66e744",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6685,67 +3677,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "98"
     },
     {
       "levelId": 99,
-      "chapter": 7,
+      "chapter": 10,
       "title": "終焉防線 · 第 99 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
       "timeLimit": 110,
-      "initialSeed": "minefield-campaign-v1-L99-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12,
-        "forbiddenCells": [
-          [
-            8,
-            6
-          ],
-          [
-            8,
-            3
-          ],
-          [
-            6,
-            8
-          ],
-          [
-            9,
-            9
-          ],
-          [
-            0,
-            8
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            9,
-            4
-          ],
-          [
-            0,
-            4
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            8,
-            2
-          ]
-        ]
-      },
+      "initialSeed": "minefield-campaign-v1-L99-ch7-7a009b13",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6784,21 +3726,17 @@
         "todo": [
           "TODO: 超大型異形輪廓地圖美術與格點"
         ]
-      }
+      },
+      "mapRef": "99"
     },
     {
       "levelId": 100,
-      "chapter": 7,
+      "chapter": 10,
       "title": "神之眼",
       "gridSystem": "SQUARE",
       "coverageGoal": 1,
       "timeLimit": 0,
-      "initialSeed": "minefield-campaign-v1-L100-ch7",
-      "mapLayout": {
-        "type": "SQUARE",
-        "width": 12,
-        "height": 12
-      },
+      "initialSeed": "minefield-campaign-v1-L100-ch7-84101681",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -6838,7 +3776,8 @@
         "todo": [
           "TODO: 結局演出與結算"
         ]
-      }
+      },
+      "mapRef": "100"
     }
   ]
 }

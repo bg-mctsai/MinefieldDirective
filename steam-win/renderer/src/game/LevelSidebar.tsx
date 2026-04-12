@@ -1,5 +1,6 @@
 import { ChevronRight, LayoutGrid, Lock } from 'lucide-react';
 import type { Level } from '../gameLogic';
+import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { isLevelUnlocked } from './gameProgressStorage';
 import { LevelStrategyGuide } from './LevelStrategyGuide';
 
@@ -40,7 +41,7 @@ export function LevelSidebar({
               }`}
             >
               <span className="flex items-center gap-2 font-bold">
-                {level.name}
+                {campaignLevelHeaderTitle(level)}
                 {!isLevelUnlocked(level.id, highestClearedLevel) && <Lock size={14} className="text-slate-500" />}
               </span>
               <ChevronRight

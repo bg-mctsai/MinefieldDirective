@@ -33,6 +33,13 @@ export function boardCellPxForLevel(width: number, height: number): number {
 /** 小兵移動動畫時間（ms） */
 export const SOLDIER_MOVE_MS = 600;
 
+/** 鄰焰共振（neighborPlacedDigitBonus）：底數在格上停留（ms）後才開始飛「+1」 */
+export const NEIGHBOR_PLACED_BONUS_HOLD_BASE_MS = 100;
+/** 鄰焰共振：「+1」從鄰格熱源飛向落子格（ms） */
+export const NEIGHBOR_PLACED_BONUS_FLIGHT_MS = 420;
+/** 鄰焰共振：飛抵後數字跳變前短停（ms） */
+export const NEIGHBOR_PLACED_BONUS_AFTER_LAND_MS = 90;
+
 /** 剩餘秒數 ≤ 此值時每秒播放倒數滴答（與 UI 紅字門檻一致） */
 export const LAST_COUNTDOWN_SOUND_SECONDS = 10;
 

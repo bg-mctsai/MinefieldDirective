@@ -12,6 +12,7 @@ import {
   type NeighborMode,
   withinForcedRevealZone,
 } from './levelData/gridTopology';
+import { GAME_FIXED, sub } from './game/gameFixedMessages';
 
 export type CellStatus = 'empty' | 'number' | 'mine' | 'blocked';
 
@@ -102,18 +103,19 @@ export function formatLossExplanation(
     lossTopology.boardW,
     lossTopology.boardH
   );
+  const L = GAME_FIXED.lossCommander;
   if (other !== undefined) {
-    return `長官回電大罵：「電報要你埋『${v}』，你選那格跟鄰格『${other}』打架？重選座標！」`;
+    return sub(L.adjacentNeighborConflict, { v, other });
   }
   if (details.length > 0) {
     const w = details[0].displayValue;
     // 與鄰格無直接對撞、但線索數字與電報相同時，避免聽成「兩個 5 互衝」——改斥座標選錯
     if (w === v) {
-      return `長官回電大罵：「電報數字是『${v}』沒錯，你格選錯了還敢回報？重來！」`;
+      return sub(L.correctDigitWrongCell, { v });
     }
-    return `長官回電大罵：「電報叫你埋『${v}』，跟盤面『${w}』兜不攏——誰准你這樣執行？重來！」`;
+    return sub(L.digitMismatchClue, { v, w });
   }
-  return `長官回電大罵：「照電報數字『${v}』去佈，盤面卻兜不攏——執行錯誤，重來！」`;
+  return sub(L.genericUnsatisfiable, { v });
 }
 
 const cellKey = (c: { x: number; y: number }) => `${c.x},${c.y}`;

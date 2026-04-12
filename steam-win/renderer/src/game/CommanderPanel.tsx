@@ -1,24 +1,24 @@
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { GAME_FIXED, sub } from './gameFixedMessages';
 import { resolveSignalJammingStepMs, signalJammingDisplayedDigit } from './signalJamming';
-import type { GameState } from './types';
+import type { GameState, MovingSoldierState } from './types';
 
 function telegraphHint(
   gameState: GameState,
   selectedHandIndex: number | null
 ): string {
-  if (gameState.status === 'exploding') return '！！！連環爆炸中！！！';
-  if (gameState.status !== 'playing') return '任務結束。';
+  const H = GAME_FIXED.commanderRowHint;
+  if (gameState.status === 'exploding') return H.chainExploding;
+  if (gameState.status !== 'playing') return H.missionOver;
   const jam = Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
   if (selectedHandIndex === null) {
-    return jam ? '先選一道長官電報；數字會 1～8 往返輪播（接收不良）' : '先選電碼，再點格佈雷';
+    return jam ? H.selectTelegraphJammingIdle : H.selectTelegraphNormal;
   }
   if (jam) {
-    return selectedHandIndex === null
-      ? '點一道電報即可鎖定當下數字，再點格佈雷'
-      : '數字已鎖定，請點目標格佈雷';
+    return H.digitLockedPickCell;
   }
-  return `電碼「${gameState.hand[selectedHandIndex]}」—請點目標格`;
+  return sub(H.pickTargetCellWithDigit, { digit: gameState.hand[selectedHandIndex] });
 }
 
 /** 與「指南」同一列的橫向長官電報列（電碼按鈕尺寸與先前 header 卡一致） */
@@ -30,7 +30,7 @@ export function CommanderTelegraphRow({
 }: {
   gameState: GameState;
   selectedHandIndex: number | null;
-  movingSoldier: { x: number; y: number; value: number } | null;
+  movingSoldier: MovingSoldierState | null;
   onSelectHand: (index: number) => void;
 }) {
   const hint = telegraphHint(gameState, selectedHandIndex);

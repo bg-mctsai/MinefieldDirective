@@ -1,0 +1,21 @@
+{
+  "mapLayout": {
+    "type": "SQUARE",
+    "width": 10,
+    "height": 10,
+    "forbiddenCells": [
+      [
+        8,
+        8
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  }
+}

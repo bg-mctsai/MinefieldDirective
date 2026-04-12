@@ -2,6 +2,7 @@ import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from '
 import { AnimatePresence, motion } from 'motion/react';
 import { BookOpen, ShieldAlert, X } from 'lucide-react';
 import type { Level } from '../gameLogic';
+import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { buildLevelStrategyGuideModel } from './levelStrategyGuideModel';
 
 type Tab = 'logic' | 'flow' | 'briefing';
@@ -117,7 +118,7 @@ export function LevelStrategyGuide({
                   <div className="space-y-3">
                     <p className="flex items-start gap-2 font-bold text-white">
                       <ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-500" />
-                      {level.name}
+                      {campaignLevelHeaderTitle(level)}
                     </p>
                     <ul className="list-inside list-disc space-y-2 marker:text-amber-600">
                       <li>{m.chapterLine}</li>
@@ -132,7 +133,11 @@ export function LevelStrategyGuide({
                       <li>{m.hintsLine}</li>
                       {m.forbiddenLine && <li>{m.forbiddenLine}</li>}
                       {m.cloudLine && <li>{m.cloudLine}</li>}
+                      {m.digitOutpostLine && <li className="text-teal-300">{m.digitOutpostLine}</li>}
                       {m.dynamicMineLine && <li className="text-cyan-400">{m.dynamicMineLine}</li>}
+                      {m.neighborPlacedDigitBonusLine && (
+                        <li className="text-orange-300">{m.neighborPlacedDigitBonusLine}</li>
+                      )}
                     </ul>
                     <div className="border-t border-slate-800 pt-3">
                       <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">戰場事件</p>
@@ -160,6 +165,13 @@ export function LevelStrategyGuide({
                       <span className="font-bold text-red-400">連鎖反應：</span>
                       一旦佈署導致邏輯矛盾，全線地雷將立即連鎖爆炸，任務失敗。
                     </p>
+                    {level.definition.neighborPlacedDigitBonus && (
+                      <p>
+                        <span className="font-bold text-orange-400">鄰格加成（JSON 旗標）：</span>
+                        本關啟用 levels.json 的 <span className="font-mono text-slate-300">neighborPlacedDigitBonus</span>
+                        ；盤面上的數字是「加成後」的約束，與電報底數可能不同。
+                      </p>
+                    )}
                   </div>
                 )}
                 {tab === 'flow' && (
@@ -170,7 +182,14 @@ export function LevelStrategyGuide({
                     </li>
                     <li>
                       <span className="font-bold text-white">執行佈雷：</span>
-                      點擊可部署空格，你方人員前往該格，依電碼埋下相同數值的約束。
+                      {level.definition.neighborPlacedDigitBonus ? (
+                        <>
+                          點擊可部署空格；實際約束數字＝電碼底數＋該格邏輯相鄰的「已有數字格」個數（由 levels.json{' '}
+                          <span className="font-mono text-slate-300">neighborPlacedDigitBonus</span> 開關啟用）。
+                        </>
+                      ) : (
+                        <>點擊可部署空格，你方人員前往該格，依電碼埋下相同數值的約束。</>
+                      )}
                     </li>
                     <li>
                       <span className="font-bold text-white">達成目標：</span>

@@ -18,7 +18,7 @@ export default function HomePage({
   onDevLevelsReloaded,
 }: {
   onNavigate: (to: HomeNavigate) => void;
-  /** 開發：重讀 levels.json 成功後呼叫，讓作戰地圖／對局掛載新資料 */
+  /** 開發：重讀 levels.json + maps/*.json 成功後呼叫，讓作戰地圖／對局掛載新資料 */
   onDevLevelsReloaded?: () => void;
 }) {
   const [typed, setTyped] = useState('');

@@ -121,6 +121,14 @@ export type MapCloudOverlayConfig = {
   blurPx?: number;
 };
 
+export type BlastPoint = {
+  pos: [number, number];
+  /** 倒數秒數；歸零前若周圍格子邏輯尚未確認所有地雷，即觸發爆炸失敗 */
+  countdownSec: number;
+  /** 成功解除後加入主計時器的獎勵秒數（未填預設 0） */
+  defuseBonusSec?: number;
+};
+
 export interface LevelDefinition {
   levelId: number;
   chapter: number;
@@ -132,7 +140,7 @@ export interface LevelDefinition {
   mapLayout: MapLayout;
   commands: CommandConfig;
   events: LevelEvent[];
-  /** 各章首戰可選：進入關卡時顯示的長官簡報（長官發電報、部屬依數字佈雷；字串陣列逐行） */
+  /** 進入關卡時顯示的長官簡報（字串陣列）；載入時由 chapterEntryBriefings.json 依 levelId 合併寫入 */
   chapterEntryBriefing?: string[];
   /** 可選：飄動雲層遮罩（僅視覺，不影響邏輯） */
   mapCloudOverlay?: MapCloudOverlayConfig;
@@ -152,5 +160,31 @@ export interface LevelDefinition {
    * 信號干擾：輪播每換一個數字的間隔（毫秒）。未填時用程式預設；過小／過大會被 clamp。
    */
   commandSlotJammingStepMs?: number;
+  /**
+   * 引爆危機章節——地圖上的定時炸點。
+   * 每個炸點獨立倒數 countdownSec 秒；歸零前若周圍格子邏輯尚未確認所有地雷，即觸發爆炸失敗。
+   * 成功解除後可獲 defuseBonusSec 秒加入主計時器。
+   */
+  blastPoints?: BlastPoint[];
+  /**
+   * 可選；座標須為可部署格。每格必須在盤面上有「數字佈署」（含開局 mapLayout.prePlaced 轉成之提示格），不可僅推論為安全空格。
+   * 若總覆蓋率已達標但任一格據點仍無數字，本次佈署後視同指令失敗並引爆。
+   * 若據點格被邏輯揭示為地雷或出現動態廢雷佔格，同樣立即失敗。
+   */
+  digitOutposts?: [number, number][];
+  /**
+   * 僅由 levels.json 此旗標控制；程式不依 chapter／levelId 推斷。
+   * true 時：實際放下格子的數字 = 手牌（或干擾鎖定）底數 +「邏輯相鄰」且已有數字的鄰格數。
+   * 鄰接與 solver 一致（方格八鄰、三角／蜂巢依 gridTopology）。
+   */
+  neighborPlacedDigitBonus?: boolean;
   rewards: LevelRewards;
 }
+
+/**
+ * 存檔用：mapLayout 可外置於 `levelData/maps/{mapRef}.json`（與內嵌 mapLayout 二擇一；併存時以內嵌為準）。
+ */
+export type LevelDefinitionStored = Omit<LevelDefinition, 'mapLayout'> & {
+  mapLayout?: MapLayout;
+  mapRef?: string;
+};

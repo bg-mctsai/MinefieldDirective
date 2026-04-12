@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { LEVELS } from './gameLogic';
 import HomePage from './home/HomePage';
@@ -13,8 +13,10 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameLevelIndex, setGameLevelIndex] = useState(0);
   const [highestClearedLevel, setHighestClearedLevel] = useState(() => loadGameProgress().highestClearedLevel);
-  /** 開發重讀 levels.json 後遞增，強制作戰地圖／對局重掛載 */
+  /** 開發重讀 levels.json／maps 後遞增，強制作戰地圖／對局重掛載 */
   const [levelsReloadToken, setLevelsReloadToken] = useState(0);
+  /** 作戰地圖長列表：離開時記住 window 捲動，返回時還原（避免從對局回來要重滑） */
+  const missionMapScrollYRef = useRef(0);
 
   return (
     <AnimatePresence mode="wait">
@@ -40,11 +42,16 @@ export default function App() {
         {screen === 'mission' && (
           <MissionMap
             key={levelsReloadToken}
-            onBack={() => setScreen('home')}
+            scrollRestoreYRef={missionMapScrollYRef}
+            onBack={() => {
+              missionMapScrollYRef.current = window.scrollY;
+              setScreen('home');
+            }}
             onStart={(idx) => {
               const level = LEVELS[idx];
               if (!level) return;
               if (!isLevelUnlocked(level.id, highestClearedLevel)) return;
+              missionMapScrollYRef.current = window.scrollY;
               setGameLevelIndex(idx);
               setScreen('game');
             }}

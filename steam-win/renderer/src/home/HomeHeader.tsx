@@ -7,7 +7,7 @@ export function HomeHeader({
   devReload,
 }: {
   typedTitle: string;
-  /** 僅開發模式：重讀 `levels.json` */
+  /** 僅開發模式：重讀 `levels.json` 與外置 `maps/*.json` */
   devReload?: { onClick: () => void; busy: boolean; hint: string | null };
 }) {
   return (
@@ -33,7 +33,7 @@ export function HomeHeader({
               type="button"
               onClick={devReload.onClick}
               disabled={devReload.busy}
-              title="開發用：重新從磁碟載入 levelData/levels.json"
+              title="開發用：重新從磁碟載入 levelData/levels.json 與 levelData/maps/*.json"
               className="flex items-center gap-1.5 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-1.5 font-bold text-amber-400/95 transition-colors hover:border-amber-400/60 hover:bg-amber-500/15 disabled:opacity-50"
             >
               <RefreshCw size={14} className={devReload.busy ? 'animate-spin' : 'shrink-0'} />

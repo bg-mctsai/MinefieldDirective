@@ -1,20 +1,26 @@
 import type { Level } from '../gameLogic';
 import type { GridSystem, LevelEvent, MapLayout } from '../levelData/types';
+import { stageInChapter } from './chapterStage';
 import { resolveSignalJammingStepMs } from './signalJamming';
 
 const CHAPTER_NAMES = [
   '',
   '新兵訓練營',
   '巷戰封鎖線',
-  '荒漠記憶',
+  '乾谷據點',
   '三角高地',
   '蜂巢幽閉',
   '深海要塞',
   '信號干擾區',
   '維度裂縫',
-  '熔岩核心',
+  '鄰焰共振',
   '終焉防線',
 ] as const;
+
+/** 作戰地圖章節頁籤副標（依企劃 `chapter` 欄位） */
+export function chapterCampaignTagline(chapter: number): string {
+  return CHAPTER_NAMES[chapter] ?? '';
+}
 
 function chapterDisplayName(chapter: number, levelId: number): string {
   if (levelId >= 31 && levelId <= 40) return '三角高地';
@@ -103,10 +109,14 @@ export type LevelStrategyGuideModel = {
   digitsLine: string;
   hintsLine: string;
   forbiddenLine: string | null;
-  /** 有設定 mapCloudOverlay 時（例：第 21～30 關荒漠雲層） */
+  /** 有設定 mapCloudOverlay 時（飄動沙幕視覺層） */
   cloudLine: string | null;
+  /** 戰術據點（digitOutposts）：必須佈數字，達覆蓋率未填仍引爆 */
+  digitOutpostLine: string | null;
   /** 深海要塞：動態地雷機制描述 */
   dynamicMineLine: string | null;
+  /** levels.json neighborPlacedDigitBonus === true */
+  neighborPlacedDigitBonusLine: string | null;
   eventsLines: string[];
   logicNeighborLine: string;
 };
@@ -127,7 +137,7 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
   const hints = level.initialHints.length;
 
   return {
-    chapterLine: `章節：${chName}（關卡 ${d.levelId}）`,
+    chapterLine: `章節：${chName}（第 ${stageInChapter(d.levelId, d.chapter)} 關）`,
     mapLine: `地圖形狀：${mapLayoutLabel(d.mapLayout)}`,
     deployableCells: level.cells.length,
     boundaryLine: `盤面邊界框：寬${level.width}×高${level.height}（可部署格數 ${level.cells.length}）`,
@@ -149,8 +159,15 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
     cloudLine: d.mapCloudOverlay
       ? '戰場有飄動沙塵迷霧（CSS 漸層＋模糊動畫）沿全圖巡迴，中心並以 backdrop 模糊棋格（僅畫面，不擋點格、不影響邏輯）。'
       : null,
+    digitOutpostLine:
+      (d.digitOutposts?.length ?? 0) > 0
+        ? `戰術據點：盤面標示 ${d.digitOutposts!.length} 處據點，每處必須以長官電報佈署數字（不可僅靠推論留空）。總覆蓋率已達標但仍有據點未填數字時，視同違令並全線引爆。據點若被邏輯確認為地雷（紅雷）或遭廢雷佔格，亦立即失敗。`
+        : null,
     dynamicMineLine: d.dynamicMinePerMove
       ? '⚠ 深海暗流：每次成功佈署後，場上會隨機出現一顆廢雷（青色炸彈標示）。廢雷佔格且不可再佈數字，但**不計入**任何鄰格數字的雷數——若誤以為能當真雷去湊數，盤面會直接衝突。廢雷只會生成在「鄰居尚無數字」的空格。'
+      : null,
+    neighborPlacedDigitBonusLine: d.neighborPlacedDigitBonus
+      ? '⚠ 鄰格數字加成：本關在 levels.json 設了 neighborPlacedDigitBonus。放下數字時，實際約束數字＝電報底數＋「邏輯相鄰」且已有數字的鄰格個數（含開局提示格）；鄰接與本關拓撲相同。設 false 或刪除此欄即關閉，與章節編號無關。'
       : null,
     eventsLines: d.events.length ? d.events.map((ev) => formatEvent(ev, d.timeLimit)) : ['本關無動態戰場事件。'],
     logicNeighborLine:

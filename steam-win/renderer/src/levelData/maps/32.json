@@ -1,0 +1,9 @@
+{
+  "mapLayout": {
+    "type": "TRIANGLE",
+    "placeholder": {
+      "width": 9,
+      "height": 9
+    }
+  }
+}

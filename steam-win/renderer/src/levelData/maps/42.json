@@ -1,0 +1,9 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 9,
+      "height": 9
+    }
+  }
+}
