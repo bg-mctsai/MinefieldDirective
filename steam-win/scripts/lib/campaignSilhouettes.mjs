@@ -27,7 +27,7 @@ export function forbiddenFromPlayable(W, H, playableSet) {
   return f;
 }
 
-function thickenPolyline(W, H, segments) {
+export function thickenPolyline(W, H, segments) {
   const s = new Set();
   const addSeg = (x0, y0, x1, y1) => {
     let x = x0;
@@ -144,6 +144,41 @@ export function silhouettePlayable(silIndex, W, H) {
       return p;
     }
   }
+}
+
+/**
+ * 第十章專用：大卡盤仍保留剪影辨識度。
+ * - sil 1～6：與 `silhouettePlayable` 相同。
+ * - sil 0：折線端點隨 W、H 拉長（原版小盤會卡在 ~72 格）。
+ * - sil 7：Chebyshev 方環，自動挑 rInner～rOuter 使格數易落在 100～200（原版薄環大卡盤不足 100）。
+ */
+export function silhouettePlayableChapter10(silIndex, W, H) {
+  const i = silIndex % 8;
+  if (i >= 1 && i <= 6) return silhouettePlayable(silIndex, W, H);
+  if (i === 0) {
+    if (W < 5 || H < 5) return silhouettePlayable(0, W, H);
+    return thickenPolyline(W, H, [
+      [[1, 2], [Math.max(1, W - 2), 2]],
+      [[Math.max(1, W - 2), 2], [2, Math.max(2, Math.floor(H * 0.38))]],
+      [[2, Math.max(2, Math.floor(H * 0.38))], [Math.max(2, W - 2), Math.max(3, Math.floor(H * 0.62))]],
+    ]);
+  }
+  const cx = Math.floor(W / 2);
+  const cy = Math.floor(H / 2);
+  const maxD = Math.max(cx, cy, W - 1 - cx, H - 1 - cy);
+  for (let rOuter = maxD; rOuter >= 3; rOuter--) {
+    for (let rInner = rOuter - 1; rInner >= 1; rInner--) {
+      const p = new Set();
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy));
+          if (d >= rInner && d <= rOuter) p.add(key(x, y));
+        }
+      }
+      if (p.size >= 100 && p.size <= 200) return p;
+    }
+  }
+  return silhouettePlayable(7, W, H);
 }
 
 export function fullBoard(W, H) {

@@ -1,6 +1,6 @@
 /**
  * 企劃用關卡資料結構（單一真相來源）。
- * 調整 coverageGoal、timeLimit、weights、events 等即可改難度與體驗。
+ * 調整 coverageGoal、timeLimit、weights 等即可改難度與體驗。
  */
 
 export type GridSystem = 'SQUARE' | 'HEXAGON' | 'TRIANGLE' | 'MIXED';
@@ -73,23 +73,8 @@ export type CommandConfig = {
   weights: Record<string, number>;
 };
 
-export type EventTrigger = 'PROGRESS' | 'TIME_LEFT';
-
-export type EventType = 'JAMMING' | 'EMP' | 'REINFORCE';
-
-export type LevelEvent =
-  | {
-      trigger: EventTrigger;
-      threshold: number;
-      type: 'JAMMING' | 'EMP';
-      duration: number;
-    }
-  | {
-      trigger: EventTrigger;
-      threshold: number;
-      type: 'REINFORCE';
-      count: number;
-    };
+/** 預留：`levels.json` 之 `events` 請維持空陣列；尚未實裝任何戰場觸發項。 */
+export type LevelEvent = never;
 
 export type LevelRewards = {
   /** 通關解鎖角色 id，尚未實作則僅供企劃標記 */

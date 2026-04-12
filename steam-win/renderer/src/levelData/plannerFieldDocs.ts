@@ -33,12 +33,7 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   'commands.poolType': 'RANDOM=在 weights 的鍵中均等抽選；WEIGHTED=依權重抽選。',
   'commands.weights': '鍵為字串 "1"～"8"；數值為權重（越大越常出現）；可省略或設 0 表示不給該數字。',
 
-  events: '觸發事件序列（條件＋效果）；遊戲端可能尚未全實作，可先填企劃稿。',
-  'events.trigger': 'PROGRESS=依覆蓋率進度觸發；TIME_LEFT=依剩餘秒數觸發。',
-  'events.threshold': 'PROGRESS 時為 0～1 比例；TIME_LEFT 時為「剩餘秒數」門檻（例：60=剩 60 秒時觸發）。',
-  'events.type': 'JAMMING／EMP 等附 duration（秒）；REINFORCE 為鎖定格數，附 count。',
-  'events.duration': '（非 REINFORCE）事件持續秒數。',
-  'events.count': '（type=REINFORCE）隨機鎖定空格數量。',
+  events: '預留欄位：戰場觸發序列尚未實裝，請一律填空陣列 []（勿寫 JAMMING／REINFORCE 等）。',
 
   chapterEntryBriefing:
     '（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。',

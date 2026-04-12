@@ -5,6 +5,7 @@ import { GameHeader } from './GameHeader';
 import { GameBoard } from './GameBoard';
 import { GameStatusMessageBar, GameStatusPanel } from './GameStatusPanel';
 import { CommanderTelegraphRow } from './CommanderPanel';
+import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
 import { VictoryCelebrationOverlay } from './VictoryCelebrationOverlay';
@@ -111,7 +112,12 @@ export default function GameView({
         levelName={campaignLevelHeaderTitle(gameState.level)}
         secondsLeft={gameState.secondsLeft}
         countdownStarted={gameState.timerStarted}
-        guideButton={<LevelStrategyGuideTrigger onClick={() => setStrategyGuideOpen(true)} />}
+        guideButton={
+          <div className="flex max-w-[min(100vw-6rem,36rem)] flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:justify-end">
+            <LevelMechanicFeatureBadges definition={gameState.level.definition} />
+            <LevelStrategyGuideTrigger onClick={() => setStrategyGuideOpen(true)} />
+          </div>
+        }
         telegraphPanel={
           <CommanderTelegraphRow
             gameState={gameState}

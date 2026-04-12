@@ -88,10 +88,8 @@ function validateLevels(levels: LevelDefinition[]): void {
     if (typeof l.timeLimit !== 'number' || l.timeLimit <= 0) {
       throw new Error(`levelId ${l.levelId}：timeLimit 須為正整數（全關計時），目前為 ${String(l.timeLimit)}`);
     }
-    for (const ev of l.events ?? []) {
-      if (ev && (ev as { type?: string }).type === 'SANDSTORM') {
-        throw new Error(`levelId ${l.levelId}：已廢除 SANDSTORM 事件，請自 events 移除`);
-      }
+    if ((l.events?.length ?? 0) > 0) {
+      throw new Error(`levelId ${l.levelId}：events 尚未實裝，請保持空陣列 []`);
     }
     if (l.chapter === 9) {
       const cells = layoutCellBudget(l.mapLayout);

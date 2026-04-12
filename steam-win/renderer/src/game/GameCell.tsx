@@ -154,7 +154,12 @@ const GameCellComponent = ({
           {lossChainPhase === 'dead' && postBlast && <MineRuins x={x} y={y} exploding={false} />}
         </div>
       )}
-      {isMine && !placed && !neutralBonusTarget && !isDynamicMine && lossChainPhase === 'none' && (
+      {isMine &&
+        !placed &&
+        !neutralBonusTarget &&
+        !isDynamicMine &&
+        lossChainPhase === 'none' &&
+        blastPointCountdown === undefined && (
         <div className="pointer-events-none flex items-center justify-center">
           {postBlast ? (
             <MineRuins x={x} y={y} exploding={isExploding} />

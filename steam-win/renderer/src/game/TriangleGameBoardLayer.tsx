@@ -79,9 +79,12 @@ export function TriangleGameBoardLayer({
         const { x, y } = cell;
         const v = triangleVerticesPx(x, y, side);
         const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
-        const isMine = gameState.revealedMines.has(`${x},${y}`);
-        const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
         const key = `${x},${y}`;
+        const isActiveBlastPoint = gameState.blastPointsCountdown.has(key);
+        const blastPointCountdown = gameState.blastPointsCountdown.get(key);
+        /** 與方格盤一致：倒數中的炸點不當成「已揭示雷」畫面，改顯示倒數 */
+        const isMine = !isActiveBlastPoint && gameState.revealedMines.has(key);
+        const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
         const lossChainPhase = lossChainPhaseForKey(
           key,
           gameState.lossSequentialExplosionKeys,
@@ -117,6 +120,17 @@ export function TriangleGameBoardLayer({
         } else if (lossChainPhase === 'live' && gameState.status === 'exploding') {
           fillClass = 'fill-red-950/50';
           strokeClass = 'stroke-red-900';
+        } else if (blastPointCountdown !== undefined && !postBlast) {
+          if (blastPointCountdown <= 5) {
+            fillClass = 'fill-red-950/60';
+            strokeClass = 'stroke-red-500';
+          } else if (blastPointCountdown <= 10) {
+            fillClass = 'fill-orange-950/55';
+            strokeClass = 'stroke-orange-400';
+          } else {
+            fillClass = 'fill-yellow-950/50';
+            strokeClass = 'stroke-yellow-500';
+          }
         } else if (neutralBonusTarget) {
           fillClass = 'fill-slate-800';
           strokeClass = 'stroke-slate-600';
@@ -127,6 +141,7 @@ export function TriangleGameBoardLayer({
         const tooltipText = boardCellTooltipText({
           isConflict,
           placedValue: placed?.value,
+          blastPointCountdown: isActiveBlastPoint ? blastPointCountdown : undefined,
           isDynamicMine,
           neutralBonusTarget,
           isMine,
@@ -138,7 +153,7 @@ export function TriangleGameBoardLayer({
           <motion.g
             key={`${gameState.gameId}-${x}-${y}`}
             style={{ transformOrigin: `${cx}px ${cy}px` }}
-            whileHover={playing ? { scale: 1.035 } : {}}
+            whileHover={playing && !isActiveBlastPoint ? { scale: 1.035 } : {}}
             transition={{ type: 'spring', stiffness: 400, damping: 24 }}
           >
             <polygon
@@ -162,6 +177,36 @@ export function TriangleGameBoardLayer({
               >
                 {placed.value}
               </text>
+            )}
+            {blastPointCountdown !== undefined && !postBlast && (
+              <foreignObject
+                x={cx - side * 0.42}
+                y={cy - side * 0.38}
+                width={side * 0.84}
+                height={side * 0.76}
+                className="pointer-events-none overflow-visible"
+              >
+                <div className="flex h-full w-full flex-col items-center justify-center gap-0.5">
+                  <span
+                    className={`font-black tabular-nums leading-none ${
+                      blastPointCountdown <= 5
+                        ? 'text-red-300 drop-shadow-[0_0_6px_rgba(239,68,68,0.8)]'
+                        : blastPointCountdown <= 10
+                          ? 'text-orange-300 drop-shadow-[0_0_4px_rgba(251,146,60,0.7)]'
+                          : 'text-yellow-300 drop-shadow-[0_0_3px_rgba(253,224,71,0.6)]'
+                    }`}
+                    style={{ fontSize: Math.max(11, Math.round(side * 0.36)) }}
+                  >
+                    {blastPointCountdown}
+                  </span>
+                  <span
+                    className="leading-none text-slate-400"
+                    style={{ fontSize: Math.max(7, Math.round(side * 0.2)) }}
+                  >
+                    ⏱
+                  </span>
+                </div>
+              </foreignObject>
             )}
             {!placed && !neutralBonusTarget && lossChainPhase !== 'none' && (
               <foreignObject

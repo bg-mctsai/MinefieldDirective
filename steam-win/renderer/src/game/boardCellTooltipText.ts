@@ -4,7 +4,7 @@ import { GAME_FIXED, sub } from './gameFixedMessages';
 export function boardCellTooltipText(opts: {
   isConflict: boolean;
   placedValue: number | undefined;
-  /** 引爆危機：此格為炸點且仍有倒數時傳入（秒數）；方格盤用 */
+  /** 引爆危機：此格為炸點且仍有倒數時傳入（秒數）；方／三角／六角盤皆用 */
   blastPointCountdown?: number;
   isDynamicMine: boolean;
   neutralBonusTarget: boolean;

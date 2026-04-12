@@ -1,48 +1,62 @@
 /**
- * 第九章 maps/81～90.json：依關卡 SQUARE／TRIANGLE／HEXAGON + mapTheme + 剪影。
+ * 第九章 maps/81～90：第 6 章剪影水平鏡像（81～89）+ L70 指揮塔鏡像（90），
+ * 可玩格 70～100；主題為鄰焰共振；幾何順序 SQ／TRI／HEX 與原章節設計一致。
+ *
  * 執行（cwd = steam-win）：node scripts/gen-chapter9-maps.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { forbiddenFromPlayable, silhouettePlayable, fullBoard } from './lib/campaignSilhouettes.mjs';
+import { forbiddenFromPlayable } from './lib/campaignSilhouettes.mjs';
+import { CH6_SHAPES } from './lib/ch6BitmapShapes.mjs';
+import { CH7_SHAPES } from './lib/ch7BitmapShapes.mjs';
+import { mirrorRowsH, rowsBitmapToPlayable, assertPlayableInBand } from './lib/campaignBitmapUtils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MAPS_DIR = path.resolve(__dirname, '../renderer/src/levelData/maps');
 
-/** id → type, W, H, 剪影相位（與第四章 8 種循環） */
-const CH9 = [
-  { id: 81, type: 'SQUARE', W: 14, H: 14, sil: 0, theme: '八章終戰盤' },
-  { id: 82, type: 'TRIANGLE', W: 12, H: 10, sil: 1, theme: '外環' },
-  { id: 83, type: 'HEXAGON', W: 10, H: 10, sil: 2, theme: '鄰工區' },
-  { id: 84, type: 'SQUARE', W: 17, H: 17, sil: 3, theme: '蜂巢鄰鑰' },
-  { id: 85, type: 'TRIANGLE', W: 13, H: 11, sil: 4, theme: '大十熱芯盤' },
-  { id: 86, type: 'HEXAGON', W: 11, H: 11, sil: 5, theme: '縱峽' },
-  { id: 87, type: 'SQUARE', W: 17, H: 17, sil: 6, theme: '六雙堤' },
-  { id: 88, type: 'TRIANGLE', W: 14, H: 12, sil: 7, theme: '鄰焰深鑽' },
-  { id: 89, type: 'HEXAGON', W: 12, H: 12, sil: 0, theme: '三角方環巢' },
-  { id: 90, type: 'SQUARE', W: 15, H: 20, sil: 1, theme: '六閃' },
+/** { ch6|ch7, srcId, theme } — 鏡像後與第 6／7 章原圖左右對稱，造型不同 */
+const CH9_PLAN = [
+  { id: 81, src: 'ch6', srcId: 53, theme: '鄰焰前哨·鯊鰭鏡像' },
+  { id: 82, src: 'ch6', srcId: 52, theme: '三角收束·海星鏡像' },
+  { id: 83, src: 'ch6', srcId: 51, theme: '六角共鳴·水母鏡像' },
+  { id: 84, src: 'ch6', srcId: 56, theme: '深潛方陣·鏡像' },
+  { id: 85, src: 'ch6', srcId: 54, theme: '三叉熱線·鏡像' },
+  { id: 86, src: 'ch6', srcId: 55, theme: '蟹鉗巢·鏡像' },
+  { id: 87, src: 'ch6', srcId: 58, theme: '渦環堤·鏡像' },
+  { id: 88, src: 'ch6', srcId: 59, theme: '珊瑚扇·鏡像' },
+  { id: 89, src: 'ch6', srcId: 57, theme: '龜甲巢·鏡像' },
+  { id: 90, src: 'ch7', srcId: 70, theme: '共振塔·指揮鏡像' },
 ];
 
-for (const row of CH9) {
-  const { id, type, W, H, sil, theme } = row;
-  let playable = silhouettePlayable(sil + (id % 2), W, H);
-  if (playable.size < 28 && type !== 'SQUARE') {
-    playable = silhouettePlayable(sil, W, H);
-    if (playable.size < 22) playable = fullBoard(W, H);
+function shapeFrom(plan) {
+  if (plan.src === 'ch7') return CH7_SHAPES[plan.srcId];
+  return CH6_SHAPES[plan.srcId];
+}
+
+for (const plan of CH9_PLAN) {
+  const { id, theme } = plan;
+  const src = shapeFrom(plan);
+  const rows = mirrorRowsH(src.rows);
+  const type = src.grid;
+
+  const { W, H, playable } = rowsBitmapToPlayable(rows);
+  if (W !== src.W || H !== src.H) {
+    console.error(`L${id}: W,H mismatch src ${src.W}×${src.H}`);
+    process.exit(1);
   }
+  assertPlayableInBand(id, playable.size);
+
   const forbidden = forbiddenFromPlayable(W, H, playable);
-  const n = playable.size;
-  const cov = 0.85;
-  const k = 1.04;
-  const time = Math.max(Math.round(n * cov * k), 75);
-  let mapLayout;
-  if (type === 'SQUARE') {
-    mapLayout = { type: 'SQUARE', width: W, height: H, forbiddenCells: forbidden };
-  } else {
-    mapLayout = { type, placeholder: { width: W, height: H }, forbiddenCells: forbidden };
-  }
-  const outPath = path.join(MAPS_DIR, `${id}.json`);
-  fs.writeFileSync(outPath, `${JSON.stringify({ mapLayout, mapTheme: theme }, null, 2)}\n`, 'utf8');
-  console.log(`L${id} ${type} ${W}×${H} playable=${n} time~${time} ${theme}`);
+  const mapLayout =
+    type === 'SQUARE'
+      ? { type: 'SQUARE', width: W, height: H, forbiddenCells: forbidden }
+      : { type, placeholder: { width: W, height: H }, forbiddenCells: forbidden };
+
+  fs.writeFileSync(
+    path.join(MAPS_DIR, `${id}.json`),
+    `${JSON.stringify({ mapLayout, mapTheme: theme }, null, 2)}\n`,
+    'utf8',
+  );
+  console.log(`L${id} ${type} ${W}×${H} playable=${playable.size} ${theme}`);
 }

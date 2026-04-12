@@ -263,7 +263,6 @@ export default function MissionMap({
                   <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">
                     {chapterTitle || '戰區清單'}
                   </h1>
-                  <p className="mt-1 text-sm text-slate-500">點選關卡列即可出擊（鎖定關無法點）</p>
                 </div>
               </header>
 

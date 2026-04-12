@@ -21,12 +21,7 @@
     "commands.maxHand": "手牌張數上限（建議 1～5）。",
     "commands.poolType": "RANDOM=在 weights 的鍵中均等抽選；WEIGHTED=依權重抽選。",
     "commands.weights": "鍵為字串 \"1\"～\"8\"；數值為權重（越大越常出現）；可省略或設 0 表示不給該數字。",
-    "events": "觸發事件序列（條件＋效果）；遊戲端可能尚未全實作，可先填企劃稿。",
-    "events.trigger": "PROGRESS=依覆蓋率進度觸發；TIME_LEFT=依剩餘秒數觸發。",
-    "events.threshold": "PROGRESS 時為 0～1 比例；TIME_LEFT 時為「剩餘秒數」門檻（例：60=剩 60 秒時觸發）。",
-    "events.type": "JAMMING／EMP 等附 duration（秒）；REINFORCE 為鎖定格數，附 count。",
-    "events.duration": "（非 REINFORCE）事件持續秒數。",
-    "events.count": "（type=REINFORCE）隨機鎖定空格數量。",
+    "events": "預留欄位：戰場觸發序列尚未實裝，請一律填空陣列 []（勿寫 JAMMING／REINFORCE 等）。",
     "chapterEntryBriefing": "（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。",
     "forcedMineCells": "可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。",
     "mineBonusTargetCells": "可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。",
@@ -1157,20 +1152,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1198,20 +1180,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1239,20 +1208,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1280,20 +1236,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1321,20 +1264,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1362,20 +1292,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1403,20 +1320,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1444,20 +1348,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1485,20 +1376,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1526,20 +1404,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1568,20 +1433,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1607,20 +1459,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1651,20 +1490,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1690,20 +1516,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1732,20 +1545,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1776,20 +1576,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1818,20 +1605,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1862,20 +1636,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1901,20 +1662,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1943,20 +1691,7 @@
         }
       },
       "dynamicMinePerMove": true,
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "JAMMING",
-          "duration": 18
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 40,
-          "type": "JAMMING",
-          "duration": 12
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -2229,7 +1964,7 @@
       "title": "引爆危機 · 第 71 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 50,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L71-ch8-23dc551d",
       "commands": {
         "maxHand": 3,
@@ -2248,8 +1983,8 @@
       "blastPoints": [
         {
           "pos": [
-            4,
-            4
+            5,
+            6
           ],
           "countdownSec": 35,
           "defuseBonusSec": 15
@@ -2268,29 +2003,24 @@
       "levelId": 72,
       "chapter": 8,
       "title": "引爆危機 · 第 72 戰",
-      "gridSystem": "SQUARE",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 51,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L72-ch8-4b889058",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "blastPoints": [
         {
           "pos": [
             2,
-            2
+            0
           ],
           "countdownSec": 30,
           "defuseBonusSec": 12
@@ -2298,7 +2028,7 @@
         {
           "pos": [
             7,
-            6
+            9
           ],
           "countdownSec": 30,
           "defuseBonusSec": 12
@@ -2316,37 +2046,35 @@
       "levelId": 73,
       "chapter": 8,
       "title": "引爆危機 · 第 73 戰",
-      "gridSystem": "SQUARE",
+      "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 52,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L73-ch8-67155d30",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
+          "1": 18,
+          "2": 22,
+          "3": 20,
           "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
+          "5": 12,
+          "6": 8
         }
       },
       "blastPoints": [
         {
           "pos": [
-            2,
-            3
+            0,
+            0
           ],
           "countdownSec": 28,
           "defuseBonusSec": 10
         },
         {
           "pos": [
-            7,
-            7
+            11,
+            9
           ],
           "countdownSec": 25,
           "defuseBonusSec": 10
@@ -2366,7 +2094,7 @@
       "title": "引爆危機 · 第 74 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 54,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L74-ch8-3a736261",
       "commands": {
         "maxHand": 3,
@@ -2386,15 +2114,15 @@
         {
           "pos": [
             2,
-            2
+            1
           ],
           "countdownSec": 25,
           "defuseBonusSec": 8
         },
         {
           "pos": [
-            5,
-            7
+            8,
+            5
           ],
           "countdownSec": 25,
           "defuseBonusSec": 8
@@ -2402,23 +2130,16 @@
         {
           "pos": [
             9,
-            3
+            9
           ],
           "countdownSec": 25,
           "defuseBonusSec": 8
         }
       ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 55,
-          "type": "EMP",
-          "duration": 7
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
-          "TODO: 三炸點首登場 + EMP 組合"
+          "TODO: 三炸點首登場"
         ]
       },
       "mapRef": "74"
@@ -2427,58 +2148,46 @@
       "levelId": 75,
       "chapter": 8,
       "title": "引爆危機 · 第 75 戰",
-      "gridSystem": "SQUARE",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 55,
+      "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "blastPoints": [
         {
           "pos": [
-            1,
-            4
+            7,
+            2
           ],
           "countdownSec": 22,
           "defuseBonusSec": 8
         },
         {
           "pos": [
-            5,
-            2
+            0,
+            6
           ],
           "countdownSec": 25,
           "defuseBonusSec": 8
         },
         {
           "pos": [
-            9,
-            7
+            3,
+            9
           ],
           "countdownSec": 22,
           "defuseBonusSec": 8
         }
       ],
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.65,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 炸點倒數不等長，考驗排程優先序"
@@ -2490,61 +2199,52 @@
       "levelId": 76,
       "chapter": 8,
       "title": "引爆危機 · 第 76 戰",
-      "gridSystem": "SQUARE",
+      "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 62,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L76-ch8-7a01e404",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 8,
-          "2": 12,
-          "3": 18,
+          "1": 18,
+          "2": 22,
+          "3": 20,
           "4": 18,
-          "5": 16,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "5": 12,
+          "6": 8
         }
       },
       "blastPoints": [
         {
           "pos": [
-            2,
-            2
+            3,
+            1
           ],
           "countdownSec": 20,
           "defuseBonusSec": 6
         },
         {
           "pos": [
-            6,
-            7
+            9,
+            5
           ],
           "countdownSec": 20,
           "defuseBonusSec": 6
         },
         {
           "pos": [
-            10,
-            3
+            7,
+            9
           ],
           "countdownSec": 20,
           "defuseBonusSec": 6
         }
       ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 60,
-          "type": "EMP",
-          "duration": 8
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
-          "TODO: EMP 與多炸點組合壓力測試"
+          "TODO: 多炸點組合壓力測試"
         ]
       },
       "mapRef": "76"
@@ -2553,58 +2253,46 @@
       "levelId": 77,
       "chapter": 8,
       "title": "引爆危機 · 第 77 戰",
-      "gridSystem": "SQUARE",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 75,
+      "timeLimit": 76,
       "initialSeed": "minefield-campaign-v1-L77-ch8-302d0ade",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 8,
-          "2": 12,
-          "3": 18,
-          "4": 18,
-          "5": 16,
-          "6": 12,
-          "7": 8,
-          "8": 4
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "blastPoints": [
         {
           "pos": [
-            2,
-            2
+            8,
+            1
           ],
           "countdownSec": 22,
           "defuseBonusSec": 6
         },
         {
           "pos": [
-            9,
-            2
+            0,
+            5
           ],
           "countdownSec": 22,
           "defuseBonusSec": 6
         },
         {
           "pos": [
-            5,
+            3,
             8
           ],
           "countdownSec": 20,
           "defuseBonusSec": 6
         }
       ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 60,
-          "type": "EMP",
-          "duration": 8
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 三炸點上二下一配置"
@@ -2618,7 +2306,7 @@
       "title": "引爆危機 · 第 78 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 76,
+      "timeLimit": 77,
       "initialSeed": "minefield-campaign-v1-L78-ch8-e959a386",
       "commands": {
         "maxHand": 3,
@@ -2637,16 +2325,16 @@
       "blastPoints": [
         {
           "pos": [
-            1,
-            3
+            4,
+            2
           ],
           "countdownSec": 20,
           "defuseBonusSec": 5
         },
         {
           "pos": [
-            11,
-            3
+            2,
+            7
           ],
           "countdownSec": 20,
           "defuseBonusSec": 5
@@ -2654,26 +2342,13 @@
         {
           "pos": [
             6,
-            9
+            10
           ],
           "countdownSec": 18,
           "defuseBonusSec": 5
         }
       ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 65,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.6,
-          "type": "REINFORCE",
-          "count": 3
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 十字配置炸點，上下兩點倒數更短"
@@ -2685,58 +2360,49 @@
       "levelId": 79,
       "chapter": 8,
       "title": "引爆危機 · 第 79 戰",
-      "gridSystem": "SQUARE",
+      "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 77,
+      "timeLimit": 78,
       "initialSeed": "minefield-campaign-v1-L79-ch8-0d094db3",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 8,
-          "2": 12,
-          "3": 16,
+          "1": 18,
+          "2": 22,
+          "3": 20,
           "4": 18,
-          "5": 16,
-          "6": 12,
-          "7": 10,
-          "8": 6
+          "5": 12,
+          "6": 8
         }
       },
       "blastPoints": [
         {
           "pos": [
-            2,
-            2
+            10,
+            1
           ],
           "countdownSec": 22,
           "defuseBonusSec": 5
         },
         {
           "pos": [
-            6,
-            1
+            2,
+            6
           ],
           "countdownSec": 20,
           "defuseBonusSec": 5
         },
         {
           "pos": [
-            10,
-            8
+            1,
+            10
           ],
           "countdownSec": 20,
           "defuseBonusSec": 5
         }
       ],
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.6,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
+      "events": [],
       "rewards": {
         "todo": [
           "TODO: 三炸點最大難度登場，測試整體壓力曲線"
@@ -2750,7 +2416,7 @@
       "title": "引爆危機 · 第 80 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 78,
+      "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L80-ch8-5e527d3c",
       "commands": {
         "maxHand": 3,
@@ -2778,38 +2444,25 @@
         {
           "pos": [
             7,
-            1
+            6
           ],
           "countdownSec": 15,
           "defuseBonusSec": 4
         },
         {
           "pos": [
-            12,
-            9
+            5,
+            10
           ],
           "countdownSec": 16,
           "defuseBonusSec": 4
         }
       ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 75,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.65,
-          "type": "REINFORCE",
-          "count": 3
-        }
-      ],
+      "events": [],
       "rewards": {
         "narrativeFlag": "ch8_cleared",
         "todo": [
-          "TODO: 第八章終戰，五炸點倒數最短至 15 秒，三事件全開",
+          "TODO: 第八章終戰，五炸點倒數最短至 15 秒",
           "TODO: 通關時顯示章節結算動畫"
         ]
       },
@@ -2821,7 +2474,7 @@
       "title": "鄰焰共振 · 第 81 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 60,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L81-ch9-b5064a16",
       "commands": {
         "maxHand": 3,
@@ -2848,7 +2501,7 @@
       "title": "鄰焰共振 · 第 82 戰",
       "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 61,
+      "timeLimit": 66,
       "initialSeed": "minefield-campaign-v1-L82-ch9-091929ff",
       "commands": {
         "maxHand": 3,
@@ -2870,7 +2523,7 @@
       "title": "鄰焰共振 · 第 83 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 62,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L83-ch9-a027e43e",
       "commands": {
         "maxHand": 3,
@@ -2895,7 +2548,7 @@
       "title": "鄰焰共振 · 第 84 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 82,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L84-ch9-00e0b334",
       "commands": {
         "maxHand": 3,
@@ -2911,14 +2564,7 @@
           "8": 4
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 52,
-          "type": "EMP",
-          "duration": 8
-        }
-      ],
+      "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
       "mapRef": "84"
@@ -2929,7 +2575,7 @@
       "title": "鄰焰共振 · 第 85 戰",
       "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 83,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
@@ -2940,14 +2586,7 @@
           "3": 38
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.62,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
+      "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
       "mapRef": "85"
@@ -2958,7 +2597,7 @@
       "title": "鄰焰共振 · 第 86 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 84,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L86-ch9-613a3ba5",
       "commands": {
         "maxHand": 3,
@@ -2972,14 +2611,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 58,
-          "type": "EMP",
-          "duration": 8
-        }
-      ],
+      "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
       "mapRef": "86"
@@ -2990,7 +2622,7 @@
       "title": "鄰焰共振 · 第 87 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 85,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L87-ch9-d91760e8",
       "commands": {
         "maxHand": 3,
@@ -3006,14 +2638,7 @@
           "8": 4
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 50,
-          "type": "EMP",
-          "duration": 8
-        }
-      ],
+      "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
       "mapRef": "87"
@@ -3024,7 +2649,7 @@
       "title": "鄰焰共振 · 第 88 戰",
       "gridSystem": "TRIANGLE",
       "coverageGoal": 0.85,
-      "timeLimit": 86,
+      "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L88-ch9-80a3f5ed",
       "commands": {
         "maxHand": 3,
@@ -3035,14 +2660,7 @@
           "3": 38
         }
       },
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.64,
-          "type": "REINFORCE",
-          "count": 3
-        }
-      ],
+      "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
       "mapRef": "88"
@@ -3053,7 +2671,7 @@
       "title": "鄰焰共振 · 第 89 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.85,
-      "timeLimit": 87,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L89-ch9-47a960aa",
       "commands": {
         "maxHand": 3,
@@ -3067,20 +2685,7 @@
           "6": 8
         }
       },
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 72,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.6,
-          "type": "REINFORCE",
-          "count": 3
-        }
-      ],
+      "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
       "mapRef": "89"
@@ -3091,7 +2696,7 @@
       "title": "鄰焰共振 · 第 90 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.85,
-      "timeLimit": 88,
+      "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L90-ch9-2a6ed127",
       "commands": {
         "maxHand": 3,
@@ -3118,176 +2723,8 @@
       "title": "終焉防線 · 第 91 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.88,
-      "timeLimit": 56,
+      "timeLimit": 122,
       "initialSeed": "minefield-campaign-v1-L91-ch10-a1b2c3d4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
-        }
-      },
-      "digitOutposts": [
-        [
-          2,
-          2
-        ],
-        [
-          10,
-          10
-        ]
-      ],
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.58,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
-      "rewards": {},
-      "mapRef": "91"
-    },
-    {
-      "levelId": 92,
-      "chapter": 10,
-      "title": "終焉防線 · 第 92 戰",
-      "gridSystem": "TRIANGLE",
-      "coverageGoal": 0.88,
-      "timeLimit": 63,
-      "initialSeed": "minefield-campaign-v1-L92-ch10-b2c3d4e5",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
-        }
-      },
-      "digitOutposts": [
-        [
-          9,
-          2
-        ],
-        [
-          3,
-          8
-        ]
-      ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 48,
-          "type": "EMP",
-          "duration": 6
-        }
-      ],
-      "rewards": {},
-      "mapRef": "92"
-    },
-    {
-      "levelId": 93,
-      "chapter": 10,
-      "title": "終焉防線 · 第 93 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.88,
-      "timeLimit": 64,
-      "initialSeed": "minefield-campaign-v1-L93-ch10-c3d4e5f6",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
-        }
-      },
-      "blastPoints": [
-        {
-          "pos": [
-            5,
-            5
-          ],
-          "countdownSec": 32,
-          "defuseBonusSec": 12
-        }
-      ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 44,
-          "type": "EMP",
-          "duration": 7
-        }
-      ],
-      "rewards": {},
-      "mapRef": "93"
-    },
-    {
-      "levelId": 94,
-      "chapter": 10,
-      "title": "終焉防線 · 第 94 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.89,
-      "timeLimit": 74,
-      "initialSeed": "minefield-campaign-v1-L94-ch10-d4e5f6a7",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
-        }
-      },
-      "dynamicMinePerMove": true,
-      "digitOutposts": [
-        [
-          3,
-          3
-        ],
-        [
-          10,
-          9
-        ]
-      ],
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.66,
-          "type": "REINFORCE",
-          "count": 2
-        }
-      ],
-      "rewards": {},
-      "mapRef": "94"
-    },
-    {
-      "levelId": 95,
-      "chapter": 10,
-      "title": "終焉防線 · 第 95 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.89,
-      "timeLimit": 75,
-      "initialSeed": "minefield-campaign-v1-L95-ch10-e5f6a7b8",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -3304,14 +2741,214 @@
       },
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 250,
-      "events": [
+      "digitOutposts": [
+        [
+          2,
+          2
+        ],
+        [
+          8,
+          9
+        ]
+      ],
+      "blastPoints": [
         {
-          "trigger": "PROGRESS",
-          "threshold": 0.38,
-          "type": "EMP",
-          "duration": 7
+          "pos": [
+            5,
+            5
+          ],
+          "countdownSec": 30,
+          "defuseBonusSec": 10
         }
       ],
+      "events": [],
+      "rewards": {},
+      "mapRef": "91"
+    },
+    {
+      "levelId": 92,
+      "chapter": 10,
+      "title": "終焉防線 · 第 92 戰",
+      "gridSystem": "TRIANGLE",
+      "coverageGoal": 0.88,
+      "timeLimit": 126,
+      "initialSeed": "minefield-campaign-v1-L92-ch10-b2c3d4e5",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 28,
+          "2": 34,
+          "3": 38
+        }
+      },
+      "neighborPlacedDigitBonus": true,
+      "digitOutposts": [
+        [
+          9,
+          2
+        ],
+        [
+          3,
+          8
+        ]
+      ],
+      "blastPoints": [
+        {
+          "pos": [
+            6,
+            5
+          ],
+          "countdownSec": 28,
+          "defuseBonusSec": 10
+        }
+      ],
+      "events": [],
+      "rewards": {},
+      "mapRef": "92"
+    },
+    {
+      "levelId": 93,
+      "chapter": 10,
+      "title": "終焉防線 · 第 93 戰",
+      "gridSystem": "HEXAGON",
+      "coverageGoal": 0.88,
+      "timeLimit": 130,
+      "initialSeed": "minefield-campaign-v1-L93-ch10-c3d4e5f6",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 8
+        }
+      },
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 260,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          2,
+          2
+        ],
+        [
+          9,
+          8
+        ]
+      ],
+      "blastPoints": [
+        {
+          "pos": [
+            6,
+            4
+          ],
+          "countdownSec": 30,
+          "defuseBonusSec": 11
+        }
+      ],
+      "events": [],
+      "rewards": {},
+      "mapRef": "93"
+    },
+    {
+      "levelId": 94,
+      "chapter": 10,
+      "title": "終焉防線 · 第 94 戰",
+      "gridSystem": "SQUARE",
+      "coverageGoal": 0.89,
+      "timeLimit": 134,
+      "initialSeed": "minefield-campaign-v1-L94-ch10-d4e5f6a7",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 10,
+          "2": 14,
+          "3": 18,
+          "4": 18,
+          "5": 14,
+          "6": 10,
+          "7": 8,
+          "8": 4
+        }
+      },
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 235,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          3,
+          2
+        ],
+        [
+          10,
+          7
+        ]
+      ],
+      "blastPoints": [
+        {
+          "pos": [
+            6,
+            4
+          ],
+          "countdownSec": 26,
+          "defuseBonusSec": 9
+        }
+      ],
+      "events": [],
+      "rewards": {},
+      "mapRef": "94"
+    },
+    {
+      "levelId": 95,
+      "chapter": 10,
+      "title": "終焉防線 · 第 95 戰",
+      "gridSystem": "SQUARE",
+      "coverageGoal": 0.89,
+      "timeLimit": 138,
+      "initialSeed": "minefield-campaign-v1-L95-ch10-e5f6a7b8",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 10,
+          "2": 14,
+          "3": 18,
+          "4": 18,
+          "5": 14,
+          "6": 10,
+          "7": 8,
+          "8": 4
+        }
+      },
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 245,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          3,
+          3
+        ],
+        [
+          11,
+          6
+        ]
+      ],
+      "blastPoints": [
+        {
+          "pos": [
+            7,
+            4
+          ],
+          "countdownSec": 28,
+          "defuseBonusSec": 10
+        }
+      ],
+      "events": [],
       "rewards": {},
       "mapRef": "95"
     },
@@ -3321,7 +2958,7 @@
       "title": "終焉防線 · 第 96 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.89,
-      "timeLimit": 76,
+      "timeLimit": 145,
       "initialSeed": "minefield-campaign-v1-L96-ch10-f6a7b8c9",
       "commands": {
         "maxHand": 3,
@@ -3337,6 +2974,8 @@
           "8": 4
         }
       },
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 228,
       "neighborPlacedDigitBonus": true,
       "digitOutposts": [
         [
@@ -3344,22 +2983,25 @@
           3
         ],
         [
-          11,
+          10,
           3
         ],
         [
-          7,
+          6,
           8
         ]
       ],
-      "events": [
+      "blastPoints": [
         {
-          "trigger": "PROGRESS",
-          "threshold": 0.55,
-          "type": "REINFORCE",
-          "count": 3
+          "pos": [
+            6,
+            6
+          ],
+          "countdownSec": 28,
+          "defuseBonusSec": 10
         }
       ],
+      "events": [],
       "rewards": {},
       "mapRef": "96"
     },
@@ -3369,7 +3011,7 @@
       "title": "終焉防線 · 第 97 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
-      "timeLimit": 77,
+      "timeLimit": 150,
       "initialSeed": "minefield-campaign-v1-L97-ch10-a7b8c9d0",
       "commands": {
         "maxHand": 3,
@@ -3385,11 +3027,23 @@
           "8": 4
         }
       },
+      "dynamicMinePerMove": true,
+      "neighborPlacedDigitBonus": true,
+      "digitOutposts": [
+        [
+          2,
+          2
+        ],
+        [
+          12,
+          7
+        ]
+      ],
       "blastPoints": [
         {
           "pos": [
             7,
-            6
+            4
           ],
           "countdownSec": 26,
           "defuseBonusSec": 10
@@ -3397,26 +3051,13 @@
         {
           "pos": [
             11,
-            8
+            6
           ],
           "countdownSec": 28,
           "defuseBonusSec": 10
         }
       ],
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.52,
-          "type": "REINFORCE",
-          "count": 3
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 52,
-          "type": "EMP",
-          "duration": 8
-        }
-      ],
+      "events": [],
       "rewards": {},
       "mapRef": "97"
     },
@@ -3426,7 +3067,7 @@
       "title": "終焉防線 · 第 98 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
-      "timeLimit": 78,
+      "timeLimit": 158,
       "initialSeed": "minefield-campaign-v1-L98-ch10-b8c9d0e1",
       "commands": {
         "maxHand": 3,
@@ -3445,30 +3086,27 @@
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 240,
       "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          3,
+          3
+        ],
+        [
+          11,
+          7
+        ]
+      ],
       "blastPoints": [
         {
           "pos": [
             7,
-            6
+            5
           ],
           "countdownSec": 24,
           "defuseBonusSec": 9
         }
       ],
-      "events": [
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 62,
-          "type": "JAMMING",
-          "duration": 12
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.68,
-          "type": "REINFORCE",
-          "count": 3
-        }
-      ],
+      "events": [],
       "rewards": {},
       "mapRef": "98"
     },
@@ -3478,7 +3116,7 @@
       "title": "終焉防線 · 第 99 戰",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.9,
-      "timeLimit": 98,
+      "timeLimit": 168,
       "initialSeed": "minefield-campaign-v1-L99-ch10-c9d0e1f2",
       "commands": {
         "maxHand": 3,
@@ -3504,22 +3142,22 @@
           3
         ],
         [
-          12,
-          10
+          10,
+          8
         ],
         [
-          4,
-          11
+          5,
+          9
         ],
         [
-          7,
-          7
+          8,
+          5
         ]
       ],
       "blastPoints": [
         {
           "pos": [
-            8,
+            6,
             4
           ],
           "countdownSec": 22,
@@ -3527,33 +3165,14 @@
         },
         {
           "pos": [
-            2,
-            10
+            10,
+            6
           ],
           "countdownSec": 24,
           "defuseBonusSec": 8
         }
       ],
-      "events": [
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.26,
-          "type": "EMP",
-          "duration": 8
-        },
-        {
-          "trigger": "TIME_LEFT",
-          "threshold": 54,
-          "type": "JAMMING",
-          "duration": 11
-        },
-        {
-          "trigger": "PROGRESS",
-          "threshold": 0.72,
-          "type": "REINFORCE",
-          "count": 4
-        }
-      ],
+      "events": [],
       "rewards": {},
       "mapRef": "99"
     },
@@ -3563,7 +3182,7 @@
       "title": "神之眼",
       "gridSystem": "SQUARE",
       "coverageGoal": 1,
-      "timeLimit": 240,
+      "timeLimit": 280,
       "initialSeed": "minefield-campaign-v1-L100-ch10-d0e1f2a3",
       "commands": {
         "maxHand": 3,
@@ -3580,6 +3199,56 @@
         }
       },
       "neighborPlacedDigitBonus": true,
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 210,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          4,
+          4
+        ],
+        [
+          10,
+          4
+        ],
+        [
+          4,
+          10
+        ],
+        [
+          10,
+          10
+        ]
+      ],
+      "blastPoints": [
+        {
+          "pos": [
+            7,
+            7
+          ],
+          "countdownSec": 36,
+          "defuseBonusSec": 12
+        },
+        {
+          "pos": [
+            2,
+            2
+          ],
+          "countdownSec": 32,
+          "defuseBonusSec": 10
+        }
+      ],
+      "mineBonusTargetCells": [
+        [
+          13,
+          6
+        ],
+        [
+          6,
+          13
+        ]
+      ],
+      "mineBonusSeconds": 5,
       "events": [],
       "rewards": {
         "narrativeFlag": "CAMPAIGN_COMPLETE",

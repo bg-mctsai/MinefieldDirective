@@ -1,5 +1,5 @@
 import type { Level } from '../gameLogic';
-import type { GridSystem, LevelEvent, MapLayout } from '../levelData/types';
+import type { GridSystem, MapLayout } from '../levelData/types';
 import { stageInChapter } from './chapterStage';
 import { resolveSignalJammingStepMs } from './signalJamming';
 
@@ -83,20 +83,6 @@ function weightedDigits(weights: Record<string, number>): number[] {
     .sort((a, b) => a - b);
 }
 
-function formatEvent(e: LevelEvent, timeLimit: number): string {
-  const trig =
-    e.trigger === 'PROGRESS'
-      ? `覆蓋率達 ${Math.round(e.threshold * 100)}% 時`
-      : `剩餘時間 ≤ ${e.threshold} 秒時（本關限時 ${timeLimit} 秒）`;
-
-  if (e.type === 'REINFORCE') {
-    return `${trig}：增援 — 隨機鎖定 ${e.count} 格。`;
-  }
-  const name =
-    e.type === 'JAMMING' ? '通訊干擾' : 'EMP 脈衝';
-  return `${trig}：${name}，持續 ${e.duration} 秒。`;
-}
-
 export type LevelStrategyGuideModel = {
   chapterLine: string;
   mapLine: string;
@@ -167,7 +153,7 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
     neighborPlacedDigitBonusLine: d.neighborPlacedDigitBonus
       ? '⚠ 鄰格數字加成：本關在 levels.json 設了 neighborPlacedDigitBonus。放下數字時，實際約束數字＝電報底數＋「邏輯相鄰」且已有數字的鄰格個數（含開局提示格）；鄰接與本關拓撲相同。設 false 或刪除此欄即關閉，與章節編號無關。'
       : null,
-    eventsLines: d.events.length ? d.events.map((ev) => formatEvent(ev, d.timeLimit)) : ['本關無動態戰場事件。'],
+    eventsLines: ['本關無動態戰場事件（levels.json 之 events 預留欄位，尚未實裝）。'],
     logicNeighborLine:
       d.chapter === 4 && d.levelId >= 33 && d.mapLayout.type === 'TRIANGLE' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
         ? `${neighborLogicLine(d.gridSystem)} 本關起含種子隨機地形格（不可佈署），邊界形狀會影響可走的三角拓撲。`
