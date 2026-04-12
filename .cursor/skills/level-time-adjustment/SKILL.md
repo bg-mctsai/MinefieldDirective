@@ -40,12 +40,24 @@ timeLimit = round(playableCells × coverageGoal × k)
 
 **最難關設計原則（L30）**：同階段最多 forbidden + 最高覆蓋率 + 最短時間 = triple penalty
 
+## 指令數字上限（依 `gridSystem` 硬性限制）
+
+| `gridSystem` | 允許數字範圍 | `commands.weights` 可用鍵 |
+|--------------|-------------|--------------------------|
+| TRIANGLE     | **1～3**    | `"1"`, `"2"`, `"3"`      |
+| HEXAGON      | **1～6**    | `"1"` … `"6"`            |
+| SQUARE       | **1～8**    | `"1"` … `"8"`            |
+
+- 這是**上限**，不是必須全給；設計上可以只開部分數字。
+- 修改 `gridSystem` 或 `mapLayout.type` 時，**必須同步修剪超出上限的 weights 鍵**。
+
 ## 修改步驟
 
-1. **確認目標關卡的地圖尺寸與 forbiddenCells 數量**（從 levels.json 查詢）
-2. **計算 playableCells 與 timeLimit**（套用公式）
-3. **批次修改時**：寫 `steam-win/scripts/patch-*.ts`，用 `npx tsx scripts/patch-*.ts` 執行
-4. **單關修改時**：直接用 StrReplace 替換 `coverageGoal`、`timeLimit`、`mapLayout` 欄位
+1. **確認目標關卡的 `gridSystem`、地圖尺寸與 forbiddenCells 數量**（從 levels.json 查詢）
+2. **檢查 `commands.weights` 的鍵是否在該 gridSystem 允許範圍內**（TRIANGLE≤3, HEXAGON≤6, SQUARE≤8）
+3. **計算 playableCells 與 timeLimit**（套用公式）
+4. **批次修改時**：寫 `steam-win/scripts/patch-*.ts`，用 `npx tsx scripts/patch-*.ts` 執行
+5. **單關修改時**：直接用 StrReplace 替換 `coverageGoal`、`timeLimit`、`mapLayout`、`commands.weights` 欄位
 
 ## 參考：第 2 章（11~20 關）
 
@@ -53,3 +65,13 @@ timeLimit = round(playableCells × coverageGoal × k)
 從 84s 開始，每關 +8s（84, 92, 100 … 156），地圖交替 CROSS 11×11 / DIAMOND r=4。
 
 **戰役剪影主題、`mapTheme`、產圖腳本流程** → 見專案 skill：`.cursor/skills/campaign-map-themes/SKILL.md`。
+
+## 第 5～7 章（41～70 關）指令對照
+
+| gridSystem | weights 範例 | 預設 k |
+|------------|-------------|--------|
+| TRIANGLE   | `{"1":28,"2":34,"3":38}` | 1.08 |
+| HEXAGON    | `{"1":18,"2":22,"3":20,"4":18,"5":12,"6":10}` | 1.08 |
+| SQUARE     | `{"1":6,"2":8,"3":10,"4":12,"5":14,"6":16,"7":17,"8":17}` | 1.08 |
+
+第 6、7 章為混合格系（每章含 HEXAGON + TRIANGLE + SQUARE），修改任何一關時務必檢查其 `gridSystem` 再決定 weights 鍵的上限。

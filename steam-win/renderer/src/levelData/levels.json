@@ -1,4 +1,4 @@
-﻿{
+{
   "_企劃欄位說明": {
     "讀我": "下方 levels 為 100 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。",
     "levelId": "關卡編號 1～100；第 N 筆資料應對應關卡 N。",
@@ -1143,7 +1143,7 @@
       "title": "蜂巢防線 · 第 41 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 62,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L41-ch4",
       "commands": {
         "maxHand": 3,
@@ -1184,7 +1184,7 @@
       "title": "蜂巢防線 · 第 42 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 70,
+      "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L42-ch4",
       "commands": {
         "maxHand": 3,
@@ -1225,7 +1225,7 @@
       "title": "蜂巢防線 · 第 43 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 71,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L43-ch4",
       "commands": {
         "maxHand": 3,
@@ -1266,7 +1266,7 @@
       "title": "蜂巢防線 · 第 44 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 72,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L44-ch4",
       "commands": {
         "maxHand": 3,
@@ -1307,7 +1307,7 @@
       "title": "蜂巢防線 · 第 45 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 73,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L45-ch4",
       "commands": {
         "maxHand": 3,
@@ -1348,7 +1348,7 @@
       "title": "蜂巢防線 · 第 46 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 74,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L46-ch4",
       "commands": {
         "maxHand": 3,
@@ -1389,7 +1389,7 @@
       "title": "蜂巢防線 · 第 47 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 75,
+      "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L47-ch4",
       "commands": {
         "maxHand": 3,
@@ -1430,7 +1430,7 @@
       "title": "蜂巢防線 · 第 48 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 76,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L48-ch4",
       "commands": {
         "maxHand": 3,
@@ -1471,7 +1471,7 @@
       "title": "蜂巢防線 · 第 49 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 77,
+      "timeLimit": 76,
       "initialSeed": "minefield-campaign-v1-L49-ch4",
       "commands": {
         "maxHand": 3,
@@ -1512,7 +1512,7 @@
       "title": "蜂巢防線 · 第 50 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 77,
       "initialSeed": "minefield-campaign-v1-L50-ch4",
       "commands": {
         "maxHand": 3,
@@ -1553,7 +1553,7 @@
       "title": "深海要塞 · 第 51 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 69,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L51-ch5",
       "commands": {
         "maxHand": 3,
@@ -1564,11 +1564,10 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "6": 10
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1594,24 +1593,20 @@
       "levelId": 52,
       "chapter": 6,
       "title": "深海要塞 · 第 52 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L52-ch5-d3e3e0b1",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1637,9 +1632,9 @@
       "levelId": 53,
       "chapter": 6,
       "title": "深海要塞 · 第 53 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 79,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L53-ch5-bbecf6ff",
       "commands": {
         "maxHand": 3,
@@ -1655,6 +1650,7 @@
           "8": 1
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1680,24 +1676,20 @@
       "levelId": 54,
       "chapter": 6,
       "title": "深海要塞 · 第 54 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.8,
-      "timeLimit": 80,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L54-ch5-34a684b5",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1725,7 +1717,7 @@
       "title": "深海要塞 · 第 55 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 81,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L55-ch5-9e656d2e",
       "commands": {
         "maxHand": 3,
@@ -1736,11 +1728,10 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "6": 10
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1766,9 +1757,9 @@
       "levelId": 56,
       "chapter": 6,
       "title": "深海要塞 · 第 56 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 82,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L56-ch5-7a1a9a14",
       "commands": {
         "maxHand": 3,
@@ -1784,6 +1775,7 @@
           "8": 1
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1811,7 +1803,7 @@
       "title": "深海要塞 · 第 57 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 83,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L57-ch5-373fecbd",
       "commands": {
         "maxHand": 3,
@@ -1822,11 +1814,10 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "6": 10
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1852,9 +1843,9 @@
       "levelId": 58,
       "chapter": 6,
       "title": "深海要塞 · 第 58 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 84,
+      "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L58-ch5-ba8efb67",
       "commands": {
         "maxHand": 3,
@@ -1870,6 +1861,7 @@
           "8": 1
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1895,24 +1887,20 @@
       "levelId": 59,
       "chapter": 6,
       "title": "深海要塞 · 第 59 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.8,
-      "timeLimit": 85,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L59-ch5-9de16337",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1940,7 +1928,7 @@
       "title": "深海要塞 · 第 60 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 86,
+      "timeLimit": 78,
       "initialSeed": "minefield-campaign-v1-L60-ch5-5a7160e6",
       "commands": {
         "maxHand": 3,
@@ -1951,11 +1939,10 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "6": 10
         }
       },
+      "dynamicMinePerMove": true,
       "events": [
         {
           "trigger": "PROGRESS",
@@ -1981,9 +1968,9 @@
       "levelId": 61,
       "chapter": 7,
       "title": "信號干擾區 · 第 61 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 60,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L61-ch7-88c6cebb",
       "commands": {
         "maxHand": 3,
@@ -2009,22 +1996,17 @@
       "levelId": 62,
       "chapter": 7,
       "title": "信號干擾區 · 第 62 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.8,
-      "timeLimit": 61,
+      "timeLimit": 68,
       "initialSeed": "minefield-campaign-v1-L62-ch7-309c3e55",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "events": [],
@@ -2039,20 +2021,18 @@
       "title": "信號干擾區 · 第 63 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 62,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L63-ch7-893b56a5",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 10
         }
       },
       "events": [],
@@ -2065,9 +2045,9 @@
       "levelId": 64,
       "chapter": 7,
       "title": "信號干擾區 · 第 64 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 63,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L64-ch7-38378ceb",
       "commands": {
         "maxHand": 3,
@@ -2093,22 +2073,17 @@
       "levelId": 65,
       "chapter": 7,
       "title": "信號干擾區 · 第 65 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.8,
-      "timeLimit": 64,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "events": [],
@@ -2123,20 +2098,18 @@
       "title": "信號干擾區 · 第 66 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 65,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L66-ch7-f5d69fa9",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 10
         }
       },
       "events": [],
@@ -2149,22 +2122,17 @@
       "levelId": 67,
       "chapter": 7,
       "title": "信號干擾區 · 第 67 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "TRIANGLE",
       "coverageGoal": 0.8,
-      "timeLimit": 66,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L67-ch7-28d0d8ae",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
+          "1": 28,
+          "2": 34,
+          "3": 38
         }
       },
       "events": [],
@@ -2177,9 +2145,9 @@
       "levelId": 68,
       "chapter": 7,
       "title": "信號干擾區 · 第 68 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 67,
+      "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L68-ch7-68d7b054",
       "commands": {
         "maxHand": 3,
@@ -2207,20 +2175,18 @@
       "title": "信號干擾區 · 第 69 戰",
       "gridSystem": "HEXAGON",
       "coverageGoal": 0.8,
-      "timeLimit": 68,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L69-ch7-632085dd",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 10
         }
       },
       "events": [],
@@ -2233,9 +2199,9 @@
       "levelId": 70,
       "chapter": 7,
       "title": "信號干擾區 · 第 70 戰",
-      "gridSystem": "HEXAGON",
+      "gridSystem": "SQUARE",
       "coverageGoal": 0.8,
-      "timeLimit": 69,
+      "timeLimit": 78,
       "initialSeed": "minefield-campaign-v1-L70-ch7-2251ab8d",
       "commands": {
         "maxHand": 3,

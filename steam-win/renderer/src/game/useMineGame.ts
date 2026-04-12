@@ -324,32 +324,39 @@ export function useMineGame(initialLevelIndex: number) {
     return () => clearTimeout(t);
   }, [gameState?.gameId, gameState?.status, gameState?.lossExplosionWaveIndex, gameState?.lossSequentialExplosionKeys]);
 
-  const selectHand = useCallback((index: number) => {
-    setSelectedHandIndex(index);
-    setGameState((prev) => {
-      if (!prev) return prev;
-      const jam = Boolean(prev.level.definition.commandSlotReceiveJamming && prev.jammingEpochMs > 0);
-      const jammingLockedSlot = jam
-        ? {
-            slotIndex: index,
-            value: signalJammingDisplayedDigit(
-              prev.jammingEpochMs,
-              index,
-              Date.now(),
-              prev.level.definition.commandSlotJammingStepMs,
-            ),
-          }
-        : null;
+  // 已選槽再點同一槽略過（干擾關不重刷鎖定）。
+  const selectHand = useCallback(
+    (index: number) => {
+      if (selectedHandIndex === index) return;
 
-      if (prev.secondsLeft === null) {
-        return { ...prev, jammingLockedSlot };
-      }
-      if (!prev.timerStarted) {
-        return { ...prev, timerStarted: true, jammingLockedSlot };
-      }
-      return jam ? { ...prev, jammingLockedSlot } : prev;
-    });
-  }, []);
+      setSelectedHandIndex(index);
+      setGameState((prev) => {
+        if (!prev) return prev;
+        const jam = Boolean(prev.level.definition.commandSlotReceiveJamming && prev.jammingEpochMs > 0);
+        const jammingLockedSlot = jam
+          ? {
+              slotIndex: index,
+              value: signalJammingDisplayedDigit(
+                prev.jammingEpochMs,
+                index,
+                Date.now(),
+                prev.level.definition.commandSlotJammingStepMs,
+                prev.level.definition.gridSystem,
+              ),
+            }
+          : null;
+
+        if (prev.secondsLeft === null) {
+          return { ...prev, jammingLockedSlot };
+        }
+        if (!prev.timerStarted) {
+          return { ...prev, timerStarted: true, jammingLockedSlot };
+        }
+        return jam ? { ...prev, jammingLockedSlot } : prev;
+      });
+    },
+    [selectedHandIndex],
+  );
 
   const handleCellClick = async (x: number, y: number) => {
     if (!gameState || gameState.status !== 'playing' || selectedHandIndex === null || movingSoldier) return;

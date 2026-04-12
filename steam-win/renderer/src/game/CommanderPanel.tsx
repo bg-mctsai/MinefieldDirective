@@ -92,6 +92,7 @@ export function CommanderTelegraphRow({
                   idx,
                   Date.now(),
                   gameState.level.definition.commandSlotJammingStepMs,
+                  gameState.level.definition.gridSystem,
                 )
             : num;
           return (
