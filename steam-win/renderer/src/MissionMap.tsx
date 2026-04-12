@@ -38,11 +38,14 @@ export default function MissionMap({
   onStart,
   highestClearedLevel,
   scrollRestoreYRef,
+  initialOpenChapter = null,
 }: {
   onBack: () => void;
   onStart: (levelIndex: number) => void;
   highestClearedLevel: number;
   scrollRestoreYRef: MutableRefObject<number>;
+  /** 非 null 時一進作戰地圖即顯示該章關卡列表（例如從對局返回） */
+  initialOpenChapter?: number | null;
 }) {
   const chapters = useMemo(() => {
     const byChapter = new Map<number, { idx: number; levelId: number }[]>();
@@ -62,8 +65,15 @@ export default function MissionMap({
 
   const hintChapter = useMemo(() => nextPlayableChapter(highestClearedLevel), [highestClearedLevel]);
 
-  const [phase, setPhase] = useState<Phase>('pickChapter');
-  const [openedChapter, setOpenedChapter] = useState<number | null>(null);
+  const resolvedInitialChapter = useMemo(() => {
+    if (initialOpenChapter == null || !Number.isFinite(initialOpenChapter)) return null;
+    return chapters.some(([c]) => c === initialOpenChapter) ? initialOpenChapter : null;
+  }, [chapters, initialOpenChapter]);
+
+  const [phase, setPhase] = useState<Phase>(() =>
+    resolvedInitialChapter != null ? 'pickLevel' : 'pickChapter'
+  );
+  const [openedChapter, setOpenedChapter] = useState<number | null>(() => resolvedInitialChapter);
 
   const activeLevels = useMemo(() => {
     if (openedChapter == null) return [];
@@ -121,7 +131,7 @@ export default function MissionMap({
                 </button>
                 <div className="flex items-center gap-2 text-white">
                   <MapIcon className="text-[#F59E0B]" size={24} />
-                  <h1 className="text-xl font-black md:text-2xl">關卡選擇 · Mission Map</h1>
+                  <h1 className="text-xl font-black md:text-2xl">章節選擇 · Chapter Selection</h1>
                 </div>
               </motion.header>
 
@@ -261,6 +271,7 @@ export default function MissionMap({
               <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {activeLevels.map((row, i) => {
                   const lv = LEVELS[row.idx]!;
+                  const mapTheme = lv.definition.mapTheme?.trim();
                   const unlocked = isLevelUnlocked(lv.id, highestClearedLevel);
                   const tenSlotFinal = activeLevels.length === 10 && i === 9;
                   const stage = stageInChapter(lv.id, openedChapter ?? lv.definition.chapter);
@@ -278,14 +289,16 @@ export default function MissionMap({
                           onClick={() => onStart(row.idx)}
                           aria-label={`出擊第 ${stage} 關`}
                           title={`出擊第 ${stage} 關`}
-                          className={`${LEVEL_ROW} group border-[#1e293b] text-left shadow-[0_6px_20px_rgba(0,0,0,0.22)] transition-[border-color,background-color,transform,box-shadow] hover:border-[#F59E0B]/55 hover:bg-[#141a24] hover:shadow-[0_8px_28px_rgba(245,158,11,0.06)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/65 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0d12] ${
-                            tenSlotFinal ? 'w-full ring-1 ring-inset ring-[#F59E0B]/35' : ''
-                          }`}
+                          className={`${LEVEL_ROW} group border-[#1e293b] text-left shadow-[0_6px_20px_rgba(0,0,0,0.22)] transition-[border-color,background-color,transform,box-shadow] hover:border-[#F59E0B]/55 hover:bg-[#141a24] hover:shadow-[0_8px_28px_rgba(245,158,11,0.06)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/65 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0d12] ${tenSlotFinal ? 'w-full ring-1 ring-inset ring-[#F59E0B]/35' : ''
+                            }`}
                         >
                           <div className="min-w-0 flex-1">
                             <div className="text-base font-black leading-tight text-white sm:text-lg">
                               第 {stage} 關
                             </div>
+                            {mapTheme ? (
+                              <div className="mt-0.5 text-[11px] leading-snug text-slate-300 sm:text-xs">{mapTheme}</div>
+                            ) : null}
                             <div className="mt-0.5 text-[11px] leading-snug text-slate-500 sm:text-xs">
                               {lv.cells.length} 格可部署 · 寬{lv.width}×高{lv.height} 邊界
                             </div>
@@ -304,15 +317,17 @@ export default function MissionMap({
                         </button>
                       ) : (
                         <div
-                          className={`${LEVEL_ROW} cursor-not-allowed border-dashed border-slate-700 text-left opacity-55 ${
-                            tenSlotFinal ? 'w-full' : ''
-                          }`}
+                          className={`${LEVEL_ROW} cursor-not-allowed border-dashed border-slate-700 text-left opacity-55 ${tenSlotFinal ? 'w-full' : ''
+                            }`}
                           aria-disabled
                         >
                           <div className="min-w-0 flex-1">
                             <div className="text-base font-black leading-tight text-slate-500 sm:text-lg">
                               第 {stage} 關
                             </div>
+                            {mapTheme ? (
+                              <div className="mt-0.5 text-[11px] leading-snug text-slate-500 sm:text-xs">{mapTheme}</div>
+                            ) : null}
                             <div className="mt-0.5 text-[11px] leading-snug text-slate-600 sm:text-xs">
                               {lv.cells.length} 格可部署 · 寬{lv.width}×高{lv.height} 邊界
                             </div>

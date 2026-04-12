@@ -11,15 +11,26 @@ export function overlayBoardCellCenterPx(
   y: number,
   cellSize: number,
   hexMin?: { x: number; y: number },
+  /** 方格盤：僅渲染 cells 外接框時，邏輯座標 (x,y) 對齊到裁切後網格的左上角 */
+  squareGridMin?: { x: number; y: number },
+  /** 三角盤：與 SVG 內裁切用 `translate` 一致 */
+  triangleSvgTranslate?: { x: number; y: number },
 ): { cx: number; cy: number } {
   const pad = GAME_BOARD_FRAME_PAD_PX;
   if (layout === 'square') {
     const step = cellSize + BOARD_GAP_PX;
-    return { cx: pad + x * step + cellSize / 2, cy: pad + y * step + cellSize / 2 };
+    const ox = squareGridMin?.x ?? 0;
+    const oy = squareGridMin?.y ?? 0;
+    return {
+      cx: pad + (x - ox) * step + cellSize / 2,
+      cy: pad + (y - oy) * step + cellSize / 2,
+    };
   }
   if (layout === 'triangle') {
     const c = triangleCentroidPx(x, y, cellSize);
-    return { cx: pad + c.cx, cy: pad + c.cy };
+    const tx = triangleSvgTranslate?.x ?? 0;
+    const ty = triangleSvgTranslate?.y ?? 0;
+    return { cx: pad + c.cx + tx, cy: pad + c.cy + ty };
   }
   const h = hexMin ?? { x: 0, y: 0 };
   const c = hexCenterScreenPx(x, y, cellSize, h.x, h.y);

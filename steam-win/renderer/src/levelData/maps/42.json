@@ -4,6 +4,8 @@
     "placeholder": {
       "width": 9,
       "height": 9
-    }
-  }
+    },
+    "forbiddenCells": []
+  },
+  "mapTheme": "熟成"
 }

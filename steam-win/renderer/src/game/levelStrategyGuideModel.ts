@@ -87,13 +87,13 @@ function formatEvent(e: LevelEvent, timeLimit: number): string {
   const trig =
     e.trigger === 'PROGRESS'
       ? `覆蓋率達 ${Math.round(e.threshold * 100)}% 時`
-      : `剩餘時間 ≤ ${e.threshold} 秒時（本關${timeLimit > 0 ? `限時 ${timeLimit} 秒` : '未啟用倒數'}）`;
+      : `剩餘時間 ≤ ${e.threshold} 秒時（本關限時 ${timeLimit} 秒）`;
 
   if (e.type === 'REINFORCE') {
     return `${trig}：增援 — 隨機鎖定 ${e.count} 格。`;
   }
   const name =
-    e.type === 'SANDSTORM' ? '沙塵暴' : e.type === 'JAMMING' ? '通訊干擾' : 'EMP 脈衝';
+    e.type === 'JAMMING' ? '通訊干擾' : 'EMP 脈衝';
   return `${trig}：${name}，持續 ${e.duration} 秒。`;
 }
 
@@ -109,7 +109,7 @@ export type LevelStrategyGuideModel = {
   digitsLine: string;
   hintsLine: string;
   forbiddenLine: string | null;
-  /** 有設定 mapCloudOverlay 時（飄動沙幕視覺層） */
+  /** 保留欄位；企劃已停用 mapCloudOverlay，常為 null */
   cloudLine: string | null;
   /** 戰術據點（digitOutposts）：必須佈數字，達覆蓋率未填仍引爆 */
   digitOutpostLine: string | null;
@@ -142,7 +142,7 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
     deployableCells: level.cells.length,
     boundaryLine: `盤面邊界框：寬${level.width}×高${level.height}（可部署格數 ${level.cells.length}）`,
     coveragePercent: Math.round(d.coverageGoal * 1000) / 10,
-    timeLine: d.timeLimit > 0 ? `任務時限：${d.timeLimit} 秒。` : '任務時限：無（不計時）。',
+    timeLine: `任務時限：${d.timeLimit} 秒。`,
     handLine:
       `待辦電碼上限：同時最多 ${d.commands.maxHand} 道（選定後再標格執行）。` +
       (d.commandSlotReceiveJamming
@@ -156,9 +156,7 @@ export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideMo
         : '開局無預置提示數字；全依長官電報與你方佈雷推進。',
     forbiddenLine:
       forbidden !== null ? `場上有 ${forbidden} 格障礙／禁區，無法部署。` : null,
-    cloudLine: d.mapCloudOverlay
-      ? '戰場有飄動沙塵迷霧（CSS 漸層＋模糊動畫）沿全圖巡迴，中心並以 backdrop 模糊棋格（僅畫面，不擋點格、不影響邏輯）。'
-      : null,
+    cloudLine: null,
     digitOutpostLine:
       (d.digitOutposts?.length ?? 0) > 0
         ? `戰術據點：盤面標示 ${d.digitOutposts!.length} 處據點，每處必須以長官電報佈署數字（不可僅靠推論留空）。總覆蓋率已達標但仍有據點未填數字時，視同違令並全線引爆。據點若被邏輯確認為地雷（紅雷）或遭廢雷佔格，亦立即失敗。`

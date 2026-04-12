@@ -1,7 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 12,
-    "height": 12
-  }
+    "width": 8,
+    "height": 10
+  },
+  "mapTheme": "章操"
 }

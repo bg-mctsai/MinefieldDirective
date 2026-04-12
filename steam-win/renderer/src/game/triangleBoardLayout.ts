@@ -43,6 +43,47 @@ export function triangleBoardContentSizePx(width: number, height: number, side: 
   };
 }
 
+const TRI_SVG_VIEW_PADDING = 3;
+
+/**
+ * 僅包住可玩三角格之頂點外接框，裁掉 placeholder 外圈留白。
+ * `svgGroupTx/Ty` 供 SVG 內 `<g transform="translate(...)">` 與小兵／疊圖對齊。
+ */
+export function triangleValidCellsSvgLayout(
+  cells: { x: number; y: number }[],
+  side: number,
+): { contentW: number; contentH: number; svgGroupTx: number; svgGroupTy: number } {
+  if (cells.length === 0) {
+    const { w, h } = triangleBoardContentSizePx(1, 1, side);
+    return { contentW: w, contentH: h, svgGroupTx: 0, svgGroupTy: 0 };
+  }
+  let minVx = Infinity;
+  let minVy = Infinity;
+  let maxVx = -Infinity;
+  let maxVy = -Infinity;
+  for (const c of cells) {
+    const v = triangleVerticesPx(c.x, c.y, side);
+    const pts = [
+      [v.ax, v.ay],
+      [v.bx, v.by],
+      [v.cx, v.cy],
+    ] as const;
+    for (const [px, py] of pts) {
+      minVx = Math.min(minVx, px);
+      maxVx = Math.max(maxVx, px);
+      minVy = Math.min(minVy, py);
+      maxVy = Math.max(maxVy, py);
+    }
+  }
+  const p = TRI_SVG_VIEW_PADDING;
+  return {
+    contentW: maxVx - minVx + 2 * p,
+    contentH: maxVy - minVy + 2 * p,
+    svgGroupTx: p - minVx,
+    svgGroupTy: p - minVy,
+  };
+}
+
 /** 縮放三角邊長使整塊鑲嵌落入外框上限；格數少時從較大邊長起算，視覺上三角較大 */
 export function triangleSidePxForLevel(width: number, height: number): number {
   const pad = BOARD_PADDING_PX;

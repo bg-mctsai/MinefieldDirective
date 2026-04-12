@@ -38,7 +38,15 @@ export function setMapLayoutOnLevel(
   if (level.mapRef != null && level.mapRef !== '') {
     if (!existsSync(MAPS_DIR)) mkdirSync(MAPS_DIR, { recursive: true });
     const p = join(MAPS_DIR, `${level.mapRef}.json`);
-    writeFileSync(p, `${JSON.stringify({ mapLayout }, null, 2)}\n`, 'utf8');
+    let mapTheme: string | undefined;
+    if (existsSync(p)) {
+      const prev = readJsonFile(p) as { mapTheme?: unknown };
+      if (typeof prev.mapTheme === 'string' && prev.mapTheme.trim() !== '') {
+        mapTheme = prev.mapTheme.trim();
+      }
+    }
+    const payload = mapTheme != null ? { mapLayout, mapTheme } : { mapLayout };
+    writeFileSync(p, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
   } else {
     level.mapLayout = mapLayout;
   }

@@ -11,11 +11,11 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   title: '關卡標題（介面顯示用）。',
   gridSystem: '地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。',
   coverageGoal: '過關覆蓋率目標，0～1（例：0.7 = 70%；1 = 100%）。',
-  timeLimit: '時間限制（秒）；0 表示不計時。',
+  timeLimit: '時間限制（秒）；須為正整數，全戰役關卡皆計時。',
   initialSeed: '盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。',
 
   mapRef:
-    '可選；地圖幾何外置時填此字串（通常等於 levelId 之字串），對應檔案 levelData/maps/{mapRef}.json，內容為 { "mapLayout": … }。與關卡內嵌 mapLayout 二擇一；兩者併存時以內嵌 mapLayout 為準。',
+    '可選；地圖幾何外置時填此字串（通常等於 levelId 之字串），對應檔案 levelData/maps/{mapRef}.json，內容為 { "mapLayout": …, "mapTheme"?: 關卡選擇畫面主題文案 }。與關卡內嵌 mapLayout 二擇一；兩者併存時以內嵌 mapLayout 為準。',
 
   mapLayout: '地圖幾何根物件；必含 type，其餘欄位依 type 擇一填寫（可改寫入外置 maps 檔，見 mapRef）。',
   'mapLayout.type':
@@ -36,18 +36,13 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   events: '觸發事件序列（條件＋效果）；遊戲端可能尚未全實作，可先填企劃稿。',
   'events.trigger': 'PROGRESS=依覆蓋率進度觸發；TIME_LEFT=依剩餘秒數觸發。',
   'events.threshold': 'PROGRESS 時為 0～1 比例；TIME_LEFT 時為「剩餘秒數」門檻（例：60=剩 60 秒時觸發）。',
-  'events.type': 'SANDSTORM／JAMMING／EMP 等附 duration（秒）；REINFORCE 為鎖定格數，附 count。',
+  'events.type': 'JAMMING／EMP 等附 duration（秒）；REINFORCE 為鎖定格數，附 count。',
   'events.duration': '（非 REINFORCE）事件持續秒數。',
   'events.count': '（type=REINFORCE）隨機鎖定空格數量。',
 
   chapterEntryBriefing:
     '（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。',
 
-  mapCloudOverlay:
-    '可選；沙塵暴視覺效果：多條不規則橫向沙帶從兩側交替飄入飄出（僅畫面、不擋點擊）。',
-  'mapCloudOverlay.periodSec': '沙帶移動速度基準（秒）；值愈大移動愈慢（建議 10～22；預設 18）。',
-  'mapCloudOverlay.opacity': '0～1，沙帶通過時的濃度；愈高格子愈不清楚（建議 0.45～0.70；預設 0.52）。',
-  'mapCloudOverlay.blurPx': '柔邊模糊強度 px（建議 32～56；愈大愈霧；預設 44）。',
   forcedMineCells: '可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。',
   mineBonusTargetCells: '可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。',
   mineBonusSeconds: '可選；每個目標地雷觸發時加秒數（預設 5）。',

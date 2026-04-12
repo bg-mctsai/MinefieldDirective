@@ -1,8 +1,4 @@
-import {
-  applyReloadedLevelDefinitionsJson,
-  parseLevelsJsonStored,
-  type MapLayout,
-} from '../levelData';
+import { applyReloadedLevelDefinitionsJson, parseLevelsJsonStored, type MapFilePayload } from '../levelData';
 import { LEVELS, rebuildPlayableLevelsFromDefinitions } from '../gameLogic';
 
 /**
@@ -23,22 +19,23 @@ export async function devReloadLevelsFromJson(): Promise<
     for (const L of stored) {
       if (L.mapLayout == null && L.mapRef != null && L.mapRef !== '') refs.add(L.mapRef);
     }
-    const mapLayoutsByRef: Record<string, MapLayout> = {};
+    const mapFilesByRef: Record<string, MapFilePayload> = {};
     await Promise.all(
       [...refs].map(async (ref) => {
         const href = new URL(`../levelData/maps/${ref}.json`, import.meta.url).href;
         const mr = await fetch(`${href}?t=${t}`, { cache: 'no-store' });
         if (!mr.ok) throw new Error(`地圖 maps/${ref}.json HTTP ${mr.status}`);
         const payload: unknown = await mr.json();
-        const ml =
-          payload && typeof payload === 'object' && 'mapLayout' in payload
-            ? (payload as { mapLayout: MapLayout }).mapLayout
-            : undefined;
-        if (ml == null) throw new Error(`maps/${ref}.json 缺少 mapLayout`);
-        mapLayoutsByRef[ref] = ml;
+        if (payload == null || typeof payload !== 'object') throw new Error(`maps/${ref}.json 格式錯誤`);
+        const obj = payload as Record<string, unknown>;
+        const ml = obj.mapLayout;
+        if (ml == null || typeof ml !== 'object') throw new Error(`maps/${ref}.json 缺少 mapLayout`);
+        const theme =
+          typeof obj.mapTheme === 'string' && obj.mapTheme.trim() !== '' ? obj.mapTheme.trim() : undefined;
+        mapFilesByRef[ref] = { mapLayout: ml as MapFilePayload['mapLayout'], mapTheme: theme };
       })
     );
-    applyReloadedLevelDefinitionsJson(raw, refs.size ? mapLayoutsByRef : undefined);
+    applyReloadedLevelDefinitionsJson(raw, refs.size ? mapFilesByRef : undefined);
     rebuildPlayableLevelsFromDefinitions();
     return { ok: true, levelCount: LEVELS.length };
   } catch (e) {

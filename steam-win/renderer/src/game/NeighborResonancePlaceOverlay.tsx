@@ -11,6 +11,8 @@ export function NeighborResonancePlaceOverlay({
   shownValue,
   cellSize,
   hexMin,
+  squareGridMin,
+  triangleSvgTranslate,
 }: {
   layout: OverlayBoardLayout;
   x: number;
@@ -18,8 +20,18 @@ export function NeighborResonancePlaceOverlay({
   shownValue: number;
   cellSize: number;
   hexMin?: { x: number; y: number };
+  squareGridMin?: { x: number; y: number };
+  triangleSvgTranslate?: { x: number; y: number };
 }) {
-  const { cx, cy } = overlayBoardCellCenterPx(layout, x, y, cellSize, hexMin);
+  const { cx, cy } = overlayBoardCellCenterPx(
+    layout,
+    x,
+    y,
+    cellSize,
+    layout === 'hex' ? hexMin : undefined,
+    layout === 'square' ? squareGridMin : undefined,
+    layout === 'triangle' ? triangleSvgTranslate : undefined,
+  );
 
   const numFont =
     layout === 'square'

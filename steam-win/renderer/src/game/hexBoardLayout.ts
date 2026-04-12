@@ -49,6 +49,35 @@ export function hexBoardBoundsPx(w: number, h: number, r: number): {
   return { minX, minY, maxX, maxY };
 }
 
+/** 僅可玩格：裁掉 placeholder 外圈全禁的留白（與方格盤緊外接框同一意圖） */
+export function hexBoardBoundsPxForCells(cells: { x: number; y: number }[], r: number): {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+} {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const c of cells) {
+    const { cx, cy } = hexCenterPx(c.x, c.y, r);
+    for (let i = 0; i < 6; i++) {
+      const a = -Math.PI / 2 + i * (Math.PI / 3);
+      const px = cx + r * Math.cos(a);
+      const py = cy + r * Math.sin(a);
+      minX = Math.min(minX, px);
+      minY = Math.min(minY, py);
+      maxX = Math.max(maxX, px);
+      maxY = Math.max(maxY, py);
+    }
+  }
+  if (!Number.isFinite(minX) || cells.length === 0) {
+    return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+  }
+  return { minX, minY, maxX, maxY };
+}
+
 const HEX_VIEW_PADDING = 3;
 
 export function hexBoardContentSizePx(
@@ -58,6 +87,23 @@ export function hexBoardContentSizePx(
 ): { w: number; h: number; minX: number; minY: number } {
   const b = hexBoardBoundsPx(width, height, r);
   const p = HEX_VIEW_PADDING;
+  return {
+    w: b.maxX - b.minX + 2 * p,
+    h: b.maxY - b.minY + 2 * p,
+    minX: b.minX - p,
+    minY: b.minY - p,
+  };
+}
+
+export function hexBoardContentSizePxForCells(
+  cells: { x: number; y: number }[],
+  r: number,
+): { w: number; h: number; minX: number; minY: number } {
+  const b = hexBoardBoundsPxForCells(cells, r);
+  const p = HEX_VIEW_PADDING;
+  if (cells.length === 0) {
+    return { w: 2 * p, h: 2 * p, minX: -p, minY: -p };
+  }
   return {
     w: b.maxX - b.minX + 2 * p,
     h: b.maxY - b.minY + 2 * p,

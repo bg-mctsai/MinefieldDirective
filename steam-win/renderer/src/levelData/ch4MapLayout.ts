@@ -43,7 +43,7 @@ const CH4_TRIANGLE_LAYOUTS: { width: number; height: number }[] = [
   { width: 9, height: 10 },
   { width: 10, height: 9 },
   { width: 7, height: 10 },
-  { width: 10, height: 7 },
+  { width: 10, height: 5 },
   { width: 9, height: 8 },
   { width: 10, height: 10 },
 ];
@@ -75,6 +75,8 @@ export function buildCh4HexMapLayout(levelId: number, seed: string): MapLayout {
 /**
  * 31～32：完整三角鑲嵌（教學手感）。
  * 33 起：同尺寸邊界內以種子隨機挖 `forbiddenCells` 形成碎裂地形（可部署格數變少、拓撲變化）。
+ *
+ * 戰役 31～40 若以企劃剪影＋ `mapTheme` 外置於 `maps/{id}.json`，執行時以該檔為準；本函式仍供 `patch-ch4-triangle-levels.ts` 種子同步用。
  */
 export function buildCh4TriangleMapLayout(levelId: number, seed: string): MapLayout {
   const phase = ((levelId - 31) % 10 + 10) % 10;

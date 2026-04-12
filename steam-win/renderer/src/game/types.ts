@@ -45,7 +45,7 @@ export interface GameState {
   lossSequentialExplosionKeys: string[];
   /** 連鎖進度：-1 尚未開始；0..n-1 為當前正在爆的那顆索引；>=n 表示全爆完 */
   lossExplosionWaveIndex: number;
-  /** 限時關卡剩餘秒數；`null` 表示本關不計時（`timeLimit === 0`） */
+  /** 限時關卡剩餘秒數；`null` 表示本關不計時（僅開發／例外狀態；企劃資料應一律給正整數 timeLimit） */
   secondsLeft: number | null;
   /** 限時關：首次從長官電報選定電碼後才開始倒數 */
   timerStarted: boolean;

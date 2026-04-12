@@ -1,7 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 6,
-    "height": 4
-  }
+    "width": 5,
+    "height": 6
+  },
+  "mapTheme": "長條"
 }

@@ -1,7 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 12,
-    "height": 10
-  }
+    "width": 8,
+    "height": 9
+  },
+  "mapTheme": "終段加長區"
 }

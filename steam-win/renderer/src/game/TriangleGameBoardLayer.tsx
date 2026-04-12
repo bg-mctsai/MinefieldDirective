@@ -17,6 +17,8 @@ export function TriangleGameBoardLayer({
   side,
   contentW,
   contentH,
+  svgGroupTx = 0,
+  svgGroupTy = 0,
   onCellClick,
   bonusFxKeys,
   bonusSeconds,
@@ -25,6 +27,9 @@ export function TriangleGameBoardLayer({
   side: number;
   contentW: number;
   contentH: number;
+  /** 可玩格外接框裁切：與 `triangleValidCellsSvgLayout` 一致 */
+  svgGroupTx?: number;
+  svgGroupTy?: number;
   onCellClick: (x: number, y: number) => void;
   bonusFxKeys: Set<string>;
   bonusSeconds: number;
@@ -68,6 +73,7 @@ export function TriangleGameBoardLayer({
       className="block select-none"
       style={{ shapeRendering: 'geometricPrecision' }}
     >
+      <g transform={`translate(${svgGroupTx},${svgGroupTy})`}>
       <g className="pointer-events-none">{terrainPolys}</g>
       {gameState.level.cells.map((cell) => {
         const { x, y } = cell;
@@ -270,6 +276,7 @@ export function TriangleGameBoardLayer({
           </motion.g>
         );
       })}
+      </g>
     </svg>
     {tooltipEl}
     </>

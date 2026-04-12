@@ -75,13 +75,13 @@ export type CommandConfig = {
 
 export type EventTrigger = 'PROGRESS' | 'TIME_LEFT';
 
-export type EventType = 'SANDSTORM' | 'JAMMING' | 'EMP' | 'REINFORCE';
+export type EventType = 'JAMMING' | 'EMP' | 'REINFORCE';
 
 export type LevelEvent =
   | {
       trigger: EventTrigger;
       threshold: number;
-      type: 'SANDSTORM' | 'JAMMING' | 'EMP';
+      type: 'JAMMING' | 'EMP';
       duration: number;
     }
   | {
@@ -137,6 +137,8 @@ export interface LevelDefinition {
   coverageGoal: number;
   timeLimit: number;
   initialSeed: string;
+  /** 可選；外置 maps/{mapRef}.json 的 `mapTheme`：極短戰場名（建議 2～3 字、最多 5 字），供對局頂欄與關卡選擇列 */
+  mapTheme?: string;
   mapLayout: MapLayout;
   commands: CommandConfig;
   events: LevelEvent[];
@@ -184,7 +186,9 @@ export interface LevelDefinition {
 /**
  * 存檔用：mapLayout 可外置於 `levelData/maps/{mapRef}.json`（與內嵌 mapLayout 二擇一；併存時以內嵌為準）。
  */
-export type LevelDefinitionStored = Omit<LevelDefinition, 'mapLayout'> & {
+export type LevelDefinitionStored = Omit<LevelDefinition, 'mapLayout' | 'mapTheme'> & {
   mapLayout?: MapLayout;
   mapRef?: string;
+  /** 可選；僅內嵌 mapLayout 且未用 mapRef 時可寫在 levels.json（多數主題請寫入 maps 檔） */
+  mapTheme?: string;
 };

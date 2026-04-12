@@ -10,6 +10,8 @@ export function Soldier({
   cellSize,
   layout = 'square',
   hexMin,
+  squareGridMin,
+  triangleSvgTranslate,
 }: {
   x: number;
   y: number;
@@ -17,13 +19,19 @@ export function Soldier({
   layout?: 'square' | 'triangle' | 'hex';
   /** 蜂巢盤：與 HexGameBoardLayer 同一組 minX/minY（hexBoardContentSizePx） */
   hexMin?: { x: number; y: number };
+  /** 方格盤：與 GameBoard 裁切後網格對齊（邏輯座標不變，僅顯示位移） */
+  squareGridMin?: { x: number; y: number };
+  /** 三角盤：與 TriangleGameBoardLayer SVG 裁切 translate 一致 */
+  triangleSvgTranslate?: { x: number; y: number };
 }) {
   const iconPx = cellSize * 0.55;
 
   if (layout === 'triangle') {
     const { cx, cy } = triangleCentroidPx(x, y, cellSize);
-    const ox = GAME_BOARD_FRAME_PAD_PX + cx;
-    const oy = GAME_BOARD_FRAME_PAD_PX + cy;
+    const tx = triangleSvgTranslate?.x ?? 0;
+    const ty = triangleSvgTranslate?.y ?? 0;
+    const ox = GAME_BOARD_FRAME_PAD_PX + cx + tx;
+    const oy = GAME_BOARD_FRAME_PAD_PX + cy + ty;
     return (
       <motion.div
         initial={{ left: ox, top: oy, x: '-50%', y: '-50%', opacity: 0, scale: 0.6 }}
@@ -64,10 +72,12 @@ export function Soldier({
 
   const step = cellSize + BOARD_GAP_PX;
   const pad = GAME_BOARD_FRAME_PAD_PX;
+  const ox = squareGridMin?.x ?? 0;
+  const oy = squareGridMin?.y ?? 0;
   return (
     <motion.div
       initial={{ x: pad - 100, y: pad - 100, opacity: 0 }}
-      animate={{ x: pad + x * step, y: pad + y * step, opacity: 1 }}
+      animate={{ x: pad + (x - ox) * step, y: pad + (y - oy) * step, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 100, damping: 15 }}
       className="pointer-events-none absolute z-30"
       style={{ width: cellSize, height: cellSize }}

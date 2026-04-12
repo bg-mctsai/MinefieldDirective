@@ -17,6 +17,8 @@ export default function App() {
   const [levelsReloadToken, setLevelsReloadToken] = useState(0);
   /** 作戰地圖長列表：離開時記住 window 捲動，返回時還原（避免從對局回來要重滑） */
   const missionMapScrollYRef = useRef(0);
+  /** 從對局返回作戰地圖時直接開該章關卡列表；從首頁進入則為 null（章節選擇） */
+  const [missionInitialChapter, setMissionInitialChapter] = useState<number | null>(null);
 
   return (
     <AnimatePresence mode="wait">
@@ -31,7 +33,10 @@ export default function App() {
         {screen === 'home' && (
           <HomePage
             onNavigate={(to) => {
-              if (to === 'mission') setScreen('mission');
+              if (to === 'mission') {
+                setMissionInitialChapter(null);
+                setScreen('mission');
+              }
               if (to === 'hero') setScreen('hero');
             }}
             onDevLevelsReloaded={
@@ -42,6 +47,7 @@ export default function App() {
         {screen === 'mission' && (
           <MissionMap
             key={levelsReloadToken}
+            initialOpenChapter={missionInitialChapter}
             scrollRestoreYRef={missionMapScrollYRef}
             onBack={() => {
               missionMapScrollYRef.current = window.scrollY;
@@ -65,7 +71,14 @@ export default function App() {
             initialLevelIndex={gameLevelIndex}
             highestClearedLevel={highestClearedLevel}
             onHighestClearedLevelChange={setHighestClearedLevel}
-            onBack={() => setScreen('mission')}
+            onBack={() => {
+              const lv = LEVELS[gameLevelIndex];
+              const ch = lv?.definition.chapter;
+              setMissionInitialChapter(
+                typeof ch === 'number' && Number.isFinite(ch) ? ch : null
+              );
+              setScreen('mission');
+            }}
           />
         )}
       </motion.div>

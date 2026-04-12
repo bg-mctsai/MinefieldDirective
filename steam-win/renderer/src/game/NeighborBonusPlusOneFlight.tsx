@@ -13,6 +13,8 @@ export function NeighborBonusPlusOneFlight({
   toY,
   cellSize,
   hexMin,
+  squareGridMin,
+  triangleSvgTranslate,
 }: {
   layout: OverlayBoardLayout;
   fromX: number;
@@ -21,9 +23,16 @@ export function NeighborBonusPlusOneFlight({
   toY: number;
   cellSize: number;
   hexMin?: { x: number; y: number };
+  squareGridMin?: { x: number; y: number };
+  triangleSvgTranslate?: { x: number; y: number };
 }) {
-  const from = overlayBoardCellCenterPx(layout, fromX, fromY, cellSize, hexMin);
-  const to = overlayBoardCellCenterPx(layout, toX, toY, cellSize, hexMin);
+  const centerArgs = [
+    layout === 'hex' ? hexMin : undefined,
+    layout === 'square' ? squareGridMin : undefined,
+    layout === 'triangle' ? triangleSvgTranslate : undefined,
+  ] as const;
+  const from = overlayBoardCellCenterPx(layout, fromX, fromY, cellSize, ...centerArgs);
+  const to = overlayBoardCellCenterPx(layout, toX, toY, cellSize, ...centerArgs);
   const font =
     layout === 'square'
       ? Math.max(12, Math.round(cellSize * 0.34))

@@ -14,7 +14,10 @@ export const GAME_BOARD_FRAME_PAD_PX = 12;
 export const BOARD_MAX_OUTER_W_PX = 680;
 export const BOARD_MAX_OUTER_H_PX = 560;
 
-/** 依關卡寬高算出實際格邊長（維持方形格） */
+/**
+ * 依「畫面上實際欄列數」算出格邊長（維持方形格）。
+ * 方格剪影關卡請傳可玩格外接框（與 GameBoard 的 gridW/gridH 一致），勿傳 mapLayout 全圖寬高，否則禁區很大時格點會被過度縮小。
+ */
 export function boardCellPxForLevel(width: number, height: number): number {
   const gap = BOARD_GAP_PX;
   const pad = BOARD_PADDING_PX;

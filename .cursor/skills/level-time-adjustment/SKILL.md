@@ -51,3 +51,5 @@ timeLimit = round(playableCells × coverageGoal × k)
 
 舊版為簡單線性設計（非格子數驅動），僅供歷史參考：
 從 84s 開始，每關 +8s（84, 92, 100 … 156），地圖交替 CROSS 11×11 / DIAMOND r=4。
+
+**戰役剪影主題、`mapTheme`、產圖腳本流程** → 見專案 skill：`.cursor/skills/campaign-map-themes/SKILL.md`。

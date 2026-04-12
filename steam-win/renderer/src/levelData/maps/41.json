@@ -4,6 +4,8 @@
     "placeholder": {
       "width": 8,
       "height": 9
-    }
-  }
+    },
+    "forbiddenCells": []
+  },
+  "mapTheme": "蜂巢初鳴台"
 }

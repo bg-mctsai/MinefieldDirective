@@ -6,8 +6,8 @@ import { TriangleGameBoardLayer } from './TriangleGameBoardLayer';
 import { HexGameBoardLayer } from './HexGameBoardLayer';
 import { BOARD_GAP_PX, boardCellPxForLevel } from './constants';
 import { lossChainPhaseForKey } from './lossExplosionChain';
-import { triangleBoardContentSizePx, triangleSidePxForLevel } from './triangleBoardLayout';
-import { hexBoardContentSizePx, hexRadiusPxForLevel } from './hexBoardLayout';
+import { triangleSidePxForLevel, triangleValidCellsSvgLayout } from './triangleBoardLayout';
+import { hexBoardContentSizePxForCells, hexRadiusPxForLevel } from './hexBoardLayout';
 import type { GameState, MovingSoldierState } from './types';
 import { NeighborBonusPlusOneFlight } from './NeighborBonusPlusOneFlight';
 import { NeighborResonancePlaceOverlay } from './NeighborResonancePlaceOverlay';
@@ -50,7 +50,11 @@ export function GameBoard({
 
   if (isTriangle) {
     const side = triangleSidePxForLevel(w, h);
-    const { w: contentW, h: contentH } = triangleBoardContentSizePx(w, h, side);
+    const { contentW, contentH, svgGroupTx, svgGroupTy } = triangleValidCellsSvgLayout(
+      gameState.level.cells,
+      side,
+    );
+    const triangleSvgTranslate = { x: svgGroupTx, y: svgGroupTy };
 
     return (
       <div className="w-full max-w-full overflow-x-auto">
@@ -65,6 +69,8 @@ export function GameBoard({
             side={side}
             contentW={contentW}
             contentH={contentH}
+            svgGroupTx={svgGroupTx}
+            svgGroupTy={svgGroupTy}
             onCellClick={onCellClick}
             bonusFxKeys={bonusFxKeySet}
             bonusSeconds={bonusSeconds}
@@ -81,6 +87,7 @@ export function GameBoard({
               y={movingSoldier.y}
               shownValue={movingSoldier.resonanceShown}
               cellSize={side}
+              triangleSvgTranslate={triangleSvgTranslate}
             />
           )}
           {movingSoldier?.phase === 'resonance' && movingSoldier.flightFrom && (
@@ -91,6 +98,7 @@ export function GameBoard({
               toX={movingSoldier.x}
               toY={movingSoldier.y}
               cellSize={side}
+              triangleSvgTranslate={triangleSvgTranslate}
             />
           )}
           {movingSoldier && movingSoldier.phase !== 'resonance' && (
@@ -99,6 +107,7 @@ export function GameBoard({
               y={movingSoldier.y}
               cellSize={side}
               layout="triangle"
+              triangleSvgTranslate={triangleSvgTranslate}
             />
           )}
         </div>
@@ -108,7 +117,7 @@ export function GameBoard({
 
   if (isHex) {
     const r = hexRadiusPxForLevel(w, h);
-    const { w: contentW, h: contentH, minX, minY } = hexBoardContentSizePx(w, h, r);
+    const { w: contentW, h: contentH, minX, minY } = hexBoardContentSizePxForCells(gameState.level.cells, r);
 
     return (
       <div className="w-full max-w-full overflow-x-auto">
@@ -169,10 +178,29 @@ export function GameBoard({
     );
   }
 
-  const cellSize = boardCellPxForLevel(w, h);
+  const cells = gameState.level.cells;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const c of cells) {
+    minX = Math.min(minX, c.x);
+    minY = Math.min(minY, c.y);
+    maxX = Math.max(maxX, c.x);
+    maxY = Math.max(maxY, c.y);
+  }
+  const squareGridMin =
+    cells.length > 0 && Number.isFinite(minX) && Number.isFinite(minY)
+      ? { x: minX, y: minY }
+      : { x: 0, y: 0 };
+  const gridW = cells.length > 0 && Number.isFinite(minX) ? maxX - minX + 1 : w;
+  const gridH = cells.length > 0 && Number.isFinite(minY) ? maxY - minY + 1 : h;
+
+  const cellSize = boardCellPxForLevel(gridW, gridH);
   const gap = BOARD_GAP_PX;
-  const boardWidthPx = w * cellSize + Math.max(0, w - 1) * gap;
-  const boardHeightPx = h * cellSize + Math.max(0, h - 1) * gap;
+  const boardWidthPx = gridW * cellSize + Math.max(0, gridW - 1) * gap;
+  const boardHeightPx = gridH * cellSize + Math.max(0, gridH - 1) * gap;
+  const validKey = new Set(cells.map((c) => `${c.x},${c.y}`));
 
   return (
     <div className="w-full max-w-full overflow-x-auto">
@@ -182,16 +210,18 @@ export function GameBoard({
         className="relative mx-auto overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl"
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${w}, ${cellSize}px)`,
+          gridTemplateColumns: `repeat(${gridW}, ${cellSize}px)`,
           gridAutoRows: `${cellSize}px`,
           gap: `${gap}px`,
           width: 'fit-content',
         }}
       >
-        {Array.from({ length: w * h }).map((_, i) => {
-          const x = i % w;
-          const y = Math.floor(i / w);
-          const isValid = gameState.level.cells.some((c) => c.x === x && c.y === y);
+        {Array.from({ length: gridW * gridH }).map((_, i) => {
+          const gx = i % gridW;
+          const gy = Math.floor(i / gridW);
+          const x = squareGridMin.x + gx;
+          const y = squareGridMin.y + gy;
+          const isValid = validKey.has(`${x},${y}`);
 
           if (!isValid)
             return (
@@ -257,6 +287,7 @@ export function GameBoard({
             y={movingSoldier.y}
             shownValue={movingSoldier.resonanceShown}
             cellSize={cellSize}
+            squareGridMin={squareGridMin}
           />
         )}
         {movingSoldier?.phase === 'resonance' && movingSoldier.flightFrom && (
@@ -267,10 +298,17 @@ export function GameBoard({
             toX={movingSoldier.x}
             toY={movingSoldier.y}
             cellSize={cellSize}
+            squareGridMin={squareGridMin}
           />
         )}
         {movingSoldier && movingSoldier.phase !== 'resonance' && (
-          <Soldier x={movingSoldier.x} y={movingSoldier.y} cellSize={cellSize} layout="square" />
+          <Soldier
+            x={movingSoldier.x}
+            y={movingSoldier.y}
+            cellSize={cellSize}
+            layout="square"
+            squareGridMin={squareGridMin}
+          />
         )}
       </div>
     </div>

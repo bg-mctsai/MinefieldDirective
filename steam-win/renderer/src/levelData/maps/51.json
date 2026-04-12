@@ -2,8 +2,10 @@
   "mapLayout": {
     "type": "HEXAGON",
     "placeholder": {
-      "width": 10,
+      "width": 8,
       "height": 10
-    }
-  }
+    },
+    "forbiddenCells": []
+  },
+  "mapTheme": "蜂巢面"
 }

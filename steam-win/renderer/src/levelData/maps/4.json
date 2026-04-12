@@ -1,7 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 7,
-    "height": 5
-  }
+    "width": 5,
+    "height": 8
+  },
+  "mapTheme": "穩定節奏"
 }
