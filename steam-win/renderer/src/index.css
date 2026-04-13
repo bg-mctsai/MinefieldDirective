@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+:root {
+  min-width: 360px;
+}
+
+html,
+body,
+#root {
+  min-width: 360px;
+}
+
+body {
+  font-family:
+    "Noto Sans TC",
+    "PingFang TC",
+    "Microsoft JhengHei",
+    "Segoe UI",
+    sans-serif;
+}
+
 /* 首頁／終端機氛圍：掃描線、雷達、資料流 */
 .scanlines::before {
   content: "";

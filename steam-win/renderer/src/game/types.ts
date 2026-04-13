@@ -30,6 +30,10 @@ export type MovingSoldierState =
 
 export interface GameState {
   gameId: number;
+  /** 同局重現用：同 level + runSeed 必須得到同一隨機流程 */
+  runSeed: string;
+  /** seeded RNG 內部狀態（uint32） */
+  rngState: number;
   level: Level;
   placedNumbers: { x: number; y: number; value: number }[];
   revealedMines: Set<string>;

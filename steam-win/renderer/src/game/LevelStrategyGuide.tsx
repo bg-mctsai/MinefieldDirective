@@ -1,8 +1,7 @@
 import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { BookOpen, ShieldAlert, X } from 'lucide-react';
+import { BookOpen, X } from 'lucide-react';
 import type { Level } from '../gameLogic';
-import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { buildLevelStrategyGuideModel } from './levelStrategyGuideModel';
 
 type Tab = 'logic' | 'flow' | 'briefing';
@@ -116,38 +115,14 @@ export function LevelStrategyGuide({
               <div className="max-h-[min(58vh,480px)] overflow-y-auto p-4 text-sm leading-relaxed text-slate-400 sm:p-5">
                 {tab === 'briefing' && (
                   <div className="space-y-3">
-                    <p className="flex items-start gap-2 font-bold text-white">
-                      <ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-500" />
-                      {campaignLevelHeaderTitle(level)}
-                    </p>
                     <ul className="list-inside list-disc space-y-2 marker:text-amber-600">
-                      <li>{m.chapterLine}</li>
-                      <li>{m.mapLine}</li>
-                      <li>{m.boundaryLine}</li>
-                      <li>
-                        過關覆蓋率：<span className="font-bold text-emerald-400">{m.coveragePercent}%</span> 的可部署格須成功埋雷。
-                      </li>
-                      <li>{m.timeLine}</li>
-                      <li>{m.handLine}</li>
-                      <li>{m.digitsLine}</li>
-                      <li>{m.hintsLine}</li>
-                      {m.forbiddenLine && <li>{m.forbiddenLine}</li>}
-                      {m.cloudLine && <li>{m.cloudLine}</li>}
-                      {m.digitOutpostLine && <li className="text-teal-300">{m.digitOutpostLine}</li>}
-                      {m.dynamicMineLine && <li className="text-cyan-400">{m.dynamicMineLine}</li>}
-                      {m.neighborPlacedDigitBonusLine && (
-                        <li className="text-orange-300">{m.neighborPlacedDigitBonusLine}</li>
-                      )}
+                      {m.briefingSummaryLines.map((line, i) => (
+                        <li key={i}>{line}</li>
+                      ))}
                     </ul>
                     <div className="border-t border-slate-800 pt-3">
                       <p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">戰場事件</p>
-                      <ul className="space-y-1.5">
-                        {m.eventsLines.map((line, i) => (
-                          <li key={i} className="pl-2 text-slate-400">
-                            · {line}
-                          </li>
-                        ))}
-                      </ul>
+                      <p className="text-slate-400">{m.eventsLines[0] ?? '無'}</p>
                     </div>
                   </div>
                 )}
@@ -193,8 +168,7 @@ export function LevelStrategyGuide({
                     </li>
                     <li>
                       <span className="font-bold text-white">達成目標：</span>
-                      滿足盤面上所有數字約束，並使覆蓋率達到{' '}
-                      <span className="text-emerald-400">{m.coveragePercent}%</span> 即可過關。
+                      滿足盤面上所有數字約束，並使覆蓋率達到過關要求即可過關。
                     </li>
                   </ul>
                 )}

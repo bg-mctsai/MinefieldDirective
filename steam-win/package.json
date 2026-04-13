@@ -15,6 +15,7 @@
     "clean": "node -e \"try{require('fs').rmSync('release',{recursive:true,force:true});require('fs').rmSync('dist-renderer',{recursive:true,force:true})}catch(e){}\""
   },
   "dependencies": {
+    "@fontsource/noto-sans-tc": "^5.2.9",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.0",
@@ -44,9 +45,15 @@
     "directories": {
       "output": "release"
     },
-    "files": ["main.js", "dist-renderer/**/*", "package.json"],
+    "files": [
+      "main.js",
+      "dist-renderer/**/*",
+      "package.json"
+    ],
     "win": {
-      "target": ["portable"],
+      "target": [
+        "portable"
+      ],
       "executableName": "Game"
     }
   }

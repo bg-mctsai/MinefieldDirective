@@ -127,7 +127,15 @@ export interface LevelDefinition {
   mapLayout: MapLayout;
   commands: CommandConfig;
   events: LevelEvent[];
-  /** 進入關卡時顯示的長官簡報（字串陣列）；載入時由 chapterEntryBriefings.json 依 levelId 合併寫入 */
+  /** 進入關卡時顯示的章節情緒定調；載入時由 chapterEntryBriefings.json 依 levelId 合併寫入 */
+  chapterEntryTone?: string[];
+  /** 進入關卡時顯示的本關執行簡報；載入時由 chapterEntryBriefings.json 依 levelId 合併寫入 */
+  levelEntryBriefing?: string[];
+  /** 進場長官簡報總開關；設為 false 時，即使 chapterEntryBriefings.json 有該關資料也不顯示。預設 true */
+  entryBriefingEnabled?: boolean;
+  /** 是否允許本關在 chapterEntryBriefings.json 未命中 levelId 時，回退使用章首（x1）簡報；預設 true */
+  levelEntryBriefingFallbackToChapterStart?: boolean;
+  /** @deprecated 舊版單段簡報；載入時會轉為 levelEntryBriefing 相容 */
   chapterEntryBriefing?: string[];
   /** 可選：飄動雲層遮罩（僅視覺，不影響邏輯） */
   mapCloudOverlay?: MapCloudOverlayConfig;

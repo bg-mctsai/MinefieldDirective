@@ -28,7 +28,7 @@ export default function App() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.22 }}
-        className="min-h-screen"
+        className="min-h-screen min-w-[360px]"
       >
         {screen === 'home' && (
           <HomePage

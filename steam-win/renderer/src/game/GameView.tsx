@@ -5,6 +5,7 @@ import { GameHeader } from './GameHeader';
 import { GameBoard } from './GameBoard';
 import { GameStatusMessageBar, GameStatusPanel } from './GameStatusPanel';
 import { CommanderTelegraphRow } from './CommanderPanel';
+import { CommanderSupportPanel } from './CommanderSupportPanel';
 import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
@@ -85,13 +86,16 @@ export default function GameView({
 
   if (!gameState) return null;
 
-  const briefingLines = gameState.level.definition.chapterEntryBriefing;
+  const levelBriefingLines =
+    gameState.level.definition.levelEntryBriefing ??
+    gameState.level.definition.chapterEntryBriefing ??
+    [];
   const ch = gameState.level.definition.chapter;
   const chapterHeading =
     chapterCampaignTagline(ch).trim() || `第 ${ch} 章`;
   const showChapterBriefing =
     gameState.status === 'playing' &&
-    Boolean(briefingLines?.length) &&
+    levelBriefingLines.length > 0 &&
     !chapterBriefingDismissed;
 
   const isLastLevel = currentLevelIndex >= levelList.length - 1;
@@ -99,6 +103,7 @@ export default function GameView({
     gameState.status === 'won' && dismissedWinCelebrationGameId !== gameState.gameId;
   const winInlineActionsUnlocked =
     gameState.status === 'won' && dismissedWinCelebrationGameId === gameState.gameId;
+  const useCommanderSupportLayout = gameState.level.definition.chapter === 1;
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-slate-950 p-3 font-sans text-slate-300 selection:bg-amber-500/30 md:p-5">
@@ -106,7 +111,7 @@ export default function GameView({
         fillPercentage={fillPercentage}
         coverageGoalPercent={gameState.level.definition.coverageGoal * 100}
         onBack={onBack}
-        onRestart={() => initGame(currentLevelIndex)}
+        onRestart={() => initGame(currentLevelIndex, gameState.runSeed)}
         showNextLevelButton={winInlineActionsUnlocked && !isLastLevel}
         onNextLevel={handleNextLevel}
         levelName={campaignLevelHeaderTitle(gameState.level)}
@@ -136,14 +141,34 @@ export default function GameView({
       />
 
       <div className="flex w-full max-w-6xl flex-col items-center">
-        <GameStatusMessageBar gameState={gameState} />
-        <GameBoard
-          boardRef={boardRef}
+        <GameStatusMessageBar
           gameState={gameState}
-          movingSoldier={movingSoldier}
-          onCellClick={handleCellClick}
-          bonusFxKeys={bonusFxKeys}
+          boardRef={boardRef}
+          enableSupportBarrage={!useCommanderSupportLayout}
         />
+        <div
+          className={`flex w-full gap-4 ${
+            useCommanderSupportLayout
+              ? 'flex-col items-center lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6'
+              : 'flex-col items-center'
+          }`}
+        >
+          <div
+            className={`min-w-0 ${
+              useCommanderSupportLayout ? 'flex w-full justify-center lg:justify-center' : 'w-full'
+            }`}
+          >
+            <GameBoard
+              boardRef={boardRef}
+              gameState={gameState}
+              movingSoldier={movingSoldier}
+              onCellClick={handleCellClick}
+              bonusFxKeys={bonusFxKeys}
+              align="center"
+            />
+          </div>
+          {useCommanderSupportLayout && <CommanderSupportPanel gameState={gameState} />}
+        </div>
         <GameStatusPanel
           gameState={gameState}
           currentLevelIndex={currentLevelIndex}
@@ -151,7 +176,7 @@ export default function GameView({
           fillPercentage={fillPercentage}
           showInlineWinActions={winInlineActionsUnlocked}
           onReturnToMission={onBack}
-          onReplayFinalLevel={() => initGame(currentLevelIndex)}
+          onReplayFinalLevel={() => initGame(currentLevelIndex, gameState.runSeed)}
         />
       </div>
 
@@ -166,7 +191,8 @@ export default function GameView({
       <ChapterEntryBriefingOverlay
         visible={showChapterBriefing}
         chapterTitle={chapterHeading}
-        lines={briefingLines ?? []}
+        chapterToneLines={[]}
+        levelBriefingLines={levelBriefingLines}
         onDismiss={() => setChapterBriefingDismissed(true)}
       />
     </div>

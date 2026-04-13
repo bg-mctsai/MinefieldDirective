@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Crown, Map } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import type { GameState } from './types';
 
 function messageColorClass(status: GameState['status']): string {
@@ -9,9 +11,121 @@ function messageColorClass(status: GameState['status']): string {
 }
 
 /** 地圖上方狀態台詞：單行、極窄寬時可橫向捲動 */
-export function GameStatusMessageBar({ gameState }: { gameState: GameState }) {
+export function GameStatusMessageBar({
+  gameState,
+  boardRef,
+  enableSupportBarrage = true,
+}: {
+  gameState: GameState;
+  boardRef: RefObject<HTMLDivElement | null>;
+  enableSupportBarrage?: boolean;
+}) {
+  const isLv1 = gameState.level.id === 1;
+  const prevStatusRef = useRef<GameState['status']>(gameState.status);
+  const supportCooldownUntilRef = useRef(0);
+  const hasShownOpeningRef = useRef(false);
+  const hasShownLast10Ref = useRef(false);
+  const [supportBarrage, setSupportBarrage] = useState<{ id: number; text: string; lane: number } | null>(null);
+  const [boardAnchor, setBoardAnchor] = useState<{ left: number; top: number } | null>(null);
+
+  const pushSupport = (text: string) => {
+    const now = Date.now();
+    if (now < supportCooldownUntilRef.current) return;
+    supportCooldownUntilRef.current = now + 9000;
+    setSupportBarrage({
+      id: now,
+      text,
+      lane: Math.floor(Math.random() * 3), // 3 軌道，避免每次都卡同一行
+    });
+  };
+
+  useEffect(() => {
+    prevStatusRef.current = gameState.status;
+  }, [gameState.status]);
+
+  useEffect(() => {
+    hasShownOpeningRef.current = false;
+    hasShownLast10Ref.current = false;
+    supportCooldownUntilRef.current = 0;
+    setSupportBarrage(null);
+  }, [gameState.gameId]);
+
+  useEffect(() => {
+    if (!enableSupportBarrage) {
+      setSupportBarrage(null);
+      return;
+    }
+    if (!isLv1) {
+      setSupportBarrage(null);
+      return;
+    }
+    if (gameState.status === 'won') {
+      pushSupport('很好，就照這樣活下去。你剛剛那套節奏，能把人帶回來。');
+      return;
+    }
+
+    if (gameState.status === 'playing') {
+      // 避免與章節簡報重疊：只有玩家真的開始操作（timerStarted）才出第一句
+      if (gameState.timerStarted && !hasShownOpeningRef.current) {
+        hasShownOpeningRef.current = true;
+        pushSupport('長官在這裡。先選電報，再落點；慢一點沒關係，我不要你亂。');
+      }
+      if (
+        gameState.timerStarted &&
+        gameState.secondsLeft !== null &&
+        gameState.secondsLeft <= 10 &&
+        !hasShownLast10Ref.current
+      ) {
+        hasShownLast10Ref.current = true;
+        pushSupport('別慌，我看著你。先做最穩的那一步，我們還能把這關帶過去。');
+      }
+      return;
+    }
+
+    const prevStatus = prevStatusRef.current;
+    if (
+      (gameState.status === 'exploding' || gameState.status === 'lost') &&
+      prevStatus === 'playing'
+    ) {
+      pushSupport('沒事，這次算我陪你校正。人沒折在這裡就好，下一輪我們重來。');
+    }
+  }, [
+    enableSupportBarrage,
+    isLv1,
+    gameState.status,
+    gameState.secondsLeft,
+    gameState.timerStarted,
+    gameState.gameId,
+  ]);
+
+  useEffect(() => {
+    if (!supportBarrage) return;
+    const id = window.setTimeout(() => setSupportBarrage(null), 4200);
+    return () => window.clearTimeout(id);
+  }, [supportBarrage]);
+
+  useEffect(() => {
+    const syncAnchor = () => {
+      const el = boardRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setBoardAnchor({
+        left: rect.left + rect.width / 2,
+        top: rect.bottom + 8,
+      });
+    };
+
+    syncAnchor();
+    window.addEventListener('resize', syncAnchor);
+    window.addEventListener('scroll', syncAnchor, true);
+    return () => {
+      window.removeEventListener('resize', syncAnchor);
+      window.removeEventListener('scroll', syncAnchor, true);
+    };
+  }, [boardRef, gameState.gameId]);
+
   return (
-    <div className="mb-2 w-full max-w-6xl shrink-0">
+    <div className="relative mb-2 w-full max-w-6xl shrink-0">
       <AnimatePresence mode="wait">
         <motion.div
           key={gameState.message}
@@ -31,6 +145,27 @@ export function GameStatusMessageBar({ gameState }: { gameState: GameState }) {
             </div>
           </div>
         </motion.div>
+      </AnimatePresence>
+      <AnimatePresence>
+        {supportBarrage && (
+          <motion.div
+            key={`${gameState.gameId}-${supportBarrage.id}`}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 0.9, y: -10 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 4.4, ease: 'linear' }}
+            className="pointer-events-none fixed z-20"
+            style={{
+              left: `${boardAnchor?.left ?? window.innerWidth / 2}px`,
+              top: `${(boardAnchor?.top ?? 12) + supportBarrage.lane * 18}px`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <p className="max-w-[min(76vw,30rem)] whitespace-nowrap text-center text-[14px] font-semibold italic tracking-[0.01em] text-slate-100/92 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] sm:text-[15px]">
+              {supportBarrage.text}
+            </p>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

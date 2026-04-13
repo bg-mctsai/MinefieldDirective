@@ -18,12 +18,14 @@ export function GameBoard({
   onCellClick,
   boardRef,
   bonusFxKeys,
+  align = 'center',
 }: {
   gameState: GameState;
   movingSoldier: MovingSoldierState | null;
   onCellClick: (x: number, y: number) => void;
   boardRef: RefObject<HTMLDivElement | null>;
   bonusFxKeys: string[];
+  align?: 'center' | 'left';
 }) {
   const w = gameState.level.width;
   const h = gameState.level.height;
@@ -47,6 +49,7 @@ export function GameBoard({
   const digitOutpostKeys = new Set(
     (gameState.level.definition.digitOutposts ?? []).map(([ox, oy]) => `${ox},${oy}`),
   );
+  const boardAlignClass = align === 'left' ? 'mr-auto' : 'mx-auto';
 
   if (isTriangle) {
     const side = triangleSidePxForLevel(w, h);
@@ -61,7 +64,7 @@ export function GameBoard({
         <div
           ref={boardRef}
           key={gameState.gameId}
-          className="relative mx-auto overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl"
+          className={`relative overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl ${boardAlignClass}`}
           style={{ width: 'fit-content' }}
         >
           <TriangleGameBoardLayer
@@ -124,7 +127,7 @@ export function GameBoard({
         <div
           ref={boardRef}
           key={gameState.gameId}
-          className="relative mx-auto overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl"
+          className={`relative overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl ${boardAlignClass}`}
           style={{ width: 'fit-content' }}
         >
           <HexGameBoardLayer
@@ -207,7 +210,7 @@ export function GameBoard({
       <div
         ref={boardRef}
         key={gameState.gameId}
-        className="relative mx-auto overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl"
+        className={`relative overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl ${boardAlignClass}`}
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${gridW}, ${cellSize}px)`,

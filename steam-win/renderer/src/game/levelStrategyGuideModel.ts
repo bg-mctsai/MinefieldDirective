@@ -1,7 +1,6 @@
 import type { Level } from '../gameLogic';
 import type { GridSystem, MapLayout } from '../levelData/types';
 import { stageInChapter } from './chapterStage';
-import { resolveSignalJammingStepMs } from './signalJamming';
 
 const CHAPTER_NAMES = [
   '',
@@ -20,39 +19,6 @@ const CHAPTER_NAMES = [
 /** 作戰地圖章節頁籤副標（依企劃 `chapter` 欄位） */
 export function chapterCampaignTagline(chapter: number): string {
   return CHAPTER_NAMES[chapter] ?? '';
-}
-
-function chapterDisplayName(chapter: number, levelId: number): string {
-  if (levelId >= 31 && levelId <= 40) return '三角高地';
-  if (levelId >= 41 && levelId <= 50) return '蜂巢防線';
-  if (levelId >= 51 && levelId <= 60) return '深海要塞';
-  if (levelId >= 61 && levelId <= 70) return '信號干擾區';
-  return CHAPTER_NAMES[chapter] ?? `第 ${chapter} 章`;
-}
-
-function mapLayoutLabel(layout: MapLayout): string {
-  switch (layout.type) {
-    case 'SQUARE':
-      return `矩形格網　寬${layout.width}×高${layout.height}`;
-    case 'CROSS':
-      return `十字戰區　寬${layout.width}×高${layout.height}`;
-    case 'DIAMOND':
-      return `菱形戰區（半徑 ${layout.radius}）`;
-    case 'TRIANGLE': {
-      const n = layout.forbiddenCells?.length ?? 0;
-      const terrain = n > 0 ? `；${n} 格隨機碎裂地形（禁佈）` : '';
-      return `三角鑲嵌格網　寬${layout.placeholder.width}×高${layout.placeholder.height}${terrain}`;
-    }
-    case 'HEXAGON': {
-      const n = layout.forbiddenCells?.length ?? 0;
-      const voids = n > 0 ? `；${n} 格空格／禁佈區` : '';
-      return `六角網格占位　寬${layout.placeholder.width}×高${layout.placeholder.height}${voids}`;
-    }
-    case 'MIXED':
-      return `複合戰區（${layout.sectors.length} 個區塊）`;
-    default:
-      return '自訂戰區';
-  }
 }
 
 function neighborLogicLine(grid: GridSystem): string {
@@ -75,85 +41,44 @@ function forbiddenCount(layout: MapLayout): number | null {
   return null;
 }
 
-function weightedDigits(weights: Record<string, number>): number[] {
-  return Object.entries(weights)
-    .filter(([, w]) => w > 0)
-    .map(([k]) => Number(k))
-    .filter((n) => !Number.isNaN(n))
-    .sort((a, b) => a - b);
-}
-
 export type LevelStrategyGuideModel = {
-  chapterLine: string;
-  mapLine: string;
-  deployableCells: number;
-  boundaryLine: string;
-  coveragePercent: number;
-  timeLine: string;
-  handLine: string;
-  poolLine: string;
-  digitsLine: string;
-  hintsLine: string;
-  forbiddenLine: string | null;
-  /** 保留欄位；企劃已停用 mapCloudOverlay，常為 null */
-  cloudLine: string | null;
-  /** 戰術據點（digitOutposts）：必須佈數字，達覆蓋率未填仍引爆 */
-  digitOutpostLine: string | null;
-  /** 深海要塞：動態地雷機制描述 */
-  dynamicMineLine: string | null;
-  /** levels.json neighborPlacedDigitBonus === true */
-  neighborPlacedDigitBonusLine: string | null;
+  briefingSummaryLines: string[];
   eventsLines: string[];
   logicNeighborLine: string;
 };
 
 export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideModel {
   const d = level.definition;
-  const chName = chapterDisplayName(d.chapter, d.levelId);
-  const digits = weightedDigits(d.commands.weights);
-  const digitsLine =
-    digits.length > 0 ? `電報可能出現的數字：${digits.join('、')}。` : '電碼池未設定有效數字（請檢查企劃資料）。';
-
-  const poolLine =
-    d.commands.poolType === 'WEIGHTED'
-      ? '長官電報採「加權隨機」：權重越高的數字越常出現在待辦電碼。'
-      : '長官電報採「均等隨機」：在設定的數字中平均抽選。';
-
   const forbidden = forbiddenCount(d.mapLayout);
   const hints = level.initialHints.length;
+  const briefingSummaryLines: string[] = [];
+
+  if (d.commandSlotReceiveJamming) {
+    briefingSummaryLines.push('電報會輪播，先鎖定數字再下。');
+  }
+  if ((d.blastPoints?.length ?? 0) > 0) {
+    briefingSummaryLines.push('炸點會倒數，歸零前沒處理完就輸。');
+  }
+  if ((d.digitOutposts?.length ?? 0) > 0) {
+    briefingSummaryLines.push('據點格一定要填數字，不能放著不管。');
+  }
+  if (d.dynamicMinePerMove) {
+    briefingSummaryLines.push('每次成功佈署後，場上會多一顆廢雷。');
+  }
+  if (d.neighborPlacedDigitBonus) {
+    briefingSummaryLines.push('落點數字會吃鄰格加成，不一定等於電報底數。');
+  }
+  if (forbidden !== null) {
+    briefingSummaryLines.push('場上有禁區，算路時別把那些格算進去。');
+  }
+  if (briefingSummaryLines.length === 0) {
+    briefingSummaryLines.push('本關沒有額外機制，先把基本節奏做對。');
+    if (hints > 0) briefingSummaryLines.push('開局提示格就是你的第一批線索。');
+  }
 
   return {
-    chapterLine: `章節：${chName}（第 ${stageInChapter(d.levelId, d.chapter)} 關）`,
-    mapLine: `地圖形狀：${mapLayoutLabel(d.mapLayout)}`,
-    deployableCells: level.cells.length,
-    boundaryLine: `盤面邊界框：寬${level.width}×高${level.height}（可部署格數 ${level.cells.length}）`,
-    coveragePercent: Math.round(d.coverageGoal * 1000) / 10,
-    timeLine: `任務時限：${d.timeLimit} 秒。`,
-    handLine:
-      `待辦電碼上限：同時最多 ${d.commands.maxHand} 道（選定後再標格執行）。` +
-      (d.commandSlotReceiveJamming
-        ? `　信號干擾：未選定前每道電碼在介面上 1～8 往返輪播；點選一道電報即鎖定當下數字並停止該格輪播，再點地圖佈署。輪播間隔 ${resolveSignalJammingStepMs(d.commandSlotJammingStepMs)} 毫秒／步（可由 levels.json 的 commandSlotJammingStepMs 調整）。`
-        : ''),
-    poolLine,
-    digitsLine,
-    hintsLine:
-      hints > 0
-        ? `開局已有 ${hints} 個提示數字格（不可移動，需滿足其約束）。`
-        : '開局無預置提示數字；全依長官電報與你方佈雷推進。',
-    forbiddenLine:
-      forbidden !== null ? `場上有 ${forbidden} 格障礙／禁區，無法部署。` : null,
-    cloudLine: null,
-    digitOutpostLine:
-      (d.digitOutposts?.length ?? 0) > 0
-        ? `戰術據點：盤面標示 ${d.digitOutposts!.length} 處據點，每處必須以長官電報佈署數字（不可僅靠推論留空）。總覆蓋率已達標但仍有據點未填數字時，視同違令並全線引爆。據點若被邏輯確認為地雷（紅雷）或遭廢雷佔格，亦立即失敗。`
-        : null,
-    dynamicMineLine: d.dynamicMinePerMove
-      ? '⚠ 深海暗流：每次成功佈署後，場上會隨機出現一顆廢雷（青色炸彈標示）。廢雷佔格且不可再佈數字，但**不計入**任何鄰格數字的雷數——若誤以為能當真雷去湊數，盤面會直接衝突。廢雷只會生成在「鄰居尚無數字」的空格。'
-      : null,
-    neighborPlacedDigitBonusLine: d.neighborPlacedDigitBonus
-      ? '⚠ 鄰格數字加成：本關在 levels.json 設了 neighborPlacedDigitBonus。放下數字時，實際約束數字＝電報底數＋「邏輯相鄰」且已有數字的鄰格個數（含開局提示格）；鄰接與本關拓撲相同。設 false 或刪除此欄即關閉，與章節編號無關。'
-      : null,
-    eventsLines: ['本關無動態戰場事件（levels.json 之 events 預留欄位，尚未實裝）。'],
+    briefingSummaryLines,
+    eventsLines: ['無'],
     logicNeighborLine:
       d.chapter === 4 && d.levelId >= 33 && d.mapLayout.type === 'TRIANGLE' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
         ? `${neighborLogicLine(d.gridSystem)} 本關起含種子隨機地形格（不可佈署），邊界形狀會影響可走的三角拓撲。`

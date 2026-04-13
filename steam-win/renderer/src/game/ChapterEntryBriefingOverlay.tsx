@@ -4,14 +4,20 @@ import { Megaphone } from 'lucide-react';
 export function ChapterEntryBriefingOverlay({
   visible,
   chapterTitle,
-  lines,
+  chapterToneLines,
+  levelBriefingLines,
   onDismiss,
 }: {
   visible: boolean;
   chapterTitle: string;
-  lines: string[];
+  chapterToneLines: string[];
+  levelBriefingLines: string[];
   onDismiss: () => void;
 }) {
+  const hasChapterTone = chapterToneLines.length > 0;
+  const hasLevelBriefing = levelBriefingLines.length > 0;
+  const singleSection = (hasChapterTone ? 1 : 0) + (hasLevelBriefing ? 1 : 0) <= 1;
+
   return (
     <AnimatePresence>
       {visible && (
@@ -36,13 +42,40 @@ export function ChapterEntryBriefingOverlay({
                 <h2 className="text-lg font-black text-white">{chapterTitle}</h2>
               </div>
             </div>
-            <ul className="mb-6 space-y-3 text-left text-sm leading-relaxed text-slate-200">
-              {lines.map((line, i) => (
-                <li key={i} className="border-l-2 border-amber-600/50 pl-3">
-                  {line}
-                </li>
-              ))}
-            </ul>
+            <div className="mb-6 space-y-5">
+              {hasChapterTone && (
+                <section>
+                  {!singleSection && (
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-500/90">
+                      章節定調
+                    </p>
+                  )}
+                  <ul className="space-y-3 text-left text-sm leading-relaxed text-slate-200">
+                    {chapterToneLines.map((line, i) => (
+                      <li key={`tone-${i}`} className="border-l-2 border-amber-600/50 pl-3">
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              {hasLevelBriefing && (
+                <section>
+                  {!singleSection && (
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-500/90">
+                      本關簡報
+                    </p>
+                  )}
+                  <ul className="space-y-3 text-left text-sm leading-relaxed text-slate-200">
+                    {levelBriefingLines.map((line, i) => (
+                      <li key={`brief-${i}`} className="border-l-2 border-amber-600/50 pl-3">
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
             <button
               type="button"
               onClick={onDismiss}

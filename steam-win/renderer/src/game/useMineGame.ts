@@ -32,6 +32,7 @@ import { playCountdownTick, playPlaceNumberSound, playTimeUpChirp } from './play
 import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
 import { signalJammingDisplayedDigit } from './signalJamming';
+import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
 import type { GameState, MovingSoldierState } from './types';
 
 /**
@@ -46,6 +47,7 @@ function pickDynamicMinePosition(
   boardW: number,
   boardH: number,
   neighborMode: ReturnType<typeof neighborModeForGridSystem>,
+  nextInt: (maxExclusive: number) => number,
   excludeKeys?: Set<string>,
 ): string | null {
   const numberKeys = new Set(placedNumbers.map((p) => `${p.x},${p.y}`));
@@ -59,7 +61,7 @@ function pickDynamicMinePosition(
     candidates.push(key);
   }
   if (candidates.length === 0) return null;
-  return candidates[Math.floor(Math.random() * candidates.length)];
+  return candidates[nextInt(candidates.length)];
 }
 
 function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
@@ -97,8 +99,10 @@ export function useMineGame(initialLevelIndex: number) {
   const bonusFxTimeoutsRef = useRef<Map<string, number>>(new Map());
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const initGame = useCallback((levelIndex: number) => {
+  const initGame = useCallback((levelIndex: number, runSeed?: string) => {
     const level = LEVELS[levelIndex];
+    const actualRunSeed = runSeed ?? `lv${level.id}-t${Date.now()}`;
+    const rng = createSeededRngFromSeed(actualRunSeed);
     const hints = level.initialHints ?? [];
     const limit = level.definition.timeLimit;
     const initBlastCountdown = new Map<string, number>();
@@ -108,11 +112,13 @@ export function useMineGame(initialLevelIndex: number) {
 
     setGameState({
       gameId: Date.now(),
+      runSeed: actualRunSeed,
+      rngState: rng.state(),
       level,
       placedNumbers: [...hints],
       revealedMines: new Set(),
       revealedClear: new Set(),
-      hand: generateHand(level, [...hints]),
+      hand: generateHand(level, [...hints], rng),
       placedInTurn: 0,
       status: 'playing',
       message: GAME_FIXED.gameStatus.initTelegraph,
@@ -361,6 +367,7 @@ export function useMineGame(initialLevelIndex: number) {
   const handleCellClick = async (x: number, y: number) => {
     if (!gameState || gameState.status !== 'playing' || selectedHandIndex === null || movingSoldier) return;
 
+    const selectedIndex = selectedHandIndex;
     const cellKey = `${x},${y}`;
     if (gameState.placedNumbers.some((p) => p.x === x && p.y === y)) return;
     if (gameState.revealedMines.has(cellKey)) return;
@@ -376,7 +383,7 @@ export function useMineGame(initialLevelIndex: number) {
     let telegramValue: number;
     if (jamActive) {
       const lock = gameState.jammingLockedSlot;
-      if (!lock || lock.slotIndex !== selectedHandIndex) {
+      if (!lock || lock.slotIndex !== selectedIndex) {
         setGameState((prev) =>
           prev
             ? {
@@ -389,8 +396,11 @@ export function useMineGame(initialLevelIndex: number) {
       }
       telegramValue = lock.value;
     } else {
-      telegramValue = gameState.hand[selectedHandIndex];
+      telegramValue = gameState.hand[selectedIndex];
     }
+
+    // 落點已經提交，先清掉頂部選中態，避免動畫期間看起來像還卡著同一封電報。
+    setSelectedHandIndex(null);
 
     // 僅讀關卡 JSON 的 neighborPlacedDigitBonus，不依章節或關卡號硬編碼
     let neighborBonusDigits = 0;
@@ -450,6 +460,7 @@ export function useMineGame(initialLevelIndex: number) {
     }
 
     const newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: newValue }];
+    const rng = createSeededRngFromState(gameState.rngState);
     const baseTopo = mineSolverTopologyFromLevel(gameState.level);
     const mineTopo = mergeTopologyWithDynamicMines(baseTopo, gameState.dynamicMines);
     // 炸點格視為已知地雷（forcedMine），讓 solver 正確計算鄰近格的數字約束
@@ -576,7 +587,7 @@ export function useMineGame(initialLevelIndex: number) {
     }
 
     const newHand = [...gameState.hand];
-    newHand.splice(selectedHandIndex, 1);
+    newHand.splice(selectedIndex, 1);
 
     let nextPlacedInTurn = gameState.placedInTurn + 1;
     let finalHand = newHand;
@@ -603,13 +614,14 @@ export function useMineGame(initialLevelIndex: number) {
         gameState.level.width,
         gameState.level.height,
         nMode,
+        (maxExclusive) => rng.nextInt(maxExclusive),
         outpostExcl,
       );
       if (mineKey) newDynamicMines.add(mineKey);
     }
 
     if (nextPlacedInTurn === 2) {
-      finalHand = generateHand(gameState.level, newPlacedNumbers, newDynamicMines);
+      finalHand = generateHand(gameState.level, newPlacedNumbers, rng, newDynamicMines);
       finalPlacedInTurn = 0;
     }
 
@@ -674,6 +686,7 @@ export function useMineGame(initialLevelIndex: number) {
               dynamicMines: newDynamicMines,
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
+              rngState: rng.state(),
             }
           : null,
       );
@@ -721,6 +734,7 @@ export function useMineGame(initialLevelIndex: number) {
                 dynamicMines: newDynamicMines,
                 jammingLockedSlot: null,
                 blastPointsCountdown: newBlastCountdown,
+                rngState: rng.state(),
               }
             : null,
         );
@@ -748,6 +762,7 @@ export function useMineGame(initialLevelIndex: number) {
               dynamicMines: newDynamicMines,
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
+              rngState: rng.state(),
             }
           : null,
       );
@@ -772,6 +787,7 @@ export function useMineGame(initialLevelIndex: number) {
               dynamicMines: newDynamicMines,
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
+              rngState: rng.state(),
               message:
                 gainedSeconds > 0
                   ? `${sub(P.mineBonusPrefix, { seconds: gainedSeconds })}${mid}${dynamicMineMsg}`

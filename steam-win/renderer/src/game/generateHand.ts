@@ -1,4 +1,6 @@
 import { MineSolver, mergeTopologyWithDynamicMines, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
+import type { SeededRng } from './seededRng';
+import { shuffleWithRng } from './seededRng';
 
 function allowedValuesFromCommands(level: Level): number[] {
   const w = level.definition.commands.weights;
@@ -9,18 +11,18 @@ function allowedValuesFromCommands(level: Level): number[] {
   return nums.length ? nums : [3, 4, 5, 6];
 }
 
-function randomWeightedFromWeights(level: Level): number {
+function randomWeightedFromWeights(level: Level, rng: SeededRng): number {
   const { poolType, weights } = level.definition.commands;
   const entries = Object.entries(weights).filter(([, wt]) => wt > 0);
   if (entries.length === 0) return 4;
 
   if (poolType === 'RANDOM') {
-    const pick = entries[Math.floor(Math.random() * entries.length)];
+    const pick = entries[rng.nextInt(entries.length)];
     return parseInt(pick[0], 10);
   }
 
   const totalWeight = entries.reduce((a, [, b]) => a + b, 0);
-  let r = Math.random() * totalWeight;
+  let r = rng.next() * totalWeight;
   for (const [num, weight] of entries) {
     r -= weight;
     if (r <= 0) return parseInt(num, 10);
@@ -36,14 +38,15 @@ function handSize(level: Level): number {
 export function generateHand(
   level: Level,
   placedNumbers: { x: number; y: number; value: number }[],
+  rng: SeededRng,
   dynamicMines?: Set<string>,
 ): number[] {
   const allowed = allowedValuesFromCommands(level);
   const validNumbers = new Set<number>();
   const emptyCells = level.cells.filter((c) => !placedNumbers.some((p) => p.x === c.x && p.y === c.y));
-  const sampleCells = emptyCells.sort(() => Math.random() - 0.5).slice(0, 8);
+  const sampleCells = shuffleWithRng(emptyCells, rng).slice(0, 8);
 
-  const shuffledAllowed = [...allowed].sort(() => Math.random() - 0.5);
+  const shuffledAllowed = shuffleWithRng(allowed, rng);
   const baseTopo = mineSolverTopologyFromLevel(level);
   const mineTopo = dynamicMines ? mergeTopologyWithDynamicMines(baseTopo, dynamicMines) : baseTopo;
 
@@ -64,17 +67,17 @@ export function generateHand(
   const hand: number[] = [];
 
   if (validArray.length > 0) {
-    const numValidToInclude = Math.min(validArray.length, Math.floor(Math.random() * 2) + 1);
+    const numValidToInclude = Math.min(validArray.length, rng.nextInt(2) + 1);
     for (let i = 0; i < numValidToInclude; i++) {
-      const idx = Math.floor(Math.random() * validArray.length);
+      const idx = rng.nextInt(validArray.length);
       hand.push(validArray[idx]);
       validArray.splice(idx, 1);
     }
   }
 
   while (hand.length < targetLen) {
-    hand.push(randomWeightedFromWeights(level));
+    hand.push(randomWeightedFromWeights(level, rng));
   }
 
-  return hand.sort(() => Math.random() - 0.5);
+  return shuffleWithRng(hand, rng);
 }

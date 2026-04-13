@@ -23,6 +23,8 @@
     "commands.weights": "鍵為字串 \"1\"～\"8\"；數值為權重（越大越常出現）；可省略或設 0 表示不給該數字。",
     "events": "預留欄位：戰場觸發序列尚未實裝，請一律填空陣列 []（勿寫 JAMMING／REINFORCE 等）。",
     "chapterEntryBriefing": "（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。",
+    "entryBriefingEnabled": "可選；預設 true。進場長官簡報總開關。設為 false 時，即使 chapterEntryBriefings.json 有本關精準 byLevelId 台詞也不顯示。",
+    "levelEntryBriefingFallbackToChapterStart": "可選；預設 true。當 chapterEntryBriefings.json 沒有本關 levelId 時，是否回退吃同章章首（x1）簡報。設為 false 可讓該關不顯示長官簡報（除非有精準 byLevelId）。",
     "forcedMineCells": "可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。",
     "mineBonusTargetCells": "可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。",
     "mineBonusSeconds": "可選；每個目標地雷觸發時加秒數（預設 5）。",
@@ -80,7 +82,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "2"
+      "mapRef": "2",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 3,
@@ -102,7 +106,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "3"
+      "mapRef": "3",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 4,
@@ -124,7 +130,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "4"
+      "mapRef": "4",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 5,
@@ -146,7 +154,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "5"
+      "mapRef": "5",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 6,
@@ -168,7 +178,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "6"
+      "mapRef": "6",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 7,
@@ -192,7 +204,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "7"
+      "mapRef": "7",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 8,
@@ -216,7 +230,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "8"
+      "mapRef": "8",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 9,
@@ -240,7 +256,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "9"
+      "mapRef": "9",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 10,
@@ -262,7 +280,9 @@
       },
       "events": [],
       "rewards": {},
-      "mapRef": "10"
+      "mapRef": "10",
+      "entryBriefingEnabled": false,
+      "levelEntryBriefingFallbackToChapterStart": false
     },
     {
       "levelId": 11,

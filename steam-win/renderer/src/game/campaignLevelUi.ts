@@ -10,13 +10,13 @@ export function campaignLevelStageLabel(level: Level): string {
 }
 
 /**
- * 對局頂欄等：章節標語 · 第 N 關；若有外置／內嵌 `mapTheme`（戰場主題短名）則為
- * `… · 第 N 關-鑰匙孔` 形式。
+ * 對局頂欄等：章節標語(章內關次)；若有 `mapTheme`（戰場主題短名）則附加 `-主題`。
+ * 例如：`新兵訓練營(2)-長條`
  */
 export function campaignLevelHeaderTitle(level: Level): string {
   const tag = chapterCampaignTagline(level.definition.chapter).trim();
-  const stage = campaignLevelStageLabel(level);
+  const stage = stageInChapter(level.id, level.definition.chapter);
   const theme = level.definition.mapTheme?.trim();
-  const stagePart = theme ? `${stage}-${theme}` : stage;
-  return tag ? `${tag} · ${stagePart}` : stagePart;
+  const stagePart = `${tag}(${stage})`;
+  return theme ? `${stagePart}-${theme}` : stagePart;
 }

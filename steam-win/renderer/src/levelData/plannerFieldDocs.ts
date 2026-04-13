@@ -36,7 +36,15 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   events: '預留欄位：戰場觸發序列尚未實裝，請一律填空陣列 []（勿寫 JAMMING／REINFORCE 等）。',
 
   chapterEntryBriefing:
-    '（執行時注入）長官簡報台詞來源：levelData/chapterEntryBriefings.json 的 byLevelId（key 為 levelId 字串）。勿在 levels.json 重複填寫；同一章可能有多個進場簡報關（例如三角／蜂巢分段以不同 levelId 區分）。',
+    '（執行時相容舊欄位）單段長官簡報；新資料請改填 levelData/chapterEntryBriefings.json 的 byLevelId。舊字串陣列會視為 levelBriefing。',
+  chapterEntryTone:
+    '（執行時注入）章節情緒定調；來源為 levelData/chapterEntryBriefings.json 的 byLevelId[levelId].chapterTone。',
+  levelEntryBriefing:
+    '（執行時注入）本關執行簡報；來源為 levelData/chapterEntryBriefings.json 的 byLevelId[levelId].levelBriefing。',
+  entryBriefingEnabled:
+    '可選；預設 true。進場長官簡報總開關。設為 false 時，即使 chapterEntryBriefings.json 有本關精準 byLevelId 台詞也不顯示。',
+  levelEntryBriefingFallbackToChapterStart:
+    '可選；預設 true。當 chapterEntryBriefings.json 沒有本關 levelId 時，是否回退吃同章章首（x1）簡報。設為 false 可讓該關完全不顯示長官簡報（除非有精準 byLevelId）。',
 
   forcedMineCells: '可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。',
   mineBonusTargetCells: '可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。',
