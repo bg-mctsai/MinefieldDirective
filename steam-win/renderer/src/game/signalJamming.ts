@@ -51,16 +51,28 @@ export function resolveSignalJammingStepMs(raw?: number): number {
   return Math.min(SIGNAL_JAMMING_STEP_MS_MAX, Math.max(SIGNAL_JAMMING_STEP_MS_MIN, Math.round(raw)));
 }
 
+/**
+ * 信號干擾區輪播「每步」間隔（毫秒）。
+ * 艾達：間隔再 ×2（慢一倍），上限為 {@link SIGNAL_JAMMING_STEP_MS_MAX} 的兩倍，避免極端關卡過慢。
+ */
+export function effectiveSignalJammingStepMs(rawStepMs: number | undefined, heroId: string): number {
+  const base = resolveSignalJammingStepMs(rawStepMs);
+  if (heroId !== 'ada') return base;
+  return Math.min(SIGNAL_JAMMING_STEP_MS_MAX * 2, base * 2);
+}
+
 export function signalJammingDisplayedDigit(
   epochMs: number,
   slotIndex: number,
   nowMs: number,
   stepMs?: number,
   gridSystem?: GridSystem,
+  /** 艾達時干擾區輪播較慢，須與 UI 一致 */
+  jammingHeroId?: string,
 ): number {
   const maxD = jammingCeil(gridSystem ?? 'SQUARE');
   const pp = getPingpong(maxD);
-  const step = resolveSignalJammingStepMs(stepMs);
+  const step = effectiveSignalJammingStepMs(stepMs, jammingHeroId ?? '');
   const tick = Math.floor((nowMs - epochMs) / step);
   const off = SLOT_PHASE_OFFSET[slotIndex % SLOT_PHASE_OFFSET.length]!;
   const phase = (tick + off) % pp.length;

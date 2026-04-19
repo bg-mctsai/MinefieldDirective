@@ -1,8 +1,7 @@
 {
   "mapLayout": {
-    "type": "SQUARE",
-    "width": 5,
-    "height": 10
+    "type": "DIAMOND",
+    "radius": 4
   },
-  "mapTheme": "寬道"
+  "mapTheme": "小菱形"
 }

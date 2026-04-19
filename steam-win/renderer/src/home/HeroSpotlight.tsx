@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { Shield } from 'lucide-react';
 import { HEROES } from '../heroes';
 import type { HeroDef } from '../heroes';
+import { HeroAvatarSilhouette } from './HeroAvatarSilhouette';
 
 export function HeroSpotlight({
   hero,
@@ -36,10 +36,9 @@ export function HeroSpotlight({
 
         <div className="relative flex flex-col items-center gap-4 md:flex-row md:items-start">
           <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl border border-[#F59E0B]/30 bg-[#0B0E14] shadow-[inset_0_0_40px_rgba(0,0,0,0.6)]">
-            <div className="absolute inset-2 rounded-xl border border-dashed border-slate-700/80" />
-            <Shield className="relative z-[1] h-16 w-16 text-slate-600" strokeWidth={1.25} />
+            <HeroAvatarSilhouette heroId={hero.id} size={104} className="relative z-[1]" />
             <motion.div
-              className="absolute inset-0 rounded-2xl border border-emerald-500/20"
+              className="pointer-events-none absolute inset-0 rounded-2xl border border-emerald-500/20"
               animate={{ opacity: [0.35, 0.9, 0.35] }}
               transition={{ duration: 3.2, repeat: Infinity }}
             />

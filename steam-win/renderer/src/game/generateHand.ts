@@ -40,6 +40,8 @@ export function generateHand(
   placedNumbers: { x: number; y: number; value: number }[],
   rng: SeededRng,
   dynamicMines?: Set<string>,
+  /** 若傳入則覆寫關卡 JSON 的 commands.maxHand（例：艾達 4 選 2） */
+  handSlotCount?: number,
 ): number[] {
   const allowed = allowedValuesFromCommands(level);
   const validNumbers = new Set<number>();
@@ -50,20 +52,25 @@ export function generateHand(
   const baseTopo = mineSolverTopologyFromLevel(level);
   const mineTopo = dynamicMines ? mergeTopologyWithDynamicMines(baseTopo, dynamicMines) : baseTopo;
 
+  const targetLen =
+    handSlotCount !== undefined
+      ? Math.min(5, Math.max(1, handSlotCount))
+      : handSize(level);
+  const validSampleCap = Math.min(5, targetLen);
+
   for (const cell of sampleCells) {
     for (const v of shuffledAllowed) {
       const testPlaced = [...placedNumbers, { x: cell.x, y: cell.y, value: v }];
       const solver = new MineSolver(level.cells, testPlaced, mineTopo);
       if (solver.isValid()) {
         validNumbers.add(v);
-        if (validNumbers.size >= 3) break;
+        if (validNumbers.size >= validSampleCap) break;
       }
     }
-    if (validNumbers.size >= 3) break;
+    if (validNumbers.size >= validSampleCap) break;
   }
 
   const validArray = Array.from(validNumbers);
-  const targetLen = handSize(level);
   const hand: number[] = [];
 
   if (validArray.length > 0) {

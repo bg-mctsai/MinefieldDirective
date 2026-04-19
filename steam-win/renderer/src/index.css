@@ -52,3 +52,231 @@ body {
     transform: translateY(100%);
   }
 }
+
+/* 行動指揮車：戰術燈光左右擺動（極輕量） */
+@keyframes opsLampSway {
+  0%,
+  100% {
+    transform: translate3d(-1.5%, 0, 0) rotate(-1.2deg);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(1.5%, 0, 0) rotate(1.2deg);
+    opacity: 0.85;
+  }
+}
+
+.ops-lamp-sway {
+  animation: opsLampSway 9s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* 通訊雜訊條：細亮線從上往下飄一次 */
+@keyframes opsNoiseSweep {
+  0% {
+    transform: translateY(-30%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.55;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(120vh);
+    opacity: 0;
+  }
+}
+
+.ops-noise-sweep {
+  animation: opsNoiseSweep 7.5s linear infinite;
+  will-change: transform, opacity;
+}
+
+.ops-noise-sweep.delay-a {
+  animation-duration: 9.2s;
+  animation-delay: -2.4s;
+}
+
+.ops-noise-sweep.delay-b {
+  animation-duration: 11s;
+  animation-delay: -5.1s;
+}
+
+/* 電報游標微脈動 */
+@keyframes opsTypingCaret {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.ops-typing-caret {
+  animation: opsTypingCaret 1.05s steps(2, end) infinite;
+}
+
+/* 警示脈動描邊（工兵動態台詞 alert） */
+@keyframes opsAlertPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(239, 68, 68, 0.65),
+      0 0 14px rgba(239, 68, 68, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(239, 68, 68, 0.95),
+      0 0 22px rgba(239, 68, 68, 0.7);
+  }
+}
+
+.ops-alert-pulse {
+  animation: opsAlertPulse 0.85s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+/* 卷宗印章微微傾斜浮動 */
+@keyframes opsStampWobble {
+  0%,
+  100% {
+    transform: rotate(-12deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-13deg) translateY(-1px);
+  }
+}
+
+.ops-stamp-wobble {
+  animation: opsStampWobble 6s ease-in-out infinite;
+}
+
+/* 作戰地圖：通訊頻道波形（接入情報線） */
+@keyframes mission-wave-flicker {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.mission-wave-bar {
+  animation: mission-wave-flicker 1.05s ease-in-out infinite;
+}
+
+/* 頻道區極細掃描線（暗底） */
+.mission-comms-scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 1px,
+    rgba(255, 255, 255, 0.045) 1px,
+    rgba(255, 255, 255, 0.045) 2px
+  );
+}
+
+/* 亮底標籤紙：極淡深色掃描 */
+.mission-comms-scanlines-tape::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 1px,
+    rgba(0, 0, 0, 0.045) 1px,
+    rgba(0, 0, 0, 0.045) 2px
+  );
+}
+
+/* 當前可接關：頻道微脈衝（接收訊號） */
+@keyframes mission-ch-tune-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow:
+      0 0 0 0 rgba(245, 158, 11, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    opacity: 0.94;
+    box-shadow:
+      0 0 14px 0 rgba(245, 158, 11, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+}
+
+.mission-ch-tune-pulse {
+  animation: mission-ch-tune-pulse 1.55s ease-in-out infinite;
+}
+
+/* 章末 CH.10：黃黑斜紋框（極慢平移） */
+@keyframes mission-hazard-stripe-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 18px 0;
+  }
+}
+
+.mission-boss-hazard-stripes {
+  background: repeating-linear-gradient(
+    -36deg,
+    #ca8a04,
+    #ca8a04 3px,
+    #0a0a0a 3px,
+    #0a0a0a 6px
+  );
+  background-size: 9px 9px;
+  animation: mission-hazard-stripe-drift 28s linear infinite;
+}
+
+/* 關卡卡底部：裁切角標 */
+.mission-card-crop-lb {
+  display: block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(148, 163, 184, 0.38);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.38);
+}
+
+.mission-card-crop-br {
+  display: block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(148, 163, 184, 0.38);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.38);
+}
+
+/* 章末頻道：與主色 #F59E0B 同系微脈衝描邊 */
+@keyframes mission-boss-tape-edge {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 0 0 1px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 0 0 1px rgba(245, 158, 11, 0.52);
+  }
+}
+
+.mission-boss-tape-edge {
+  animation: mission-boss-tape-edge 2.2s ease-in-out infinite;
+}

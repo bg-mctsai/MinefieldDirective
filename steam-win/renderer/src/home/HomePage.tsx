@@ -7,6 +7,7 @@ import { HomeHeader } from './HomeHeader';
 import { HomeMainMenu } from './HomeMainMenu';
 import { HeroSpotlight } from './HeroSpotlight';
 import { SettingsModal } from './SettingsModal';
+import { BaseAmbience } from './BaseAmbience';
 import { loadHomeSettings, saveHomeSettings } from './homeSettingsStorage';
 import { devReloadLevelsFromJson } from '../dev/reloadLevelsJson';
 import type { HomeNavigate, HomeSettings } from './types';
@@ -73,6 +74,7 @@ export default function HomePage({
 
   return (
     <TerminalBackdrop showRadar className="home-terminal font-mono selection:bg-[#F59E0B]/30">
+      <BaseAmbience />
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 md:px-8 md:py-10">
         <HomeHeader
           typedTitle={typed}

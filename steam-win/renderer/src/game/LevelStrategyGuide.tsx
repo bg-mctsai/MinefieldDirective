@@ -1,7 +1,8 @@
-import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { BookOpen, X } from 'lucide-react';
 import type { Level } from '../gameLogic';
+import { getStoredHeroId, telegraphHandSlotCount } from '../heroes';
 import { buildLevelStrategyGuideModel } from './levelStrategyGuideModel';
 
 type Tab = 'logic' | 'flow' | 'briefing';
@@ -45,7 +46,15 @@ export function LevelStrategyGuide({
   };
 
   const [tab, setTab] = useState<Tab>('briefing');
-  const m = buildLevelStrategyGuideModel(level);
+  const combatHeroId = getStoredHeroId();
+  const telegraphSlots = telegraphHandSlotCount(combatHeroId);
+  const m = useMemo(
+    () =>
+      buildLevelStrategyGuideModel(level, {
+        heroId: combatHeroId,
+      }),
+    [level.id, combatHeroId],
+  );
 
   useEffect(() => {
     setTab('briefing');
@@ -103,7 +112,7 @@ export function LevelStrategyGuide({
               </div>
               <div className="flex flex-wrap gap-1 border-b border-[#1e293b] px-3 pt-2 sm:px-5 sm:pt-3">
                 <TabBtn active={tab === 'briefing'} onClick={() => setTab('briefing')}>
-                  本關設定
+                  本關機制
                 </TabBtn>
                 <TabBtn active={tab === 'logic'} onClick={() => setTab('logic')}>
                   核心邏輯
@@ -130,15 +139,20 @@ export function LevelStrategyGuide({
                   <div className="space-y-4">
                     <p>
                       <span className="font-bold text-emerald-400">身份：</span>
-                      你是接長官電報的作戰幹員（新兵、工程師等），依電碼在雷區「佈雷」——不是排雷。
+                      你是接長官電報的前沿作戰幹員；依電碼在指定雷區執行「連鎖佈雷」。本作戰為主動埋設連鎖雷網，與傳統掃雷／排雷相反。
                     </p>
                     <p>
-                      <span className="font-bold text-emerald-400">邏輯：</span>
+                      <span className="font-bold text-emerald-400">指令節奏：</span>
+                      長官電報列同時列出 {telegraphSlots} 道待辦電碼；每回合須從中完成 2 道後，才會刷新下一批佇列。
+                    </p>
+                    <p>
+                      <span className="font-bold text-emerald-400">數字約束：</span>
                       {m.logicNeighborLine}
+                      多一枚、少一枚皆視為佈線錯誤。
                     </p>
                     <p>
-                      <span className="font-bold text-red-400">連鎖反應：</span>
-                      一旦佈署導致邏輯矛盾，全線地雷將立即連鎖爆炸，任務失敗。
+                      <span className="font-bold text-red-400">連鎖雷與引爆：</span>
+                      你佈下的是可連鎖觸發的雷具；全盤必須自洽吻合所有數字約束。若佈署造成邏輯矛盾，將觸發全線連鎖引爆，任務當場失敗。
                     </p>
                     {level.definition.neighborPlacedDigitBonus && (
                       <p>
@@ -152,23 +166,23 @@ export function LevelStrategyGuide({
                 {tab === 'flow' && (
                   <ul className="list-inside list-decimal space-y-3 marker:text-[#F59E0B]">
                     <li>
-                      <span className="font-bold text-white">選取電碼：</span>
-                      從「長官電報」列選一道電碼（本關最多同時 {level.definition.commands.maxHand} 道待辦）。
+                      <span className="font-bold text-white">排定電碼：</span>
+                      依戰況在電報列點選要先執行的電碼（節奏見「核心邏輯」）。
                     </li>
                     <li>
                       <span className="font-bold text-white">執行佈雷：</span>
                       {level.definition.neighborPlacedDigitBonus ? (
                         <>
-                          點擊可部署空格；實際約束數字＝電碼底數＋該格邏輯相鄰的「已有數字格」個數（由 levels.json{' '}
-                          <span className="font-mono text-slate-300">neighborPlacedDigitBonus</span> 開關啟用）。
+                          點選可部署空格；幹員前進至該格埋雷。盤面顯示之約束數字＝電碼底數＋該格邏輯相鄰「既有數字格」枚數（本關啟用 levels.json{' '}
+                          <span className="font-mono text-slate-300">neighborPlacedDigitBonus</span>）。
                         </>
                       ) : (
-                        <>點擊可部署空格，你方人員前往該格，依電碼埋下相同數值的約束。</>
+                        <>點選可部署空格；幹員前進至該格，依電碼埋下相同數值之鄰域約束。</>
                       )}
                     </li>
                     <li>
                       <span className="font-bold text-white">達成目標：</span>
-                      滿足盤面上所有數字約束，並使覆蓋率達到過關要求即可過關。
+                      全盤數字約束皆成立，且覆蓋率達任務門檻，即判定過關。
                     </li>
                   </ul>
                 )}

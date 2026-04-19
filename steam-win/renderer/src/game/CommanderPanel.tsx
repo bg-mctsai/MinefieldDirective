@@ -1,8 +1,10 @@
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { GAME_FIXED, sub } from './gameFixedMessages';
-import { resolveSignalJammingStepMs, signalJammingDisplayedDigit } from './signalJamming';
+import { effectiveSignalJammingStepMs, signalJammingDisplayedDigit } from './signalJamming';
 import type { GameState, MovingSoldierState } from './types';
+import type { HeroCombatTheme } from './heroCombatTheme';
+import { getHeroCombatTheme } from './heroCombatTheme';
 
 function telegraphHint(
   gameState: GameState,
@@ -27,19 +29,28 @@ export function CommanderTelegraphRow({
   selectedHandIndex,
   movingSoldier,
   onSelectHand,
+  heroTheme: heroThemeProp,
+  combatHeroId = 'xiaoming',
 }: {
   gameState: GameState;
   selectedHandIndex: number | null;
   movingSoldier: MovingSoldierState | null;
   onSelectHand: (index: number) => void;
+  heroTheme?: HeroCombatTheme;
+  /** 用於信號干擾輪播節奏（艾達較慢） */
+  combatHeroId?: string;
 }) {
+  const heroTheme = heroThemeProp ?? getHeroCombatTheme('xiaoming');
   const hint = telegraphHint(gameState, selectedHandIndex);
   const n = gameState.hand.length;
   const jamming =
     gameState.status === 'playing' &&
     Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
 
-  const jammingStepMs = resolveSignalJammingStepMs(gameState.level.definition.commandSlotJammingStepMs);
+  const jammingStepMs = effectiveSignalJammingStepMs(
+    gameState.level.definition.commandSlotJammingStepMs,
+    combatHeroId,
+  );
 
   const [, setJammingFrame] = useState(0);
   useEffect(() => {
@@ -50,7 +61,7 @@ export function CommanderTelegraphRow({
 
   return (
     <div
-      className="flex h-full min-h-[3.25rem] min-w-0 flex-1 items-center gap-2 rounded-2xl border-2 border-slate-800 bg-slate-900 px-2 py-1.5 shadow-xl sm:gap-3 sm:px-3 sm:py-2"
+      className={`flex h-full min-h-[3.25rem] min-w-0 flex-1 items-center gap-2 rounded-2xl border-2 px-2 py-1.5 shadow-xl sm:gap-3 sm:px-3 sm:py-2 ${heroTheme.telegraphWrap}`}
       title={hint}
     >
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -93,6 +104,7 @@ export function CommanderTelegraphRow({
                   Date.now(),
                   gameState.level.definition.commandSlotJammingStepMs,
                   gameState.level.definition.gridSystem,
+                  combatHeroId,
                 )
             : num;
           return (
@@ -106,8 +118,8 @@ export function CommanderTelegraphRow({
             className={`flex aspect-square max-h-[3.25rem] min-h-[2.75rem] w-full min-w-0 items-center justify-center rounded-2xl border-[3px] text-xl font-black transition-all sm:max-h-[3.5rem] sm:text-2xl
                 ${
                   selectedHandIndex === idx
-                    ? 'border-amber-400 bg-amber-600 text-white shadow-lg shadow-amber-900/40'
-                    : 'border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-amber-400'
+                    ? heroTheme.telegraphDigitSelected
+                    : heroTheme.telegraphDigitIdle
                 }
                 ${
                   gameState.status !== 'playing' || movingSoldier !== null ? 'cursor-not-allowed opacity-40' : ''

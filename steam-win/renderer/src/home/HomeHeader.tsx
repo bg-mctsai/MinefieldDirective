@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { RefreshCw, Wifi } from 'lucide-react';
+import { HomeBrandLogo } from './HomeBrandLogo';
 import { HOME_APP_VERSION } from './constants';
 
 export function HomeHeader({
@@ -18,12 +19,12 @@ export function HomeHeader({
       className="flex flex-col gap-6 border-b border-[#1e293b] pb-8 md:flex-row md:items-end md:justify-between"
     >
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-white md:text-4xl">
-          {typedTitle}
-          <span className="inline-block w-2.5 animate-pulse text-[#F59E0B]">▍</span>
-        </h1>
+        <HomeBrandLogo typedTitle={typedTitle} />
         <p className="mt-2 text-sm text-emerald-400/90 md:text-base">
           [電報線就緒] 長官部門來電，依電報數字於雷區執行佈雷。
+        </p>
+        <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.32em] text-slate-500/80 md:text-[11px]">
+          OPS-CHANNEL // BASE-07 // 02:14 LOCAL
         </p>
       </div>
       <div className="flex flex-col items-end gap-2 text-xs md:text-sm">

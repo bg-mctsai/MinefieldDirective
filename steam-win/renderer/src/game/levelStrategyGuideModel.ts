@@ -47,14 +47,23 @@ export type LevelStrategyGuideModel = {
   logicNeighborLine: string;
 };
 
-export function buildLevelStrategyGuideModel(level: Level): LevelStrategyGuideModel {
+export function buildLevelStrategyGuideModel(
+  level: Level,
+  opts?: { heroId?: string },
+): LevelStrategyGuideModel {
   const d = level.definition;
   const forbidden = forbiddenCount(d.mapLayout);
   const hints = level.initialHints.length;
   const briefingSummaryLines: string[] = [];
 
   if (d.commandSlotReceiveJamming) {
-    briefingSummaryLines.push('電報會輪播，先鎖定數字再下。');
+    if (opts?.heroId === 'ada') {
+      briefingSummaryLines.push(
+        '電報會輪播；艾達上場時輪播較慢（換字間隔為平常兩倍），先鎖定讀值再下。',
+      );
+    } else {
+      briefingSummaryLines.push('電報會輪播，先鎖定數字再下。');
+    }
   }
   if ((d.blastPoints?.length ?? 0) > 0) {
     briefingSummaryLines.push('炸點會倒數，歸零前沒處理完就輸。');

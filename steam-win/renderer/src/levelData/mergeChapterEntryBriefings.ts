@@ -30,6 +30,17 @@ function shouldUseChapterFallback(level: LevelDefinition): boolean {
 }
 
 /**
+ * 章首回退只應套在「該章第一關」：byLevelId 僅在 11/21/31… 等鍵放章進場台詞時，
+ * 不可讓同章其餘關因預設 fallback 而每關都吃到同一段簡報。
+ */
+function chapterStartBriefingFallbackEntry(level: LevelDefinition): string[] | BriefingSplit | undefined {
+  if (!shouldUseChapterFallback(level)) return undefined;
+  const firstId = chapterFirstLevelId(level.chapter);
+  if (level.levelId !== firstId) return undefined;
+  return TABLE[String(firstId)];
+}
+
+/**
  * 將集中設定的「長官簡報」依 levelId 合併進關卡定義。
  * 新版支援拆成 chapterTone / levelBriefing；舊版字串陣列仍視為 levelBriefing 相容。
  */
@@ -41,9 +52,7 @@ export function mergeChapterEntryBriefingsIntoDefinitions(levels: LevelDefinitio
     }
 
     const exact = TABLE[String(level.levelId)];
-    const chapterFallback = shouldUseChapterFallback(level)
-      ? TABLE[String(chapterFirstLevelId(level.chapter))]
-      : undefined;
+    const chapterFallback = chapterStartBriefingFallbackEntry(level);
     const normalized = normalizeBriefingEntry(
       exact ?? chapterFallback,
       level.chapterEntryBriefing,

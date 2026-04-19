@@ -28,8 +28,9 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   'mapLayout.sectors': '（type=MIXED）區塊陣列；每項含 id、shape（SQUARE|HEXAGON|TRIANGLE）、offset{x,y}、size[w,h]。',
   'mapLayout.placeholder': '（type=TRIANGLE 或 HEXAGON）暫用方格寬高，待真幾何接線後替換。',
 
-  commands: '玩家手牌／指令池設定。',
-  'commands.maxHand': '手牌張數上限（建議 1～5）。',
+  commands: '玩家手牌／指令池設定（長官電報；標準 3 選 2）。',
+  'commands.maxHand':
+    '同時待辦電碼欄位數；請一律填 3（3 選 2：每回合從中選 2 道佈署）。角色艾達時執行期可為 4（4 選 2），由程式 heroes.telegraphHandSlotCount 覆寫，企劃 JSON 仍填 3 即可。',
   'commands.poolType': 'RANDOM=在 weights 的鍵中均等抽選；WEIGHTED=依權重抽選。',
   'commands.weights': '鍵為字串 "1"～"8"；數值為權重（越大越常出現）；可省略或設 0 表示不給該數字。',
 
@@ -44,7 +45,7 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   entryBriefingEnabled:
     '可選；預設 true。進場長官簡報總開關。設為 false 時，即使 chapterEntryBriefings.json 有本關精準 byLevelId 台詞也不顯示。',
   levelEntryBriefingFallbackToChapterStart:
-    '可選；預設 true。當 chapterEntryBriefings.json 沒有本關 levelId 時，是否回退吃同章章首（x1）簡報。設為 false 可讓該關完全不顯示長官簡報（除非有精準 byLevelId）。',
+    '可選；預設 true。僅章首戰：byLevelId 未命中本關 levelId 時是否讀同章章首鍵（x1）簡報。非章首戰不繼承章首台詞；章內其他關要顯示進場簡報請在 chapterEntryBriefings.json 寫該關 levelId。false 時章首戰也不做章首鍵回退。',
 
   forcedMineCells: '可選；固定必雷座標 [[x,y],…]。這些格在整局都視為地雷，若玩家嘗試在該格安放數字會直接造成邏輯衝突。',
   mineBonusTargetCells: '可選；目標地雷座標 [[x,y],…]。當這些格被邏輯「確認為地雷」並自動揭示時，可觸發加秒獎勵。',

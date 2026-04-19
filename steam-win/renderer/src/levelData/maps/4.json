@@ -1,8 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 5,
+    "width": 8,
     "height": 8
   },
-  "mapTheme": "穩定節奏"
+  "mapTheme": "強化訓練場"
 }

@@ -66,4 +66,6 @@ export interface GameState {
    * 非引爆危機關卡為空 Map。
    */
   blastPointsCountdown: Map<string, number>;
+  /** 老張「加固模組」（每局一次）：solver 放錯抵銷後為 false；非老張幹員固定 false */
+  buckEmergencyAvailable: boolean;
 }

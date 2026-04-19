@@ -1,8 +1,12 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Crown, Map } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Crown, Map, Sparkles, X } from 'lucide-react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { GameState } from './types';
+import { useDynamicHeroBarrage } from './useDynamicHeroBarrage';
+import { HeroAvatarSilhouette } from '../home/HeroAvatarSilhouette';
+import { getHeroDef } from '../heroes';
+import { getHeroSkillBriefPanels } from './heroSkillBriefContent';
 
 function messageColorClass(status: GameState['status']): string {
   if (status === 'lost' || status === 'exploding') return 'text-red-500';
@@ -15,94 +19,76 @@ export function GameStatusMessageBar({
   gameState,
   boardRef,
   enableSupportBarrage = true,
+  statusBarFrameClass = 'border-slate-700/90 bg-slate-900/95',
+  speakerHeroId,
+  buckEmergencyAvailable = true,
 }: {
   gameState: GameState;
   boardRef: RefObject<HTMLDivElement | null>;
+  /** 是否啟用棋盤下方飄字工兵台詞 */
   enableSupportBarrage?: boolean;
+  /** 狀態訊息外框（依幹員主題） */
+  statusBarFrameClass?: string;
+  /** 顯示在訊息左側的幹員頭像（對白） */
+  speakerHeroId?: string;
+  /** 老張「加固模組」是否仍可用（僅 laozhang 時有意義） */
+  buckEmergencyAvailable?: boolean;
 }) {
-  const isLv1 = gameState.level.id === 1;
-  const prevStatusRef = useRef<GameState['status']>(gameState.status);
-  const supportCooldownUntilRef = useRef(0);
-  const hasShownOpeningRef = useRef(false);
-  const hasShownLast10Ref = useRef(false);
-  const [supportBarrage, setSupportBarrage] = useState<{ id: number; text: string; lane: number } | null>(null);
+  const dynamicBarrage = useDynamicHeroBarrage(gameState);
+  const supportBarrage = enableSupportBarrage ? dynamicBarrage : null;
   const [boardAnchor, setBoardAnchor] = useState<{ left: number; top: number } | null>(null);
+  const [skillBriefOpen, setSkillBriefOpen] = useState(false);
+  const [skillBriefPos, setSkillBriefPos] = useState<{ top: number; left: number } | null>(null);
+  const avatarSkillBtnRef = useRef<HTMLButtonElement>(null);
 
-  const pushSupport = (text: string) => {
-    const now = Date.now();
-    if (now < supportCooldownUntilRef.current) return;
-    supportCooldownUntilRef.current = now + 9000;
-    setSupportBarrage({
-      id: now,
-      text,
-      lane: Math.floor(Math.random() * 3), // 3 軌道，避免每次都卡同一行
-    });
-  };
+  const closeSkillBrief = useCallback(() => {
+    setSkillBriefOpen(false);
+    setSkillBriefPos(null);
+  }, []);
+
+  const syncSkillBriefPos = useCallback(() => {
+    if (!skillBriefOpen) return;
+    const el = avatarSkillBtnRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const panelW = Math.min(352, window.innerWidth - 24);
+    let left = r.left;
+    if (left + panelW > window.innerWidth - 12) left = Math.max(12, window.innerWidth - 12 - panelW);
+    if (left < 12) left = 12;
+    const maxH = Math.min(window.innerHeight * 0.7, 416);
+    let top = r.bottom + 8;
+    if (top + maxH > window.innerHeight - 12) top = Math.max(12, r.top - maxH - 8);
+    setSkillBriefPos({ top, left });
+  }, [skillBriefOpen]);
 
   useEffect(() => {
-    prevStatusRef.current = gameState.status;
-  }, [gameState.status]);
+    if (!skillBriefOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSkillBrief();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [skillBriefOpen, closeSkillBrief]);
 
   useEffect(() => {
-    hasShownOpeningRef.current = false;
-    hasShownLast10Ref.current = false;
-    supportCooldownUntilRef.current = 0;
-    setSupportBarrage(null);
+    setSkillBriefOpen(false);
+    setSkillBriefPos(null);
   }, [gameState.gameId]);
 
-  useEffect(() => {
-    if (!enableSupportBarrage) {
-      setSupportBarrage(null);
-      return;
-    }
-    if (!isLv1) {
-      setSupportBarrage(null);
-      return;
-    }
-    if (gameState.status === 'won') {
-      pushSupport('很好，就照這樣活下去。你剛剛那套節奏，能把人帶回來。');
-      return;
-    }
-
-    if (gameState.status === 'playing') {
-      // 避免與章節簡報重疊：只有玩家真的開始操作（timerStarted）才出第一句
-      if (gameState.timerStarted && !hasShownOpeningRef.current) {
-        hasShownOpeningRef.current = true;
-        pushSupport('長官在這裡。先選電報，再落點；慢一點沒關係，我不要你亂。');
-      }
-      if (
-        gameState.timerStarted &&
-        gameState.secondsLeft !== null &&
-        gameState.secondsLeft <= 10 &&
-        !hasShownLast10Ref.current
-      ) {
-        hasShownLast10Ref.current = true;
-        pushSupport('別慌，我看著你。先做最穩的那一步，我們還能把這關帶過去。');
-      }
-      return;
-    }
-
-    const prevStatus = prevStatusRef.current;
-    if (
-      (gameState.status === 'exploding' || gameState.status === 'lost') &&
-      prevStatus === 'playing'
-    ) {
-      pushSupport('沒事，這次算我陪你校正。人沒折在這裡就好，下一輪我們重來。');
-    }
-  }, [
-    enableSupportBarrage,
-    isLv1,
-    gameState.status,
-    gameState.secondsLeft,
-    gameState.timerStarted,
-    gameState.gameId,
-  ]);
+  useLayoutEffect(() => {
+    syncSkillBriefPos();
+  }, [syncSkillBriefPos, gameState.message]);
 
   useEffect(() => {
-    if (!supportBarrage) return;
-    const id = window.setTimeout(() => setSupportBarrage(null), 4200);
-    return () => window.clearTimeout(id);
-  }, [supportBarrage]);
+    if (!skillBriefOpen) return;
+    syncSkillBriefPos();
+    window.addEventListener('resize', syncSkillBriefPos);
+    window.addEventListener('scroll', syncSkillBriefPos, true);
+    return () => {
+      window.removeEventListener('resize', syncSkillBriefPos);
+      window.removeEventListener('scroll', syncSkillBriefPos, true);
+    };
+  }, [skillBriefOpen, syncSkillBriefPos]);
 
   useEffect(() => {
     const syncAnchor = () => {
@@ -124,8 +110,54 @@ export function GameStatusMessageBar({
     };
   }, [boardRef, gameState.gameId]);
 
+  const skillPanels =
+    speakerHeroId != null ? getHeroSkillBriefPanels(speakerHeroId, buckEmergencyAvailable) : [];
+  const speakerName = speakerHeroId != null ? getHeroDef(speakerHeroId).name : '';
+
   return (
     <div className="relative mb-2 w-full max-w-6xl shrink-0">
+      {skillBriefOpen && speakerHeroId != null && (
+        <>
+          <div role="presentation" className="fixed inset-0 z-[100] bg-black/50" onClick={closeSkillBrief} />
+          {skillBriefPos != null && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="hero-skill-brief-heading"
+              style={{ top: skillBriefPos.top, left: skillBriefPos.left }}
+              className="fixed z-[101] w-[min(22rem,calc(100vw-1.5rem))] max-h-[min(70vh,26rem)] overflow-y-auto rounded-2xl border-2 border-slate-600 bg-slate-900/98 p-4 shadow-2xl backdrop-blur-sm"
+            >
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <h2 id="hero-skill-brief-heading" className="text-sm font-black tracking-tight text-white">
+                  {speakerName} · 被動／作戰說明
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeSkillBrief}
+                  className="shrink-0 rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                  aria-label="關閉"
+                >
+                  <X size={18} strokeWidth={2.25} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                {skillPanels.map((p) => (
+                  <div key={p.title}>
+                    <div className="mb-1.5 text-[11px] font-black uppercase tracking-wider text-amber-400/95">
+                      {p.title}
+                    </div>
+                    {p.paragraphs.map((line, i) => (
+                      <p key={i} className="text-[13px] font-semibold leading-relaxed text-slate-300">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
       <AnimatePresence mode="wait">
         <motion.div
           key={gameState.message}
@@ -135,13 +167,41 @@ export function GameStatusMessageBar({
           transition={{ duration: 0.12 }}
           className="w-full"
         >
-          <div className="rounded-xl border border-slate-700/90 bg-slate-900/95 px-3 py-1.5 shadow-md">
-            <div className="min-w-0 overflow-x-auto [-webkit-overflow-scrolling:touch]">
-              <p
-                className={`whitespace-nowrap text-center text-[13px] font-bold leading-snug sm:text-sm ${messageColorClass(gameState.status)}`}
-              >
-                {gameState.message}
-              </p>
+          <div className={`rounded-xl border px-3 py-1.5 shadow-md ${statusBarFrameClass}`}>
+            <div
+              className={`flex min-w-0 items-center gap-2.5 sm:gap-3 ${speakerHeroId ? 'pb-2' : ''} ${speakerHeroId ? '' : 'justify-center'}`}
+            >
+              {speakerHeroId ? (
+                <button
+                  ref={avatarSkillBtnRef}
+                  type="button"
+                  title="查看被動／作戰說明"
+                  className="group relative shrink-0 self-center cursor-pointer rounded-xl outline-none ring-offset-2 ring-offset-slate-900 transition-[transform,box-shadow] hover:scale-[1.04] hover:shadow-[0_0_0_2px_rgba(245,158,11,0.45)] focus-visible:ring-2 focus-visible:ring-amber-500/80 active:scale-[0.98]"
+                  aria-expanded={skillBriefOpen}
+                  aria-haspopup="dialog"
+                  aria-label={`查看${speakerName}被動與作戰說明`}
+                  onClick={() => setSkillBriefOpen((v) => !v)}
+                >
+                  <HeroAvatarSilhouette
+                    heroId={speakerHeroId}
+                    size={40}
+                    className="ring-2 ring-slate-600/55 shadow-sm transition-[box-shadow] group-hover:ring-amber-400/75"
+                  />
+                  <span
+                    className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/40 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40"
+                    aria-hidden
+                  >
+                    <Sparkles size={11} strokeWidth={2.4} />
+                  </span>
+                </button>
+              ) : null}
+              <div className="min-w-0 flex-1 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+                <p
+                  className={`whitespace-nowrap text-[13px] font-bold leading-snug sm:text-sm ${speakerHeroId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
+                >
+                  {gameState.message}
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -151,7 +211,7 @@ export function GameStatusMessageBar({
           <motion.div
             key={`${gameState.gameId}-${supportBarrage.id}`}
             initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 0.9, y: -10 }}
+            animate={{ opacity: 0.95, y: -10 }}
             exit={{ opacity: 0, y: -18 }}
             transition={{ duration: 4.4, ease: 'linear' }}
             className="pointer-events-none fixed z-20"
@@ -161,9 +221,21 @@ export function GameStatusMessageBar({
               transform: 'translateX(-50%)',
             }}
           >
-            <p className="max-w-[min(76vw,30rem)] whitespace-nowrap text-center text-[14px] font-semibold italic tracking-[0.01em] text-slate-100/92 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] sm:text-[15px]">
-              {supportBarrage.text}
-            </p>
+            <div
+              className={`rounded-md px-3 py-1 ${
+                supportBarrage.tone === 'alert'
+                  ? 'ops-alert-pulse border border-red-500/60 bg-red-500/15'
+                  : ''
+              }`}
+            >
+              <p
+                className={`max-w-[min(76vw,30rem)] whitespace-nowrap text-center text-[14px] font-semibold italic tracking-[0.01em] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] sm:text-[15px] ${
+                  supportBarrage.tone === 'alert' ? 'text-red-200' : 'text-slate-100/92'
+                }`}
+              >
+                {supportBarrage.text}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

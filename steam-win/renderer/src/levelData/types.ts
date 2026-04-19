@@ -133,7 +133,10 @@ export interface LevelDefinition {
   levelEntryBriefing?: string[];
   /** 進場長官簡報總開關；設為 false 時，即使 chapterEntryBriefings.json 有該關資料也不顯示。預設 true */
   entryBriefingEnabled?: boolean;
-  /** 是否允許本關在 chapterEntryBriefings.json 未命中 levelId 時，回退使用章首（x1）簡報；預設 true */
+  /**
+   * 僅對「該章第一關」生效：章首戰在 chapterEntryBriefings.json 未命中自身 levelId 時，是否讀同章章首鍵（x1）簡報；預設 true。
+   * 非章首戰不會因本旗標而繼承章首台詞（章內其餘關需在 byLevelId 有專屬鍵才有進場簡報）。
+   */
   levelEntryBriefingFallbackToChapterStart?: boolean;
   /** @deprecated 舊版單段簡報；載入時會轉為 levelEntryBriefing 相容 */
   chapterEntryBriefing?: string[];

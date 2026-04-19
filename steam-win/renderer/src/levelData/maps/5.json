@@ -1,8 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 5,
+    "width": 9,
     "height": 9
   },
-  "mapTheme": "長廊掃描道"
+  "mapTheme": "極限訓練場"
 }

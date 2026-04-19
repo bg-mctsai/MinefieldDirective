@@ -33,6 +33,7 @@ import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
 import { signalJammingDisplayedDigit } from './signalJamming';
 import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
+import { getStoredHeroId, telegraphHandSlotCount } from '../heroes';
 import type { GameState, MovingSoldierState } from './types';
 
 /**
@@ -118,7 +119,7 @@ export function useMineGame(initialLevelIndex: number) {
       placedNumbers: [...hints],
       revealedMines: new Set(),
       revealedClear: new Set(),
-      hand: generateHand(level, [...hints], rng),
+      hand: generateHand(level, [...hints], rng, undefined, telegraphHandSlotCount(getStoredHeroId())),
       placedInTurn: 0,
       status: 'playing',
       message: GAME_FIXED.gameStatus.initTelegraph,
@@ -133,6 +134,7 @@ export function useMineGame(initialLevelIndex: number) {
       jammingEpochMs: level.definition.commandSlotReceiveJamming ? Date.now() : 0,
       jammingLockedSlot: null,
       blastPointsCountdown: initBlastCountdown,
+      buckEmergencyAvailable: getStoredHeroId() === 'laozhang',
     });
     for (const t of bonusFxTimeoutsRef.current.values()) {
       window.clearTimeout(t);
@@ -348,6 +350,7 @@ export function useMineGame(initialLevelIndex: number) {
                 Date.now(),
                 prev.level.definition.commandSlotJammingStepMs,
                 prev.level.definition.gridSystem,
+                getStoredHeroId(),
               ),
             }
           : null;
@@ -472,6 +475,22 @@ export function useMineGame(initialLevelIndex: number) {
     const conflictDetails = solver.getConflicts();
 
     if (conflictDetails) {
+      if (getStoredHeroId() === 'laozhang' && gameState.buckEmergencyAvailable) {
+        setGameState((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: 'playing',
+                message: GAME_FIXED.gameStatus.buckEmergencySaved,
+                buckEmergencyAvailable: false,
+                jammingLockedSlot: null,
+              }
+            : null,
+        );
+        setMovingSoldier(null);
+        return;
+      }
+
       const lossTopo = lossUiTopologyFromLevel(gameState.level);
       const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
       const explosionMarkCells = lossExplosionMarkCells(
@@ -621,7 +640,13 @@ export function useMineGame(initialLevelIndex: number) {
     }
 
     if (nextPlacedInTurn === 2) {
-      finalHand = generateHand(gameState.level, newPlacedNumbers, rng, newDynamicMines);
+      finalHand = generateHand(
+        gameState.level,
+        newPlacedNumbers,
+        rng,
+        newDynamicMines,
+        telegraphHandSlotCount(getStoredHeroId()),
+      );
       finalPlacedInTurn = 0;
     }
 

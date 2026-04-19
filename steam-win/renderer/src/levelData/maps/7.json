@@ -1,8 +1,7 @@
 {
   "mapLayout": {
-    "type": "SQUARE",
-    "width": 7,
-    "height": 8
+    "type": "DIAMOND",
+    "radius": 5
   },
-  "mapTheme": "主練場"
+  "mapTheme": "大菱形"
 }

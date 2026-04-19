@@ -5,7 +5,6 @@ import { GameHeader } from './GameHeader';
 import { GameBoard } from './GameBoard';
 import { GameStatusMessageBar, GameStatusPanel } from './GameStatusPanel';
 import { CommanderTelegraphRow } from './CommanderPanel';
-import { CommanderSupportPanel } from './CommanderSupportPanel';
 import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
@@ -13,6 +12,8 @@ import { VictoryCelebrationOverlay } from './VictoryCelebrationOverlay';
 import { LEVEL_MAX, isLevelUnlocked, saveGameProgress } from './gameProgressStorage';
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
+import { getStoredHeroId } from '../heroes';
+import { getHeroCombatTheme } from './heroCombatTheme';
 
 export default function GameView({
   initialLevelIndex: initialLevelProp,
@@ -103,10 +104,14 @@ export default function GameView({
     gameState.status === 'won' && dismissedWinCelebrationGameId !== gameState.gameId;
   const winInlineActionsUnlocked =
     gameState.status === 'won' && dismissedWinCelebrationGameId === gameState.gameId;
-  const useCommanderSupportLayout = gameState.level.definition.chapter === 1;
+
+  const combatHeroId = getStoredHeroId();
+  const combatTheme = getHeroCombatTheme(combatHeroId);
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-slate-950 p-3 font-sans text-slate-300 selection:bg-amber-500/30 md:p-5">
+    <div
+      className={`relative flex min-h-screen flex-col items-center p-3 font-sans text-slate-300 md:p-5 ${combatTheme.root}`}
+    >
       <GameHeader
         fillPercentage={fillPercentage}
         coverageGoalPercent={gameState.level.definition.coverageGoal * 100}
@@ -117,8 +122,9 @@ export default function GameView({
         levelName={campaignLevelHeaderTitle(gameState.level)}
         secondsLeft={gameState.secondsLeft}
         countdownStarted={gameState.timerStarted}
+        heroTheme={combatTheme}
         guideButton={
-          <div className="flex max-w-[min(100vw-6rem,36rem)] flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex max-w-[min(100vw-6rem,36rem)] flex-col items-end gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
             <LevelMechanicFeatureBadges definition={gameState.level.definition} />
             <LevelStrategyGuideTrigger onClick={() => setStrategyGuideOpen(true)} />
           </div>
@@ -129,6 +135,8 @@ export default function GameView({
             selectedHandIndex={selectedHandIndex}
             movingSoldier={movingSoldier}
             onSelectHand={selectHand}
+            heroTheme={combatTheme}
+            combatHeroId={combatHeroId}
           />
         }
       />
@@ -144,20 +152,12 @@ export default function GameView({
         <GameStatusMessageBar
           gameState={gameState}
           boardRef={boardRef}
-          enableSupportBarrage={!useCommanderSupportLayout}
+          statusBarFrameClass={combatTheme.statusBarWrap}
+          speakerHeroId={combatHeroId}
+          buckEmergencyAvailable={gameState.buckEmergencyAvailable}
         />
-        <div
-          className={`flex w-full gap-4 ${
-            useCommanderSupportLayout
-              ? 'flex-col items-center lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-6'
-              : 'flex-col items-center'
-          }`}
-        >
-          <div
-            className={`min-w-0 ${
-              useCommanderSupportLayout ? 'flex w-full justify-center lg:justify-center' : 'w-full'
-            }`}
-          >
+        <div className="flex w-full flex-col items-center gap-4">
+          <div className="min-w-0 w-full">
             <GameBoard
               boardRef={boardRef}
               gameState={gameState}
@@ -167,7 +167,6 @@ export default function GameView({
               align="center"
             />
           </div>
-          {useCommanderSupportLayout && <CommanderSupportPanel gameState={gameState} />}
         </div>
         <GameStatusPanel
           gameState={gameState}

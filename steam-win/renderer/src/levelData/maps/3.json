@@ -1,8 +1,8 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 5,
+    "width": 7,
     "height": 7
   },
-  "mapTheme": "橫展區"
+  "mapTheme": "加壓訓練場"
 }

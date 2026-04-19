@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { Bomb, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { MissionDirectiveEmblem } from './MissionDirectiveEmblem';
 import { LAST_COUNTDOWN_SOUND_SECONDS } from './constants';
+import type { HeroCombatTheme } from './heroCombatTheme';
+import { getHeroCombatTheme } from './heroCombatTheme';
 
-/** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬 */
+/** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
 export const GAME_HEADER_CARD_CLASS =
-  'flex flex-1 min-h-[3.75rem] min-w-0 flex-col justify-center rounded-2xl border-2 border-slate-800 bg-slate-900 p-3 shadow-xl sm:flex-row sm:items-center sm:gap-3';
+  'flex flex-1 min-h-[3.75rem] min-w-0 flex-col justify-center rounded-2xl border-2 p-3 shadow-xl sm:flex-row sm:items-center sm:gap-3';
 
 export function GameHeader({
   fillPercentage,
@@ -19,6 +22,7 @@ export function GameHeader({
   countdownStarted,
   guideButton,
   telegraphPanel,
+  heroTheme: heroThemeProp,
 }: {
   fillPercentage: number;
   /** 企劃定義之覆蓋率目標（%） */
@@ -37,7 +41,12 @@ export function GameHeader({
   guideButton?: ReactNode;
   /** 第二行與任務進度並排：長官電報列 */
   telegraphPanel?: ReactNode;
+  /** 依幹員切換的戰鬥主題色 */
+  heroTheme?: HeroCombatTheme;
 }) {
+  const heroTheme = heroThemeProp ?? getHeroCombatTheme('xiaoming');
+  const progressCardClass = `${GAME_HEADER_CARD_CLASS} ${heroTheme.headerProgressCard}`;
+
   return (
     <div className="mb-4 flex w-full max-w-6xl flex-col gap-3">
       <motion.div
@@ -49,13 +58,15 @@ export function GameHeader({
           <button
             type="button"
             onClick={onBack}
-            className="flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-3 py-2 text-sm font-bold text-slate-200 transition-colors hover:border-amber-500/60 hover:text-amber-400"
+            className={`flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-3 py-2 text-sm font-bold text-slate-200 transition-colors ${heroTheme.headerBackHover}`}
           >
             <ChevronLeft size={18} />
             返回
           </button>
-          <div className="shrink-0 rounded-2xl border-2 border-slate-800 bg-slate-900 p-3 shadow-lg">
-            <Bomb className="text-amber-500" size={32} />
+          <div
+            className={`shrink-0 rounded-2xl border-2 border-slate-800 bg-slate-900 p-2.5 shadow-lg ${heroTheme.headerMissionMarkWrap}`}
+          >
+            <MissionDirectiveEmblem className={heroTheme.headerMissionMark} size={34} />
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="mb-0 flex min-w-0 items-center gap-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
@@ -71,7 +82,7 @@ export function GameHeader({
         animate={{ x: 0, opacity: 1 }}
         className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch"
       >
-        <div className={GAME_HEADER_CARD_CLASS}>
+        <div className={progressCardClass}>
           <div className="flex flex-1 flex-wrap items-center justify-center gap-4 sm:justify-start">
             <div className="px-2 text-center">
               <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">任務進度</div>
@@ -114,7 +125,7 @@ export function GameHeader({
               <button
                 type="button"
                 onClick={onNextLevel}
-                className="inline-flex items-center gap-0.5 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-emerald-900/35 transition-all hover:bg-emerald-500 active:scale-95"
+                className={`inline-flex items-center gap-0.5 rounded-2xl px-4 py-2.5 text-sm font-black text-white shadow-lg transition-all active:scale-95 ${heroTheme.headerNextLevel}`}
               >
                 下一關
                 <ChevronRight size={18} strokeWidth={2.5} />
