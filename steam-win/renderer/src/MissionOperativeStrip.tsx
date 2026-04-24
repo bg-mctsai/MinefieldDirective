@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { ZoomIn } from 'lucide-react';
 import { HEROES, resolveMissionBriefCarouselLines, setStoredHeroId } from './heroes';
 import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
-import { useTeletypeReveal } from './useTeletypeReveal';
+import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
+import { TeletypeInline } from './teletype';
 
 const BRIEF_LINE_ROTATE_MS = 4200;
 
@@ -27,7 +29,8 @@ export function MissionOperativeStrip({
   const line = briefLines[lineIndex % briefLines.length] ?? briefLines[0];
   const hook = hero.missionMapHook?.trim();
   const teletypeKey = `${operativeId}-${previewLevelId}-${lineIndex}`;
-  const { text: lineTyped, done: lineTypedDone } = useTeletypeReveal(line, teletypeKey);
+  const hookText = hook?.trim() ?? '';
+  const { openPortrait } = useHeroPortraitLightbox();
 
   useEffect(() => {
     setLineIndex(0);
@@ -53,22 +56,32 @@ export function MissionOperativeStrip({
           {HEROES.map((h) => {
             const active = h.id === operativeId;
             return (
-              <button
-                key={h.id}
-                type="button"
-                title={`切換為 ${h.name}`}
-                onClick={() => {
-                  setStoredHeroId(h.id);
-                  onOperativeChange(h.id);
-                }}
-                className={`relative rounded-xl border-2 p-0.5 transition-all ${
-                  active
-                    ? 'border-[#F59E0B] bg-[#F59E0B]/15 shadow-[0_0_16px_rgba(245,158,11,0.25)]'
-                    : 'border-transparent opacity-70 hover:border-slate-600 hover:opacity-100'
-                }`}
-              >
-                <HeroAvatarSilhouette heroId={h.id} size={40} />
-              </button>
+              <div key={h.id} className="relative inline-flex">
+                <button
+                  type="button"
+                  title={`切換為 ${h.name}`}
+                  onClick={() => {
+                    setStoredHeroId(h.id);
+                    onOperativeChange(h.id);
+                  }}
+                  className={`relative rounded-xl border-2 p-0.5 transition-all ${
+                    active
+                      ? 'border-[#F59E0B] bg-[#F59E0B]/15 shadow-[0_0_16px_rgba(245,158,11,0.25)]'
+                      : 'border-transparent opacity-70 hover:border-slate-600 hover:opacity-100'
+                  }`}
+                >
+                  <HeroAvatarSilhouette heroId={h.id} size={40} />
+                </button>
+                <button
+                  type="button"
+                  title={`放大 ${h.name} 頭像`}
+                  aria-label={`放大 ${h.name} 頭像`}
+                  onClick={() => openPortrait(h.id)}
+                  className="absolute -bottom-0.5 -right-0.5 z-10 flex h-[18px] w-[18px] items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40 transition-colors hover:border-amber-500/60 hover:text-amber-300"
+                >
+                  <ZoomIn size={11} strokeWidth={2.6} />
+                </button>
+              </div>
             );
           })}
         </div>
@@ -83,21 +96,18 @@ export function MissionOperativeStrip({
           className="min-w-0 flex-1 border-l-0 border-t border-emerald-500/40 pt-3 sm:border-l-2 sm:border-t-0 sm:pl-3 sm:pt-0"
         >
           <div className="space-y-2 text-left leading-relaxed text-slate-300">
-            <p className="text-base font-medium sm:text-lg" aria-busy={!lineTypedDone}>
+            <p className="text-base font-medium sm:text-lg">
               <span className="font-bold text-[#F59E0B]/90">{hero.name}</span>
               <span className="text-slate-500">：</span>
-              <span aria-hidden="true">{lineTyped}</span>
-              {!lineTypedDone ? (
-                <span
-                  className="ops-typing-caret ml-0.5 inline-block h-[1.05em] w-[2px] translate-y-px rounded-[1px] bg-[#F59E0B]/75 align-middle"
-                  aria-hidden
-                />
-              ) : null}
-              <span className="sr-only">{line}</span>
+              <TeletypeInline full={line} resetKey={teletypeKey} caretClassName="bg-[#F59E0B]/75" />
             </p>
             {hook ? (
               <p className="border-l-2 border-emerald-600/40 pl-2.5 text-xs leading-snug text-slate-500 sm:text-sm">
-                {hook}
+                <TeletypeInline
+                  full={hookText}
+                  resetKey={`${teletypeKey}-hook`}
+                  caretClassName="bg-emerald-600/60"
+                />
               </p>
             ) : null}
           </div>

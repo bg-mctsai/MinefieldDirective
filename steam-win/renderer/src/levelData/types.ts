@@ -114,6 +114,22 @@ export type BlastPoint = {
   defuseBonusSec?: number;
 };
 
+/** 作戰地圖（章內戰術圖）視覺：可選覆寫，未填則依 levelId 程序化差異 */
+export type MissionTacticalBriefingMapPalette =
+  | 'aurora'
+  | 'ember'
+  | 'jade'
+  | 'steel'
+  | 'violet'
+  | 'monsoon';
+
+export type MissionTacticalBriefingMap = {
+  /** 此關在戰術圖上的節點中心座標（百分比 0～100）；覆寫章節預設槽位 */
+  nodePositionPct?: { x: number; y: number };
+  /** 底圖與路徑色票；未填則依 levelId 在六種預設間輪替 */
+  mapPalette?: MissionTacticalBriefingMapPalette;
+};
+
 export interface LevelDefinition {
   levelId: number;
   chapter: number;
@@ -177,6 +193,8 @@ export interface LevelDefinition {
    */
   neighborPlacedDigitBonus?: boolean;
   rewards: LevelRewards;
+  /** 可選；作戰地圖（章內六角戰術圖）節點位置與色票，供企劃逐關設計 */
+  missionTacticalBriefingMap?: MissionTacticalBriefingMap;
 }
 
 /**

@@ -1,17 +1,39 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Crown, Map, Sparkles, X } from 'lucide-react';
+import { Check, Crown, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { GameState } from './types';
-import { useDynamicHeroBarrage } from './useDynamicHeroBarrage';
+import { useDynamicHeroBarrage, type HeroBarrageOut } from './useDynamicHeroBarrage';
 import { HeroAvatarSilhouette } from '../home/HeroAvatarSilhouette';
+import { useHeroPortraitLightbox } from '../home/HeroPortraitLightbox';
 import { getHeroDef } from '../heroes';
 import { getHeroSkillBriefPanels } from './heroSkillBriefContent';
+import { TeletypeInline } from '../teletype';
 
 function messageColorClass(status: GameState['status']): string {
   if (status === 'lost' || status === 'exploding') return 'text-red-500';
   if (status === 'won') return 'text-emerald-500';
   return 'text-slate-300';
+}
+
+function messageCaretClass(status: GameState['status']): string {
+  if (status === 'lost' || status === 'exploding') return 'bg-red-400/90';
+  if (status === 'won') return 'bg-emerald-400/90';
+  return 'bg-slate-400/85';
+}
+
+function SupportBarrageSpeech({ barrage, gameId }: { barrage: HeroBarrageOut; gameId: number }) {
+  const resetKey = `${gameId}-${barrage.id}`;
+  const caretCls = barrage.tone === 'alert' ? 'bg-red-200/85' : 'bg-slate-100/80';
+  return (
+    <p
+      className={`max-w-[min(76vw,30rem)] whitespace-nowrap text-center text-[14px] font-semibold italic tracking-[0.01em] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] sm:text-[15px] ${
+        barrage.tone === 'alert' ? 'text-red-200' : 'text-slate-100/92'
+      }`}
+    >
+      <TeletypeInline full={barrage.text} resetKey={resetKey} caretClassName={caretCls} />
+    </p>
+  );
 }
 
 /** 地圖上方狀態台詞：單行、極窄寬時可橫向捲動 */
@@ -34,6 +56,7 @@ export function GameStatusMessageBar({
   /** 老張「加固模組」是否仍可用（僅 laozhang 時有意義） */
   buckEmergencyAvailable?: boolean;
 }) {
+  const { openPortrait } = useHeroPortraitLightbox();
   const dynamicBarrage = useDynamicHeroBarrage(gameState);
   const supportBarrage = enableSupportBarrage ? dynamicBarrage : null;
   const [boardAnchor, setBoardAnchor] = useState<{ left: number; top: number } | null>(null);
@@ -113,6 +136,8 @@ export function GameStatusMessageBar({
   const skillPanels =
     speakerHeroId != null ? getHeroSkillBriefPanels(speakerHeroId, buckEmergencyAvailable) : [];
   const speakerName = speakerHeroId != null ? getHeroDef(speakerHeroId).name : '';
+  const statusMessage = gameState.message ?? '';
+  const statusMsgKey = `${gameState.gameId}|||${statusMessage}`;
 
   return (
     <div className="relative mb-2 w-full max-w-6xl shrink-0">
@@ -127,6 +152,22 @@ export function GameStatusMessageBar({
               style={{ top: skillBriefPos.top, left: skillBriefPos.left }}
               className="fixed z-[101] w-[min(22rem,calc(100vw-1.5rem))] max-h-[min(70vh,26rem)] overflow-y-auto rounded-2xl border-2 border-slate-600 bg-slate-900/98 p-4 shadow-2xl backdrop-blur-sm"
             >
+              <div className="mb-4 flex flex-col items-center gap-2 border-b border-slate-700/80 pb-4">
+                <button
+                  type="button"
+                  title="再點一次全螢幕放大頭像"
+                  aria-label="全螢幕放大頭像"
+                  onClick={() => openPortrait(speakerHeroId)}
+                  className="cursor-zoom-in rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 transition-transform hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500/80 active:scale-[0.99]"
+                >
+                  <HeroAvatarSilhouette
+                    heroId={speakerHeroId}
+                    size={120}
+                    className="ring-2 ring-amber-500/30 shadow-lg"
+                  />
+                </button>
+                <p className="text-center text-[11px] font-bold text-slate-500">{getHeroDef(speakerHeroId).role}</p>
+              </div>
               <div className="mb-3 flex items-start justify-between gap-2">
                 <h2 id="hero-skill-brief-heading" className="text-sm font-black tracking-tight text-white">
                   {speakerName} · 被動／作戰說明
@@ -160,7 +201,7 @@ export function GameStatusMessageBar({
       )}
       <AnimatePresence mode="wait">
         <motion.div
-          key={gameState.message}
+          key={statusMsgKey}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
@@ -175,11 +216,11 @@ export function GameStatusMessageBar({
                 <button
                   ref={avatarSkillBtnRef}
                   type="button"
-                  title="查看被動／作戰說明"
+                  title="查看大頭像與被動／作戰說明"
                   className="group relative shrink-0 self-center cursor-pointer rounded-xl outline-none ring-offset-2 ring-offset-slate-900 transition-[transform,box-shadow] hover:scale-[1.04] hover:shadow-[0_0_0_2px_rgba(245,158,11,0.45)] focus-visible:ring-2 focus-visible:ring-amber-500/80 active:scale-[0.98]"
                   aria-expanded={skillBriefOpen}
                   aria-haspopup="dialog"
-                  aria-label={`查看${speakerName}被動與作戰說明`}
+                  aria-label={`查看${speakerName}大頭像與被動／作戰說明`}
                   onClick={() => setSkillBriefOpen((v) => !v)}
                 >
                   <HeroAvatarSilhouette
@@ -199,7 +240,11 @@ export function GameStatusMessageBar({
                 <p
                   className={`whitespace-nowrap text-[13px] font-bold leading-snug sm:text-sm ${speakerHeroId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
                 >
-                  {gameState.message}
+                  <TeletypeInline
+                    full={statusMessage}
+                    resetKey={statusMsgKey}
+                    caretClassName={messageCaretClass(gameState.status)}
+                  />
                 </p>
               </div>
             </div>
@@ -228,13 +273,7 @@ export function GameStatusMessageBar({
                   : ''
               }`}
             >
-              <p
-                className={`max-w-[min(76vw,30rem)] whitespace-nowrap text-center text-[14px] font-semibold italic tracking-[0.01em] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] sm:text-[15px] ${
-                  supportBarrage.tone === 'alert' ? 'text-red-200' : 'text-slate-100/92'
-                }`}
-              >
-                {supportBarrage.text}
-              </p>
+              <SupportBarrageSpeech barrage={supportBarrage} gameId={gameState.gameId} />
             </div>
           </motion.div>
         )}
@@ -302,10 +341,10 @@ export function GameStatusPanel({
                   <button
                     type="button"
                     onClick={onReturnToMission}
-                    className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-amber-500 px-3 py-2 text-xs font-black text-slate-950 shadow-sm transition-all hover:bg-amber-400 active:scale-[0.98] sm:flex-none sm:min-w-[7.5rem] sm:text-sm"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-xs font-black text-slate-950 shadow-sm transition-all hover:bg-amber-400 active:scale-[0.98] sm:flex-none sm:min-w-[7.5rem] sm:text-sm"
                   >
-                    <Map size={15} strokeWidth={2.5} />
-                    作戰地圖
+                    <Check size={16} strokeWidth={2.5} />
+                    完結
                   </button>
                   {onReplayFinalLevel && (
                     <button

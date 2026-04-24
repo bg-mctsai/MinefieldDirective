@@ -1,7 +1,11 @@
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { GAME_FIXED, sub } from './gameFixedMessages';
-import { effectiveSignalJammingStepMs, signalJammingDisplayedDigit } from './signalJamming';
+import {
+  effectiveSignalJammingStepMs,
+  signalJammingDisplayedDigit,
+  signalJammingSlotEnterFromTop,
+} from './signalJamming';
 import type { GameState, MovingSoldierState } from './types';
 import type { HeroCombatTheme } from './heroCombatTheme';
 import { getHeroCombatTheme } from './heroCombatTheme';
@@ -55,7 +59,9 @@ export function CommanderTelegraphRow({
   const [, setJammingFrame] = useState(0);
   useEffect(() => {
     if (!jamming) return;
-    const id = window.setInterval(() => setJammingFrame((x) => x + 1), Math.max(40, jammingStepMs / 2));
+    // 各槽步長不同，用最密節奏重繪（約為最快槽步長的一半）
+    const tickMs = Math.max(32, Math.round(jammingStepMs * 0.34));
+    const id = window.setInterval(() => setJammingFrame((x) => x + 1), tickMs);
     return () => clearInterval(id);
   }, [jamming, jammingStepMs, gameState.gameId, gameState.jammingEpochMs]);
 
@@ -107,6 +113,9 @@ export function CommanderTelegraphRow({
                   combatHeroId,
                 )
             : num;
+          const jammingAnimateDigit =
+            jamming && !(lock && lock.slotIndex === idx);
+          const enterFromTop = signalJammingSlotEnterFromTop(idx);
           return (
           <motion.button
             key={`${gameState.gameId}-slot-${idx}`}
@@ -126,7 +135,24 @@ export function CommanderTelegraphRow({
                 }
               `}
           >
-            {displayNum}
+            {jammingAnimateDigit ? (
+              <span className="relative flex h-[1.15em] w-full items-center justify-center overflow-hidden">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={`${gameState.gameId}-jam-${idx}-${displayNum}`}
+                    initial={{ y: enterFromTop ? '-85%' : '85%', opacity: 0.25 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: enterFromTop ? '85%' : '-85%', opacity: 0.2 }}
+                    transition={{ duration: 0.11, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex items-center justify-center font-black tabular-nums"
+                  >
+                    {displayNum}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+            ) : (
+              displayNum
+            )}
           </motion.button>
           );
         })}

@@ -44,6 +44,10 @@ export function HexGameBoardLayer({
   const rewardedTargetKeys = gameState.rewardedMineTargets;
   const { onPolygonEnter, onPolygonMove, onPolygonLeave, tooltipEl } = useSvgBoardTooltip();
 
+  const placedByKey = new Map(gameState.placedNumbers.map((p) => [`${p.x},${p.y}`, p]));
+  const conflictKeySet = new Set(gameState.conflictCells.map((c) => `${c.x},${c.y}`));
+  const explosionMarkKeySet = new Set(gameState.explosionMarkCells.map((c) => `${c.x},${c.y}`));
+
   const terrainPolys: ReactNode[] = [];
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -72,19 +76,19 @@ export function HexGameBoardLayer({
       {gameState.level.cells.map((cell) => {
         const { x, y } = cell;
         const { cx, cy } = hexCenterScreenPx(x, y, r, minX, minY);
-        const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
         const key = `${x},${y}`;
+        const placed = placedByKey.get(key);
         const isActiveBlastPoint = gameState.blastPointsCountdown.has(key);
         const blastPointCountdown = gameState.blastPointsCountdown.get(key);
         const isMine = !isActiveBlastPoint && gameState.revealedMines.has(key);
-        const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
+        const isConflict = conflictKeySet.has(key);
         const lossChainPhase = lossChainPhaseForKey(
           key,
           gameState.lossSequentialExplosionKeys,
           gameState.lossExplosionWaveIndex,
         );
         const isExploding = gameState.status === 'exploding' && isMine && lossChainPhase === 'none';
-        const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
+        const showExplosionX = explosionMarkKeySet.has(key);
         const isBonusTarget = bonusTargetKeys.has(key);
         const isBonusTargetRewarded = rewardedTargetKeys.has(key);
         const showBonusFx = bonusFxKeys.has(key);

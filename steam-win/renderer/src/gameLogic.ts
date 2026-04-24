@@ -326,6 +326,56 @@ export class MineSolver {
     return out;
   }
 
+  /**
+   * 單元傳播：對 component 做初步約束傳播，推出確定的 forced mines / clear。
+   * 規則：
+   *   1) mineCount === c.value → 剩餘 unknown 全 clear
+   *   2) mineCount + unknownCount === c.value → 剩餘 unknown 全 mine
+   * 回傳 null 表示偵測到矛盾。
+   */
+  private unitPropagate(
+    constraintIndices: readonly number[],
+    vars: readonly string[],
+  ): { assigned: Map<string, number>; remaining: string[] } | null {
+    const assigned = new Map<string, number>();
+    const varSet = new Set(vars);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const i of constraintIndices) {
+        const c = this.constraints[i];
+        const neighbors = this.constraintNeighbors.get(i)!;
+        let mineCount = 0;
+        const unknowns: string[] = [];
+        for (const n of neighbors) {
+          if (this.ghostMineKeys.has(n)) continue;
+          if (this.forcedMineKeys.has(n)) {
+            mineCount++;
+            continue;
+          }
+          if (!varSet.has(n)) continue;
+          const v = assigned.get(n);
+          if (v === 1) mineCount++;
+          else if (v === undefined) unknowns.push(n);
+        }
+        if (mineCount > c.value) return null;
+        const need = c.value - mineCount;
+        if (need < 0) return null;
+        if (unknowns.length < need) return null;
+        if (need === 0 && unknowns.length > 0) {
+          for (const u of unknowns) assigned.set(u, 0);
+          changed = true;
+        } else if (need === unknowns.length && unknowns.length > 0) {
+          for (const u of unknowns) assigned.set(u, 1);
+          changed = true;
+        }
+      }
+    }
+    const remaining: string[] = [];
+    for (const v of vars) if (!assigned.has(v)) remaining.push(v);
+    return { assigned, remaining };
+  }
+
   private isPartiallyValidFor(currentMines: Map<string, number>, constraintIndices: readonly number[]): boolean {
     for (const i of constraintIndices) {
       const c = this.constraints[i];
@@ -392,18 +442,29 @@ export class MineSolver {
   ): { mines: string[]; clear: string[] } {
     const forcedMines: string[] = [];
     const forcedClear: string[] = [];
-    const varArr = [...vars];
 
-    // 1) 先取一組參考解；順便證明此分量可滿足
-    const refSol = new Map<string, number>();
+    // 0) 先做單元傳播：把確定的 mine / clear 直接挑出，縮小搜尋空間。
+    const prop = this.unitPropagate(constraintIndices, vars);
+    if (!prop) return { mines: [], clear: [] };
+    for (const [k, v] of prop.assigned) {
+      if (v === 1) forcedMines.push(k);
+      else forcedClear.push(k);
+    }
+    if (prop.remaining.length === 0) {
+      return { mines: forcedMines, clear: forcedClear };
+    }
+
+    // 1) 在剩餘變數上尋找一組參考解（帶入已傳播的 assignment 作 prefix）。
+    const varArr = prop.remaining;
+    const refSol = new Map(prop.assigned);
     if (!this.backtrackForComponent(varArr, 0, refSol, constraintIndices)) {
-      return { mines: [], clear: [] };
+      return { mines: forcedMines, clear: forcedClear };
     }
     const ref = new Map(refSol);
 
-    // 2) 逐格只測「反向值」；已確認的 forced 值累積帶入後續搜尋以縮小空間
-    const known = new Map<string, number>();
-    for (const cell of vars) {
+    // 2) 對每個未確定變數測「反向值」；已確認的 forced 值累積帶入後續搜尋以縮小空間。
+    const known = new Map(prop.assigned);
+    for (const cell of varArr) {
       const refVal = ref.get(cell)!;
       const probe = new Map(known);
       probe.set(cell, 1 - refVal);
@@ -491,7 +552,13 @@ export class MineSolver {
     }
     const components = this.buildConstraintComponents();
     for (const comp of components) {
-      if (!this.backtrackForComponent(comp.vars, 0, new Map(), comp.constraintIndices)) {
+      // 先做單元傳播，抓到矛盾直接判定衝突；否則只對剩餘變數回溯以節省指數空間。
+      const prop = this.unitPropagate(comp.constraintIndices, comp.vars);
+      if (!prop) {
+        return this.conflictDetailsFromUnsatComponent(comp.constraintIndices, comp.vars);
+      }
+      const prefix = new Map(prop.assigned);
+      if (!this.backtrackForComponent(prop.remaining, 0, prefix, comp.constraintIndices)) {
         return this.conflictDetailsFromUnsatComponent(comp.constraintIndices, comp.vars);
       }
     }

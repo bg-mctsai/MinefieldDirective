@@ -1,5 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { Megaphone } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { SequentialTypedLines } from '../teletype';
 
 export function ChapterEntryBriefingOverlay({
   visible,
@@ -17,6 +19,24 @@ export function ChapterEntryBriefingOverlay({
   const hasChapterTone = chapterToneLines.length > 0;
   const hasLevelBriefing = levelBriefingLines.length > 0;
   const singleSection = (hasChapterTone ? 1 : 0) + (hasLevelBriefing ? 1 : 0) <= 1;
+  const [phraseEpoch, setPhraseEpoch] = useState(0);
+  const [toneSectionDone, setToneSectionDone] = useState(
+    !hasChapterTone || chapterToneLines.length === 0,
+  );
+
+  useEffect(() => {
+    const skipToneWait = !hasChapterTone || chapterToneLines.length === 0;
+    if (visible) {
+      setPhraseEpoch((e) => e + 1);
+      setToneSectionDone(skipToneWait);
+    } else {
+      setToneSectionDone(skipToneWait);
+    }
+  }, [visible, hasChapterTone, chapterToneLines.length]);
+
+  const toneResetKey = `ch-tone-${phraseEpoch}-${chapterTitle}`;
+  const briefResetKey = `ch-brief-${phraseEpoch}-${chapterTitle}`;
+  const showLevelBriefingBlock = hasLevelBriefing && toneSectionDone;
 
   return (
     <AnimatePresence>
@@ -50,29 +70,32 @@ export function ChapterEntryBriefingOverlay({
                       章節定調
                     </p>
                   )}
-                  <ul className="space-y-3 text-left text-sm leading-relaxed text-slate-200">
-                    {chapterToneLines.map((line, i) => (
-                      <li key={`tone-${i}`} className="border-l-2 border-amber-600/50 pl-3">
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
+                  <SequentialTypedLines
+                    as="ul"
+                    itemAs="li"
+                    lines={chapterToneLines}
+                    resetKey={toneResetKey}
+                    className="space-y-3 text-left text-sm leading-relaxed text-slate-200"
+                    itemClassName="border-l-2 border-amber-600/50 pl-3"
+                    onAllLinesDone={() => setToneSectionDone(true)}
+                  />
                 </section>
               )}
-              {hasLevelBriefing && (
+              {showLevelBriefingBlock && (
                 <section>
                   {!singleSection && (
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-500/90">
                       本關簡報
                     </p>
                   )}
-                  <ul className="space-y-3 text-left text-sm leading-relaxed text-slate-200">
-                    {levelBriefingLines.map((line, i) => (
-                      <li key={`brief-${i}`} className="border-l-2 border-amber-600/50 pl-3">
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
+                  <SequentialTypedLines
+                    as="ul"
+                    itemAs="li"
+                    lines={levelBriefingLines}
+                    resetKey={briefResetKey}
+                    className="space-y-3 text-left text-sm leading-relaxed text-slate-200"
+                    itemClassName="border-l-2 border-amber-600/50 pl-3"
+                  />
                 </section>
               )}
             </div>

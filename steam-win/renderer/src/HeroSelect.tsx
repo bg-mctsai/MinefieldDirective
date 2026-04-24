@@ -7,6 +7,7 @@ import {
   ScrollText,
   StickyNote,
   Tag,
+  ZoomIn,
 } from 'lucide-react';
 import {
   HEROES,
@@ -18,6 +19,7 @@ import {
 } from './heroes';
 import { TerminalBackdrop } from './ui/TerminalBackdrop';
 import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
+import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
 import { heroSkillHudLucideIcon } from './game/heroSkillHudIcons';
 
 function ConfidentialStamp({ className = '' }: { className?: string }) {
@@ -51,6 +53,8 @@ function PersonalItemIcon({ icon, size = 16 }: { icon: HeroPersonalItemIcon; siz
 }
 
 function HeroDossierPanel({ hero }: { hero: HeroDef }) {
+  const { openPortrait } = useHeroPortraitLightbox();
+
   return (
     <div className="relative overflow-hidden rounded-3xl border-2 border-[#1e293b] bg-[#0f141c]/95 p-6 shadow-2xl">
       <ShoulderTape />
@@ -58,9 +62,15 @@ function HeroDossierPanel({ hero }: { hero: HeroDef }) {
 
       {/* 表頭：頭像 + 識別資訊 */}
       <div className="flex flex-col gap-4 border-b border-[#1e293b] pb-5 sm:flex-row sm:items-center">
-        <div className="relative h-28 w-28 shrink-0 self-center overflow-hidden rounded-2xl border border-[#F59E0B]/30 bg-[#0B0E14] sm:self-auto">
+        <button
+          type="button"
+          onClick={() => openPortrait(hero.id)}
+          title="點擊放大頭像"
+          aria-label={`放大 ${hero.name} 頭像`}
+          className="group relative h-28 w-28 shrink-0 cursor-zoom-in self-center overflow-hidden rounded-2xl border border-[#F59E0B]/30 bg-[#0B0E14] outline-none ring-offset-2 ring-offset-[#0f141c] transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-[0_0_0_2px_rgba(245,158,11,0.35)] focus-visible:ring-2 focus-visible:ring-amber-500/75 active:scale-[0.99] sm:self-auto"
+        >
           <HeroAvatarSilhouette heroId={hero.id} size={112} />
-        </div>
+        </button>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-slate-500">
             DOSSIER · 幹員個人檔案
@@ -167,6 +177,7 @@ function HeroDossierPanel({ hero }: { hero: HeroDef }) {
 export default function HeroSelect({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState(getStoredHeroId);
   const hero = useMemo(() => HEROES.find((h) => h.id === selected) ?? HEROES[0], [selected]);
+  const { openPortrait } = useHeroPortraitLightbox();
 
   return (
     <TerminalBackdrop className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
@@ -217,8 +228,22 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
                 >
                   <ShoulderTape className="opacity-70" />
                   <div className="flex items-center gap-3">
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#F59E0B]/30 bg-[#0B0E14]">
-                      <HeroAvatarSilhouette heroId={h.id} size={56} />
+                    <div className="relative h-14 w-14 shrink-0">
+                      <div className="h-14 w-14 overflow-hidden rounded-xl border border-[#F59E0B]/30 bg-[#0B0E14]">
+                        <HeroAvatarSilhouette heroId={h.id} size={56} />
+                      </div>
+                      <button
+                        type="button"
+                        title={`放大 ${h.name} 頭像`}
+                        aria-label={`放大 ${h.name} 頭像`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPortrait(h.id);
+                        }}
+                        className="absolute -bottom-0.5 -right-0.5 z-10 flex h-[18px] w-[18px] items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40 transition-colors hover:border-amber-500/60 hover:text-amber-300"
+                      >
+                        <ZoomIn size={11} strokeWidth={2.6} />
+                      </button>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">

@@ -204,6 +204,9 @@ export function GameBoard({
   const boardWidthPx = gridW * cellSize + Math.max(0, gridW - 1) * gap;
   const boardHeightPx = gridH * cellSize + Math.max(0, gridH - 1) * gap;
   const validKey = new Set(cells.map((c) => `${c.x},${c.y}`));
+  const placedByKey = new Map(gameState.placedNumbers.map((p) => [`${p.x},${p.y}`, p]));
+  const conflictKeySet = new Set(gameState.conflictCells.map((c) => `${c.x},${c.y}`));
+  const explosionMarkKeySet = new Set(gameState.explosionMarkCells.map((c) => `${c.x},${c.y}`));
 
   return (
     <div className="w-full max-w-full overflow-x-auto">
@@ -234,20 +237,20 @@ export function GameBoard({
               />
             );
 
-          const placed = gameState.placedNumbers.find((p) => p.x === x && p.y === y);
           const key = `${x},${y}`;
+          const placed = placedByKey.get(key);
           const isDynMine = gameState.dynamicMines.has(key);
           // 仍在倒數的炸點：由 countdown overlay 顯示，不渲染地雷圖示
           // 已解除的炸點（不在 blastPointsCountdown 中）：正常顯示地雷圖示
           const isMine = !blastPointsCountdown.has(key) && gameState.revealedMines.has(key);
-          const isConflict = gameState.conflictCells.some((c) => c.x === x && c.y === y);
+          const isConflict = conflictKeySet.has(key);
           const lossChainPhase = lossChainPhaseForKey(
             key,
             gameState.lossSequentialExplosionKeys,
             gameState.lossExplosionWaveIndex,
           );
           const isExploding = gameState.status === 'exploding' && isMine && lossChainPhase === 'none';
-          const showExplosionX = gameState.explosionMarkCells.some((c) => c.x === x && c.y === y);
+          const showExplosionX = explosionMarkKeySet.has(key);
           const isBonusTarget = bonusTargetKeys.has(key);
           const isBonusTargetRewarded = rewardedTargetKeys.has(key);
           const showBonusFx = bonusFxKeySet.has(key);

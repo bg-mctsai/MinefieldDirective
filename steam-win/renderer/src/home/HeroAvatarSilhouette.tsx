@@ -1,10 +1,11 @@
 /**
- * 幹員頭像：五名在編幹員使用概念風格 WebP 大頭照；其餘仍用幾何 SVG 剪影
+ * 幹員頭像：在編幹員＋指揮官 WebP 大頭照；其餘 id 仍用幾何 SVG 剪影
  */
 import type { CSSProperties } from 'react';
 
 import adaPortrait from '../assets/heroes/hero-ada.webp';
 import bobbyPortrait from '../assets/heroes/hero-bobby.webp';
+import commanderPortrait from '../assets/heroes/hero-commander.webp';
 import laozhangPortrait from '../assets/heroes/hero-laozhang.webp';
 import selinaPortrait from '../assets/heroes/hero-selina.webp';
 import xiaomingPortrait from '../assets/heroes/hero-xiaoming.webp';
@@ -14,6 +15,7 @@ export type HeroAvatarVariant = 'recruit' | 'engineer' | 'veteran';
 const VARIANT_BY_HERO: Record<string, HeroAvatarVariant> = {
   xiaoming: 'recruit',
   laozhang: 'veteran',
+  commander: 'veteran',
   ada: 'engineer',
   bobby: 'recruit',
   selina: 'recruit',
@@ -22,6 +24,7 @@ const VARIANT_BY_HERO: Record<string, HeroAvatarVariant> = {
 const PORTRAIT_BY_HERO: Record<string, string> = {
   xiaoming: xiaomingPortrait,
   laozhang: laozhangPortrait,
+  commander: commanderPortrait,
   ada: adaPortrait,
   bobby: bobbyPortrait,
   selina: selinaPortrait,
@@ -29,6 +32,11 @@ const PORTRAIT_BY_HERO: Record<string, string> = {
 
 export function variantFromHeroId(id: string): HeroAvatarVariant {
   return VARIANT_BY_HERO[id] ?? 'recruit';
+}
+
+/** 有 WebP 大頭照的幹員／指揮官 id；供頭像放大層判斷 */
+export function getHeroPortraitUrl(heroId: string): string | undefined {
+  return PORTRAIT_BY_HERO[heroId];
 }
 
 export function HeroAvatarSilhouette({

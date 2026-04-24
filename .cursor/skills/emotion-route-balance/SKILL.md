@@ -43,5 +43,6 @@ constraints:
 
 ## 交叉參照
 
+- 若同時要維持星火／噬星者異界入侵名詞與背景一致：`.cursor/skills/spark-invasion-lore/SKILL.md`
 - 若同時要調整關卡時間與難度：`.cursor/skills/level-time-adjustment/SKILL.md`
 - 若同時要調整章節主題與地圖敘事：`.cursor/skills/campaign-map-themes/SKILL.md`

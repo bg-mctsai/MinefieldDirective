@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { MissionDirectiveEmblem } from './MissionDirectiveEmblem';
 import { LAST_COUNTDOWN_SOUND_SECONDS } from './constants';
 import type { HeroCombatTheme } from './heroCombatTheme';
@@ -17,10 +17,13 @@ export function GameHeader({
   onRestart,
   showNextLevelButton,
   onNextLevel,
+  showChapterEndButton,
+  onChapterEnd,
   levelName,
   secondsLeft,
   countdownStarted,
   guideButton,
+  testCompleteButton,
   telegraphPanel,
   heroTheme: heroThemeProp,
 }: {
@@ -29,9 +32,12 @@ export function GameHeader({
   coverageGoalPercent: number;
   onBack: () => void;
   onRestart: () => void;
-  /** 過關並按慶祝「確定」後，非最終關時顯示 */
+  /** 過關並按慶祝「確定」後，非最終關且非章內第 10 關時顯示「下一關」 */
   showNextLevelButton?: boolean;
   onNextLevel?: () => void;
+  /** 章內第 10 關通關後顯示「完結」：回到行動卷宗 */
+  showChapterEndButton?: boolean;
+  onChapterEnd?: () => void;
   levelName: string;
   /** `null` = 本關不計時 */
   secondsLeft: number | null;
@@ -39,6 +45,8 @@ export function GameHeader({
   countdownStarted: boolean;
   /** 第一行右側，通常為「指南」 */
   guideButton?: ReactNode;
+  /** 測試捷徑按鈕（例如：測試完成） */
+  testCompleteButton?: ReactNode;
   /** 第二行與任務進度並排：長官電報列 */
   telegraphPanel?: ReactNode;
   /** 依幹員切換的戰鬥主題色 */
@@ -74,7 +82,12 @@ export function GameHeader({
             </h1>
           </div>
         </div>
-        {guideButton != null && <div className="shrink-0">{guideButton}</div>}
+        {(guideButton != null || testCompleteButton != null) && (
+          <div className="shrink-0 flex items-center gap-2">
+            {testCompleteButton}
+            {guideButton}
+          </div>
+        )}
       </motion.div>
 
       <motion.div
@@ -121,6 +134,16 @@ export function GameHeader({
             )}
           </div>
           <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 self-center sm:mt-0 sm:ml-auto sm:justify-end sm:self-auto">
+            {showChapterEndButton && onChapterEnd != null && (
+              <button
+                type="button"
+                onClick={onChapterEnd}
+                className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-sm font-black text-white shadow-lg transition-all active:scale-95 ${heroTheme.headerNextLevel}`}
+              >
+                <Check size={18} strokeWidth={2.5} />
+                完結
+              </button>
+            )}
             {showNextLevelButton && onNextLevel != null && (
               <button
                 type="button"

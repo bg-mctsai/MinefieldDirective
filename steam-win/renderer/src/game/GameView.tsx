@@ -14,6 +14,12 @@ import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
 import { getHeroCombatTheme } from './heroCombatTheme';
+import { stageInChapter } from './chapterStage';
+
+export type BackToMissionContext = {
+  /** 在勝利狀態自章內第 10 關「返回」時，帶出剛完成的章，供上層顯示行動卷宗前對話 */
+  dossierAfterClearedChapter?: number;
+};
 
 export default function GameView({
   initialLevelIndex: initialLevelProp,
@@ -22,7 +28,7 @@ export default function GameView({
   onHighestClearedLevelChange: _onHighestClearedLevelChange,
 }: {
   initialLevelIndex: number;
-  onBack: () => void;
+  onBack: (context?: BackToMissionContext) => void;
   highestClearedLevel: number;
   onHighestClearedLevelChange: (next: number) => void;
 }) {
@@ -42,6 +48,7 @@ export default function GameView({
     movingSoldier,
     initGame,
     handleCellClick,
+    forceCompleteForTest,
     fillPercentage,
     bonusFxKeys,
   } = useMineGame(safeInitialLevelIndex);
@@ -59,9 +66,32 @@ export default function GameView({
   }, [gameState?.gameId]);
 
   const lastRecordedWinGameId = useRef<number | null>(null);
+  /** 勝利在章內第 10 關且尚未進「下一關」時，返回作戰地圖帶出章碼，供上層顯示卷宗前對話。 */
+  const chapter10BossClearedForDossierRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (gameState?.status !== 'won') return;
+    const ch = gameState.level.definition.chapter;
+    if (typeof ch !== 'number' || !Number.isFinite(ch)) return;
+    if (stageInChapter(gameState.level.id, ch) !== 10) return;
+    chapter10BossClearedForDossierRef.current = ch;
+  }, [gameState?.status, gameState?.level.id, gameState?.level.definition.chapter, gameState?.gameId]);
+
+  const lastGameIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (gameState == null) return;
+    if (lastGameIdRef.current != null && lastGameIdRef.current !== gameState.gameId) {
+      chapter10BossClearedForDossierRef.current = null;
+    }
+    lastGameIdRef.current = gameState.gameId;
+  }, [gameState?.gameId]);
 
   const handleNextLevel = useCallback(() => {
     if (!gameState) return;
+    const ch = gameState.level.definition.chapter;
+    if (gameState.status === 'won' && typeof ch === 'number' && stageInChapter(gameState.level.id, ch) === 10) {
+      chapter10BossClearedForDossierRef.current = null;
+    }
     const nextIndex = currentLevelIndex + 1;
     const nextLevel = levelList[nextIndex];
     if (!nextLevel) return;
@@ -71,6 +101,12 @@ export default function GameView({
     if (!isLevelUnlocked(nextLevel.id, effectiveHighestCleared)) return;
     setCurrentLevelIndex(nextIndex);
   }, [currentLevelIndex, levelList, gameState, highestClearedLevel]);
+
+  const handleExitToMission = useCallback(() => {
+    const c = chapter10BossClearedForDossierRef.current;
+    chapter10BossClearedForDossierRef.current = null;
+    onBack(c != null ? { dossierAfterClearedChapter: c } : undefined);
+  }, [onBack]);
 
   useEffect(() => {
     if (!gameState) return;
@@ -105,6 +141,12 @@ export default function GameView({
   const winInlineActionsUnlocked =
     gameState.status === 'won' && dismissedWinCelebrationGameId === gameState.gameId;
 
+  const isChapterStage10 =
+    gameState.status === 'won' &&
+    typeof ch === 'number' &&
+    Number.isFinite(ch) &&
+    stageInChapter(gameState.level.id, ch) === 10;
+
   const combatHeroId = getStoredHeroId();
   const combatTheme = getHeroCombatTheme(combatHeroId);
 
@@ -115,14 +157,27 @@ export default function GameView({
       <GameHeader
         fillPercentage={fillPercentage}
         coverageGoalPercent={gameState.level.definition.coverageGoal * 100}
-        onBack={onBack}
+        onBack={handleExitToMission}
         onRestart={() => initGame(currentLevelIndex, gameState.runSeed)}
-        showNextLevelButton={winInlineActionsUnlocked && !isLastLevel}
+        showNextLevelButton={winInlineActionsUnlocked && !isLastLevel && !isChapterStage10}
         onNextLevel={handleNextLevel}
+        showChapterEndButton={winInlineActionsUnlocked && isChapterStage10 && !isLastLevel}
+        onChapterEnd={handleExitToMission}
         levelName={campaignLevelHeaderTitle(gameState.level)}
         secondsLeft={gameState.secondsLeft}
         countdownStarted={gameState.timerStarted}
         heroTheme={combatTheme}
+        testCompleteButton={
+          gameState.status !== 'won' ? (
+            <button
+              type="button"
+              onClick={forceCompleteForTest}
+              className="rounded-xl border border-amber-400/65 bg-amber-500/20 px-3 py-2 text-xs font-black tracking-wide text-amber-200 transition-colors hover:bg-amber-500/30"
+            >
+              測試完成
+            </button>
+          ) : null
+        }
         guideButton={
           <div className="flex max-w-[min(100vw-6rem,36rem)] flex-col items-end gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
             <LevelMechanicFeatureBadges definition={gameState.level.definition} />
@@ -174,7 +229,7 @@ export default function GameView({
           levelCount={levelList.length}
           fillPercentage={fillPercentage}
           showInlineWinActions={winInlineActionsUnlocked}
-          onReturnToMission={onBack}
+          onReturnToMission={handleExitToMission}
           onReplayFinalLevel={() => initGame(currentLevelIndex, gameState.runSeed)}
         />
       </div>

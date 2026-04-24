@@ -522,11 +522,12 @@ export function useMineGame(initialLevelIndex: number) {
 
     playPlaceNumberSound(newValue);
 
-    const forced = solver.findForced(newPlacedNumbers);
-    // 目標雷的「確認」只採玩家可見邏輯推論：炸點為可見已知地雷，隱藏 forcedMineCells 不納入。
+    // 所有紅雷/空白揭示都只採「玩家可見」邏輯：炸點為可見已知地雷，隱藏 forcedMineCells 不納入。
+    // 之前有同時跑一份含隱藏先驗的 solver.findForced，但其結果最終都會被 logicOnly 過濾掉，
+    // 徒增一次完整 SAT 回溯；統一用 logicOnly 即可。
     const logicOnlySolver = new MineSolver(gameState.level.cells, newPlacedNumbers, {
       ...topoWithBlastPoints,
-      forcedMineKeys: allBlastPointKeys, // 只保留玩家可見的炸點，排除隱藏先驗
+      forcedMineKeys: allBlastPointKeys,
     });
     const logicOnlyForced = logicOnlySolver.findForced(newPlacedNumbers);
     const logicOnlyForcedMines = new Set(logicOnlyForced.mines);
@@ -540,10 +541,8 @@ export function useMineGame(initialLevelIndex: number) {
     const revealMode = topoWithBlastPoints.neighborMode;
     const bw = gameState.level.width;
     const bh = gameState.level.height;
-    for (const m of forced.mines) {
+    for (const m of logicOnlyForced.mines) {
       if (!withinForcedRevealZone(m, x, y, r, validKeys, revealMode, bw, bh)) continue;
-      // 所有紅雷顯示都只採用玩家可見資訊可推得的結果，避免 hidden 先驗讓雷提早變紅。
-      if (!logicOnlyForcedMines.has(m)) continue;
       if (!newRevealedMines.has(m)) newlyConfirmedMines.push(m);
       newRevealedMines.add(m);
     }
@@ -552,13 +551,14 @@ export function useMineGame(initialLevelIndex: number) {
       if (!newRevealedMines.has(targetKey)) newlyConfirmedMines.push(targetKey);
       newRevealedMines.add(targetKey);
     }
-    for (const c of forced.clear) {
+    for (const c of logicOnlyForced.clear) {
       if (withinForcedRevealZone(c, x, y, r, validKeys, revealMode, bw, bh)) newRevealedClear.add(c);
     }
 
     // 引爆危機：炸點鄰域強制揭示（不受 Chebyshev 半徑限制）
     // 第一圈：炸點直接鄰格；第二圈：已放數字的鄰格也向外再揭一層，
     // 確保玩家在炸點周圍放數字後能立即看到所有被確認的地雷。
+    const newPlacedKeySet = new Set(newPlacedNumbers.map((p) => `${p.x},${p.y}`));
     for (const [bpKey] of gameState.blastPointsCountdown) {
       const [bx, by] = bpKey.split(',').map(Number);
       const bpNeighbors = logicNeighborKeys(bx, by, validKeys, revealMode, bw, bh);
@@ -571,13 +571,11 @@ export function useMineGame(initialLevelIndex: number) {
         if (logicOnlyForcedClear.has(nk)) newRevealedClear.add(nk);
       };
 
-      // 第一圈：炸點直接鄰格
       for (const nk of bpNeighbors) revealKey(nk);
 
-      // 第二圈：炸點的「已放數字鄰格」的鄰格（2-hop，僅透過放了數字的格延伸）
       for (const neighborKey of bpNeighbors) {
+        if (!newPlacedKeySet.has(neighborKey)) continue;
         const [nx, ny] = neighborKey.split(',').map(Number);
-        if (!newPlacedNumbers.some((p) => p.x === nx && p.y === ny)) continue;
         for (const nk2 of logicNeighborKeys(nx, ny, validKeys, revealMode, bw, bh)) {
           revealKey(nk2);
         }
@@ -832,6 +830,20 @@ export function useMineGame(initialLevelIndex: number) {
       100
     : 0;
 
+  /** 測試捷徑：直接將當前對局標記為過關，便於驗證章節流轉與對話。 */
+  const forceCompleteForTest = useCallback(() => {
+    setGameState((prev) => {
+      if (!prev || prev.status === 'won') return prev;
+      return {
+        ...prev,
+        status: 'won',
+        message: GAME_FIXED.victoryStatus.plain,
+      };
+    });
+    setMovingSoldier(null);
+    setSelectedHandIndex(null);
+  }, []);
+
   return {
     LEVELS,
     boardRef,
@@ -843,6 +855,7 @@ export function useMineGame(initialLevelIndex: number) {
     movingSoldier,
     initGame,
     handleCellClick,
+    forceCompleteForTest,
     fillPercentage,
     bonusFxKeys,
   } as const;

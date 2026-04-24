@@ -1,22 +1,21 @@
 import type { MutableRefObject } from 'react';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, Flag, Home, Lock, Map as MapIcon } from 'lucide-react';
-import { LEVELS } from './gameLogic';
+import { ChevronLeft, Home, Map as MapIcon } from 'lucide-react';
+import { LEVELS, type Level } from './gameLogic';
 import { TerminalBackdrop } from './ui/TerminalBackdrop';
 import { isLevelUnlocked, LEVEL_MAX } from './game/gameProgressStorage';
 import { chapterCampaignTagline } from './game/levelStrategyGuideModel';
 import { stageInChapter } from './game/chapterStage';
 import missionChapterBlurbs from './missionMapChapterBlurbs.json';
 import { BriefingFolderCard, BriefingFolderLocked } from './BriefingFolderCard';
-import { ChapterTacticalMap } from './game/ChapterTacticalMap';
-import { MissionOperativeStrip } from './MissionOperativeStrip';
-import { getStoredHeroId } from './heroes';
-import { MissionLevelCommsBlock, formatMissionChannelCode } from './MissionLevelCommsBlock';
-
-/** 戰區關卡卡：直向堆疊，上列頻道／操作、下列標題全寬，避免與 CH 擠同一行 */
-const LEVEL_ROW =
-  'flex w-full flex-col items-stretch gap-2 rounded-2xl border-2 bg-[#0f141c]/95 px-3 py-2.5 sm:gap-2.5 sm:px-3.5 sm:py-3';
+import { MissionChapterHexNode } from './MissionChapterHexNode';
+import { MissionChapterTacticalBackdrop } from './MissionChapterTacticalBackdrop';
+import { MissionLevelTacticalDockedBrief } from './MissionLevelTacticalDockedBrief';
+import {
+  missionTacticalBriefingPaletteFromDefinition,
+  resolveMissionTacticalNodePositionPct,
+} from './missionTacticalBriefingMapResolve';
 
 /** 作戰地圖固定 10 個章節槽位（第 1～10 章），每章一列 */
 const CHAPTER_SLOT_COUNT = 10;
@@ -40,24 +39,18 @@ type Phase = 'pickChapter' | 'pickLevel';
 type LevelProgressTone = 'new' | 'inProgress' | 'cleared';
 
 function levelCtaText(tone: LevelProgressTone): string {
-  if (tone === 'cleared') return '重返戰區';
+  if (tone === 'cleared') return '進入戰場';
   if (tone === 'inProgress') return '接續任務';
   return '接受任務';
 }
 
-function levelRowTitle(stage: number, mapTheme: string | undefined, levelId: number, chapter: number): string {
-  const theme = mapTheme?.trim();
-  const pad = String(stage).padStart(2, '0');
-  const tag = `CH.${pad} ${formatMissionChannelCode(levelId, chapter, stage)}`;
-  return theme ? `${tag}：${theme}` : tag;
-}
-
-/** 裝飾用座標（依關卡固定，無地理意義） */
-function levelCardLocLine(levelId: number, chapter: number, stage: number): string {
-  const seed = (levelId * 47 + chapter * 91 + stage * 23) >>> 0;
-  const lat = 22.42 + (seed % 180) / 1000;
-  const lng = 120.28 + ((seed >>> 8) % 350) / 1000;
-  return `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+/** 戰情簡報標題：僅戰場主題（無 mapTheme 時退回關卡名／關卡編號） */
+function missionBriefDockHeading(level: Level): string {
+  const theme = level.definition.mapTheme?.trim();
+  if (theme) return theme;
+  const n = level.name?.trim();
+  if (n) return n;
+  return `關卡 ${level.id}`;
 }
 
 export default function MissionMap({
@@ -104,14 +97,48 @@ export default function MissionMap({
   /** 卷宗拉開過場：顯示卡片視覺反饋的 chapter；切到 pickLevel 後自動清空 */
   const [pendingChapter, setPendingChapter] = useState<number | null>(null);
   const pendingTimerRef = useRef<number | null>(null);
-  const [operativeId, setOperativeId] = useState(getStoredHeroId);
-  const [previewLevelId, setPreviewLevelId] = useState<number | null>(null);
+  /** 點選六角後於地圖下方顯示戰情摘要 */
+  const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
 
   const activeLevels = useMemo(() => {
     if (openedChapter == null) return [];
     const pair = chapters.find(([c]) => c === openedChapter);
     return pair?.[1] ?? [];
   }, [chapters, openedChapter]);
+
+  /** 底圖色票／地形相位：以選中關為主，否則章內下一個可玩關 */
+  const backdropVisualLevelId = useMemo(() => {
+    if (openedChapter == null) return 1;
+    if (selectedLevelId != null) return selectedLevelId;
+    const nextId = Math.min(LEVEL_MAX, Math.max(1, highestClearedLevel + 1));
+    const nextInChapter = activeLevels.find((r) => r.levelId === nextId);
+    if (nextInChapter && isLevelUnlocked(nextId, highestClearedLevel)) return nextId;
+    const unlocked = activeLevels.find((r) => isLevelUnlocked(r.levelId, highestClearedLevel));
+    return unlocked?.levelId ?? activeLevels[0]?.levelId ?? nextId;
+  }, [openedChapter, selectedLevelId, activeLevels, highestClearedLevel]);
+
+  const tacticalBackdrop = useMemo(() => {
+    if (openedChapter == null || activeLevels.length === 0) {
+      return {
+        routePoints: [] as Array<{ x: number; y: number }>,
+        palette: missionTacticalBriefingPaletteFromDefinition(1, LEVELS[0]!.definition),
+        visualSeed: 1,
+      };
+    }
+    const routePoints = activeLevels.map((row) => {
+      const lv = LEVELS[row.idx]!;
+      const stage = stageInChapter(lv.id, openedChapter);
+      return resolveMissionTacticalNodePositionPct({
+        chapter: openedChapter,
+        stage,
+        levelId: lv.id,
+        override: lv.definition.missionTacticalBriefingMap?.nodePositionPct,
+      });
+    });
+    const focalLv = LEVELS.find((l) => l.id === backdropVisualLevelId) ?? LEVELS[activeLevels[0]!.idx]!;
+    const palette = missionTacticalBriefingPaletteFromDefinition(focalLv.id, focalLv.definition);
+    return { routePoints, palette, visualSeed: backdropVisualLevelId };
+  }, [openedChapter, activeLevels, backdropVisualLevelId]);
 
   const requestOpenChapter = (chapter: number) => {
     if (pendingChapter != null) return;
@@ -131,25 +158,22 @@ export default function MissionMap({
       pendingTimerRef.current = null;
     }
     setPendingChapter(null);
-    setPreviewLevelId(null);
+    setSelectedLevelId(null);
     setPhase('pickChapter');
     setOpenedChapter(null);
   };
 
-  useLayoutEffect(() => {
-    if (phase === 'pickLevel') setOperativeId(getStoredHeroId());
-  }, [phase, openedChapter]);
+  useEffect(() => {
+    setSelectedLevelId(null);
+  }, [openedChapter]);
 
-  const defaultPreviewLevelId = useMemo(() => {
-    if (activeLevels.length === 0) return 1;
-    const nextId = Math.min(LEVEL_MAX, Math.max(1, highestClearedLevel + 1));
-    const nextRow = activeLevels.find((r) => r.levelId === nextId);
-    if (nextRow && isLevelUnlocked(nextRow.levelId, highestClearedLevel)) return nextRow.levelId;
-    const unlocked = activeLevels.find((r) => isLevelUnlocked(r.levelId, highestClearedLevel));
-    return unlocked?.levelId ?? activeLevels[0]!.levelId;
-  }, [activeLevels, highestClearedLevel]);
-
-  const effectivePreviewLevelId = previewLevelId ?? defaultPreviewLevelId;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedLevelId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useLayoutEffect(() => {
     if (phase === 'pickLevel') {
@@ -164,18 +188,33 @@ export default function MissionMap({
 
   const chapterTitle = openedChapter != null ? chapterCampaignTagline(openedChapter) : '';
 
-  /** 該章已過關的最高 stage（用於背景插旗） */
-  const clearedStageMaxInChapter = useMemo(() => {
-    if (openedChapter == null) return 0;
-    let m = 0;
-    for (const row of activeLevels) {
-      if (row.levelId <= highestClearedLevel) {
-        const s = stageInChapter(row.levelId, openedChapter);
-        if (s > m) m = s;
-      }
-    }
-    return m;
-  }, [activeLevels, highestClearedLevel, openedChapter]);
+  const dockedBriefProps = useMemo(() => {
+    if (selectedLevelId == null || openedChapter == null) return null;
+    const row = activeLevels.find((r) => r.levelId === selectedLevelId);
+    if (!row) return null;
+    const lv = LEVELS[row.idx]!;
+    const chapter = openedChapter;
+    const stage = stageInChapter(lv.id, chapter);
+    const unlocked = isLevelUnlocked(lv.id, highestClearedLevel);
+    const cleared = lv.id <= highestClearedLevel;
+    const inProgress =
+      !cleared &&
+      hintChapter === chapter &&
+      lv.id === Math.min(LEVEL_MAX, highestClearedLevel + 1);
+    const tone: LevelProgressTone = cleared ? 'cleared' : inProgress ? 'inProgress' : 'new';
+    return {
+      chapterView: chapter,
+      level: lv,
+      stage,
+      unlocked,
+      cleared,
+      inProgress,
+      isBossStage: stage === 10,
+      cta: levelCtaText(tone),
+      heading: missionBriefDockHeading(lv),
+      onStart: () => onStart(row.idx),
+    };
+  }, [selectedLevelId, openedChapter, activeLevels, highestClearedLevel, hintChapter, onStart]);
 
   return (
     <TerminalBackdrop className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
@@ -267,22 +306,8 @@ export default function MissionMap({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.2 }}
-              className="relative"
+              className="relative flex flex-col"
             >
-              {/* 戰術佈防圖背景 */}
-              {openedChapter != null && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 top-24 -z-10 mx-auto h-[420px] max-w-2xl opacity-[0.16]"
-                  aria-hidden
-                >
-                  <ChapterTacticalMap
-                    chapter={openedChapter}
-                    clearedStageMax={clearedStageMaxInChapter}
-                    totalStages={activeLevels.length}
-                  />
-                </div>
-              )}
-
               <header className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex flex-wrap items-center gap-3">
                   <button
@@ -315,146 +340,73 @@ export default function MissionMap({
                 </div>
               </header>
 
-              <div className="relative z-10 mb-5 w-full">
-                <MissionOperativeStrip
-                  operativeId={operativeId}
-                  onOperativeChange={setOperativeId}
-                  previewLevelId={effectivePreviewLevelId}
-                />
-              </div>
+              <p className="relative z-10 mb-2 text-center text-[11px] font-bold uppercase tracking-widest text-slate-500 sm:text-xs">
+                戰術地圖 · 點六角檢視戰情
+              </p>
 
-              {/* 每章 10 關：3+3+3+1；第 10 關大關橫幅＝上方三格同列總寬 */}
-              <ul className="relative z-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {activeLevels.map((row, i) => {
-                  const lv = LEVELS[row.idx]!;
-                  const mapTheme = lv.definition.mapTheme?.trim();
-                  const chapter = openedChapter ?? lv.definition.chapter;
-                  const unlocked = isLevelUnlocked(lv.id, highestClearedLevel);
-                  const tenSlotFinal = activeLevels.length === 10 && i === 9;
-                  const stage = stageInChapter(lv.id, chapter);
-                  const cleared = lv.id <= highestClearedLevel;
-                  const inProgress = !cleared && hintChapter === chapter
-                    && lv.id === Math.min(LEVEL_MAX, highestClearedLevel + 1);
-                  const tone: LevelProgressTone = cleared ? 'cleared' : inProgress ? 'inProgress' : 'new';
-                  const cta = levelCtaText(tone);
+              {openedChapter != null ? (
+                <div className="relative z-10 mt-1 w-full">
+                  <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-[#1e293b] bg-[#05070c] shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]">
+                    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl">
+                      <MissionChapterTacticalBackdrop
+                        chapter={openedChapter}
+                        routePoints={tacticalBackdrop.routePoints}
+                        palette={tacticalBackdrop.palette}
+                        visualSeed={tacticalBackdrop.visualSeed}
+                      />
+                      <div
+                        className="absolute inset-0 bg-gradient-to-b from-[#0a0d12]/75 via-transparent to-[#0a0d12]/88"
+                        aria-hidden
+                      />
+                    </div>
+                    <div className="relative z-10 aspect-[10/7] min-h-[280px] w-full sm:aspect-[16/9] sm:min-h-[340px]">
+                      {activeLevels.map((row) => {
+                        const lv = LEVELS[row.idx]!;
+                        const chapter = openedChapter;
+                        const stage = stageInChapter(lv.id, chapter);
+                        const pos = resolveMissionTacticalNodePositionPct({
+                          chapter,
+                          stage,
+                          levelId: lv.id,
+                          override: lv.definition.missionTacticalBriefingMap?.nodePositionPct,
+                        });
+                        const unlocked = isLevelUnlocked(lv.id, highestClearedLevel);
+                        const cleared = lv.id <= highestClearedLevel;
+                        const inProgress =
+                          !cleared &&
+                          hintChapter === chapter &&
+                          lv.id === Math.min(LEVEL_MAX, highestClearedLevel + 1);
+                        return (
+                          <MissionChapterHexNode
+                            key={lv.id}
+                            stage={stage}
+                            xPct={pos.x}
+                            yPct={pos.y}
+                            selected={selectedLevelId === lv.id}
+                            cleared={cleared}
+                            inProgress={inProgress}
+                            locked={!unlocked}
+                            isBoss={stage === 10}
+                            onSelect={() =>
+                              setSelectedLevelId((cur) => (cur === lv.id ? null : lv.id))
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
-                  return (
-                    <motion.li
-                      key={lv.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className={tenSlotFinal ? 'sm:col-span-3' : ''}
-                      onMouseEnter={() => setPreviewLevelId(lv.id)}
-                      onMouseLeave={() => setPreviewLevelId(null)}
-                    >
-                      {unlocked ? (
-                        <button
-                          type="button"
-                          onClick={() => onStart(row.idx)}
-                          aria-label={`${cta}：${levelRowTitle(stage, mapTheme, lv.id, chapter)}`}
-                          title={`${cta}：${levelRowTitle(stage, mapTheme, lv.id, chapter)} · ${lv.cells.length} 格可部署 · 寬${lv.width}×高${lv.height}`}
-                          className={`${LEVEL_ROW} group relative border-[#1e293b] pb-6 text-left shadow-[0_6px_20px_rgba(0,0,0,0.22)] transition-[border-color,background-color,transform,box-shadow] hover:border-[#F59E0B]/55 hover:bg-[#141a24] hover:shadow-[0_8px_28px_rgba(245,158,11,0.06)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/65 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0d12] ${tenSlotFinal ? 'w-full ring-1 ring-inset ring-[#F59E0B]/35' : ''}`}
-                        >
-                          <div className="flex w-full min-w-0 flex-row items-center justify-between gap-3 sm:gap-4">
-                            <div className="-ml-1 flex shrink-0 items-center py-0.5 sm:-ml-1.5">
-                              <MissionLevelCommsBlock
-                                stage={stage}
-                                levelId={lv.id}
-                                chapter={chapter}
-                                cleared={cleared}
-                                isBossStage={stage === 10}
-                                relaxed={tenSlotFinal}
-                                inProgress={inProgress}
-                              />
-                            </div>
-                            <div className="ml-1 flex shrink-0 flex-row items-center gap-1.5 border-l border-[#1e293b]/80 pl-2.5 sm:ml-2 sm:gap-2 sm:pl-3">
-                              {cleared ? (
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-md border border-emerald-500/55 bg-emerald-500/12 px-1.5 py-0.5 text-[10px] font-black text-emerald-400"
-                                  title="已完成"
-                                >
-                                  <Flag size={10} strokeWidth={2.5} />
-                                  已完成
-                                </span>
-                              ) : null}
-                              <ChevronRight
-                                className="text-slate-600 transition-colors group-hover:text-[#F59E0B]"
-                                size={20}
-                                strokeWidth={2.25}
-                                aria-hidden
-                              />
-                            </div>
-                          </div>
-                          <div className="w-full min-w-0 border-t border-[#1e293b]/70 pt-1.5">
-                            {mapTheme ? (
-                              <div className="line-clamp-3 text-base font-black leading-snug text-white sm:text-lg">
-                                {mapTheme}
-                              </div>
-                            ) : (
-                              <div className="text-base font-bold leading-snug text-slate-500 sm:text-lg">—</div>
-                            )}
-                          </div>
-                          <div
-                            className="pointer-events-none absolute inset-x-2.5 bottom-2 flex items-end justify-between sm:inset-x-3.5"
-                            aria-hidden
-                          >
-                            <div className="flex min-w-0 items-end gap-2">
-                              <span className="mission-card-crop-lb" />
-                              <span className="max-w-[calc(100%-2.5rem)] truncate font-mono text-[7.5px] font-medium tracking-wide text-slate-600/90 sm:text-[8px]">
-                                LOC: {levelCardLocLine(lv.id, chapter, stage)}
-                              </span>
-                            </div>
-                            <span className="mission-card-crop-br" />
-                          </div>
-                        </button>
-                      ) : (
-                        <div
-                          className={`${LEVEL_ROW} relative cursor-not-allowed border-dashed border-slate-700 pb-6 text-left opacity-55 ${tenSlotFinal ? 'w-full' : ''}`}
-                          aria-disabled
-                          title={`${levelRowTitle(stage, mapTheme, lv.id, chapter)} · ${lv.cells.length} 格 · 寬${lv.width}×高${lv.height}`}
-                        >
-                          <div className="flex w-full min-w-0 flex-row items-center justify-between gap-3 opacity-80 sm:gap-4">
-                            <div className="-ml-1 flex shrink-0 items-center py-0.5 sm:-ml-1.5">
-                              <MissionLevelCommsBlock
-                                stage={stage}
-                                levelId={lv.id}
-                                chapter={chapter}
-                                cleared={false}
-                                locked
-                                isBossStage={stage === 10}
-                                relaxed={tenSlotFinal}
-                              />
-                            </div>
-                            <div className="ml-1 flex shrink-0 items-center border-l border-slate-800 pl-2.5 sm:ml-2 sm:pl-3">
-                              <Lock className="text-slate-600" size={18} aria-hidden />
-                            </div>
-                          </div>
-                          <div className="w-full min-w-0 border-t border-slate-800/90 pt-1.5">
-                            {mapTheme ? (
-                              <div className="line-clamp-3 text-base font-black leading-snug text-slate-500 sm:text-lg">{mapTheme}</div>
-                            ) : (
-                              <div className="text-base font-bold leading-snug text-slate-600 sm:text-lg">—</div>
-                            )}
-                          </div>
-                          <div
-                            className="pointer-events-none absolute inset-x-2.5 bottom-2 flex items-end justify-between sm:inset-x-3.5"
-                            aria-hidden
-                          >
-                            <div className="flex min-w-0 items-end gap-2">
-                              <span className="mission-card-crop-lb" />
-                              <span className="max-w-[calc(100%-2.5rem)] truncate font-mono text-[7.5px] font-medium tracking-wide text-slate-600/70 sm:text-[8px]">
-                                LOC: {levelCardLocLine(lv.id, chapter, stage)}
-                              </span>
-                            </div>
-                            <span className="mission-card-crop-br" />
-                          </div>
-                        </div>
-                      )}
-                    </motion.li>
-                  );
-                })}
-              </ul>
+              <AnimatePresence>
+                {dockedBriefProps ? (
+                  <MissionLevelTacticalDockedBrief
+                    key={dockedBriefProps.level.id}
+                    {...dockedBriefProps}
+                    onClose={() => setSelectedLevelId(null)}
+                  />
+                ) : null}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
