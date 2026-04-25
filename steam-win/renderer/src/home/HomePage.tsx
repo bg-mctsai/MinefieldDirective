@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TerminalBackdrop } from '../ui/TerminalBackdrop';
 import { HEROES, getStoredHeroId, setStoredHeroId } from '../heroes';
-import { playHoverBeep } from '../playHoverBeep';
+import { AudioEngine } from '../audio/AudioEngine';
+import { applyAudioBusSettings } from '../audio/applyAudioSettings';
+import { useBgmChannel } from '../audio/useBgmChannel';
 import { HOME_TITLE_FULL } from './constants';
 import { HomeHeader } from './HomeHeader';
 import { HomeMainMenu } from './HomeMainMenu';
@@ -34,7 +36,31 @@ export default function HomePage({
 
   useEffect(() => {
     saveHomeSettings(settings);
+    applyAudioBusSettings(settings.buses);
   }, [settings]);
+
+  // HomePage 重新掛載時（例如從對局/作戰地圖返回）強制恢復 ctx + 套一次 bus 設定
+  useEffect(() => {
+    void AudioEngine.warmUp();
+    applyAudioBusSettings(loadHomeSettings().buses);
+  }, []);
+
+  // 有些平台需要一次明確的使用者手勢才能解除音訊封鎖，
+  // 這裡在首頁首次互動時主動喚醒並啟動主場 BGM，避免「要先開設定才有聲」。
+  useEffect(() => {
+    const unlockAndStart = () => {
+      void AudioEngine.warmUp();
+      void AudioEngine.startLoop('bgm.home.settings');
+    };
+    window.addEventListener('pointerdown', unlockAndStart, { once: true });
+    window.addEventListener('keydown', unlockAndStart, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlockAndStart);
+      window.removeEventListener('keydown', unlockAndStart);
+    };
+  }, []);
+
+  useBgmChannel(settingsOpen ? 'settings' : 'base');
 
   useEffect(() => {
     let i = 0;
@@ -54,9 +80,7 @@ export default function HomePage({
     return () => window.clearInterval(id);
   }, [hero.lines]);
 
-  const onMenuHover = useCallback(() => {
-    playHoverBeep(settings.volume);
-  }, [settings.volume]);
+  const onMenuHover = useCallback(() => {}, []);
 
   const handleDevReloadLevels = useCallback(async () => {
     setDevReloadBusy(true);

@@ -1,8 +1,16 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { HEROES, setStoredHeroId } from '../heroes';
-import { clearAllMdSaveData } from './homeSettingsStorage';
-import type { HomeSettings } from './types';
+import { clearAllMdSaveData, DEFAULT_BUSES } from './homeSettingsStorage';
+import type { AudioBusSettings, HomeSettings } from './types';
+
+const BUS_LABELS: { id: keyof AudioBusSettings; label: string; hint?: string }[] = [
+  { id: 'master', label: '主音量' },
+  { id: 'ui', label: '介面' },
+  { id: 'sfx', label: '音效' },
+  { id: 'vo', label: '語音/電報' },
+  { id: 'bgm', label: '背景樂' },
+];
 
 export function SettingsModal({
   open,
@@ -17,6 +25,15 @@ export function SettingsModal({
   onChange: (next: HomeSettings) => void;
   onResetHero: () => void;
 }) {
+  const updateBus = (id: keyof AudioBusSettings, value01: number) => {
+    const nextBuses: AudioBusSettings = { ...settings.buses, [id]: value01 };
+    onChange({
+      ...settings,
+      buses: nextBuses,
+      volume: id === 'master' ? value01 : settings.volume,
+    });
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -45,19 +62,32 @@ export function SettingsModal({
                 <X size={20} />
               </button>
             </div>
-            <div className="space-y-6">
-              <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
-                  主音量
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(settings.volume * 100)}
-                  onChange={(e) => onChange({ ...settings, volume: Number(e.target.value) / 100 })}
-                  className="w-full accent-[#F59E0B]"
-                />
+            <div className="space-y-5">
+              <div className="space-y-4 rounded-2xl border border-[#1e293b] bg-[#0B0E14] p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  音訊通道
+                </div>
+                {BUS_LABELS.map(({ id, label }) => {
+                  const value = settings.buses?.[id] ?? DEFAULT_BUSES[id];
+                  return (
+                    <div key={id}>
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="text-xs font-semibold text-slate-300">{label}</label>
+                        <span className="text-xs tabular-nums text-slate-500">
+                          {Math.round(value * 100)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={Math.round(value * 100)}
+                        onChange={(e) => updateBus(id, Number(e.target.value) / 100)}
+                        className="w-full accent-[#F59E0B]"
+                      />
+                    </div>
+                  );
+                })}
               </div>
               <div>
                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -79,7 +109,7 @@ export function SettingsModal({
                 type="button"
                 onClick={() => {
                   clearAllMdSaveData();
-                  onChange({ volume: 0.7, lang: 'zh-Hant' });
+                  onChange({ volume: DEFAULT_BUSES.master, buses: { ...DEFAULT_BUSES }, lang: 'zh-Hant' });
                   setStoredHeroId(HEROES[0].id);
                   onResetHero();
                 }}

@@ -25,13 +25,11 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 2px,
-    rgba(0, 0, 0, 0.12) 2px,
-    rgba(0, 0, 0, 0.12) 3px
-  );
+  background: repeating-linear-gradient(to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.12) 2px,
+      rgba(0, 0, 0, 0.12) 3px);
 }
 
 @keyframes radar-spin {
@@ -48,6 +46,7 @@ body {
   0% {
     transform: translateY(-100%);
   }
+
   100% {
     transform: translateY(100%);
   }
@@ -55,11 +54,13 @@ body {
 
 /* 行動指揮車：戰術燈光左右擺動（極輕量） */
 @keyframes opsLampSway {
+
   0%,
   100% {
     transform: translate3d(-1.5%, 0, 0) rotate(-1.2deg);
     opacity: 0.55;
   }
+
   50% {
     transform: translate3d(1.5%, 0, 0) rotate(1.2deg);
     opacity: 0.85;
@@ -77,12 +78,15 @@ body {
     transform: translateY(-30%);
     opacity: 0;
   }
+
   10% {
     opacity: 0.55;
   }
+
   90% {
     opacity: 0.4;
   }
+
   100% {
     transform: translateY(120vh);
     opacity: 0;
@@ -106,10 +110,12 @@ body {
 
 /* 電報游標微脈動 */
 @keyframes opsTypingCaret {
+
   0%,
   60% {
     opacity: 1;
   }
+
   61%,
   100% {
     opacity: 0.15;
@@ -122,12 +128,14 @@ body {
 
 /* 警示脈動描邊（工兵動態台詞 alert） */
 @keyframes opsAlertPulse {
+
   0%,
   100% {
     box-shadow:
       0 0 0 1px rgba(239, 68, 68, 0.65),
       0 0 14px rgba(239, 68, 68, 0.45);
   }
+
   50% {
     box-shadow:
       0 0 0 2px rgba(239, 68, 68, 0.95),
@@ -142,10 +150,12 @@ body {
 
 /* 卷宗印章微微傾斜浮動 */
 @keyframes opsStampWobble {
+
   0%,
   100% {
     transform: rotate(-12deg) translateY(0);
   }
+
   50% {
     transform: rotate(-13deg) translateY(-1px);
   }
@@ -157,10 +167,12 @@ body {
 
 /* 作戰地圖：通訊頻道波形（接入情報線） */
 @keyframes mission-wave-flicker {
+
   0%,
   100% {
     opacity: 0.28;
   }
+
   50% {
     opacity: 1;
   }
@@ -176,13 +188,11 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 1px,
-    rgba(255, 255, 255, 0.045) 1px,
-    rgba(255, 255, 255, 0.045) 2px
-  );
+  background: repeating-linear-gradient(to bottom,
+      transparent 0px,
+      transparent 1px,
+      rgba(255, 255, 255, 0.045) 1px,
+      rgba(255, 255, 255, 0.045) 2px);
 }
 
 /* 亮底標籤紙：極淡深色掃描 */
@@ -191,17 +201,16 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 1px,
-    rgba(0, 0, 0, 0.045) 1px,
-    rgba(0, 0, 0, 0.045) 2px
-  );
+  background: repeating-linear-gradient(to bottom,
+      transparent 0px,
+      transparent 1px,
+      rgba(0, 0, 0, 0.045) 1px,
+      rgba(0, 0, 0, 0.045) 2px);
 }
 
 /* 當前可接關：頻道微脈衝（接收訊號） */
 @keyframes mission-ch-tune-pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -209,6 +218,7 @@ body {
       0 0 0 0 rgba(245, 158, 11, 0.28),
       inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
+
   50% {
     opacity: 0.94;
     box-shadow:
@@ -226,21 +236,26 @@ body {
   0% {
     background-position: 0 0;
   }
+
   100% {
     background-position: 18px 0;
   }
 }
 
 .mission-boss-hazard-stripes {
-  background: repeating-linear-gradient(
-    -36deg,
-    #ca8a04,
-    #ca8a04 3px,
-    #0a0a0a 3px,
-    #0a0a0a 6px
-  );
+  background: repeating-linear-gradient(-36deg,
+      #ca8a04,
+      #ca8a04 3px,
+      #0a0a0a 3px,
+      #0a0a0a 6px);
   background-size: 9px 9px;
   animation: mission-hazard-stripe-drift 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mission-boss-hazard-stripes {
+    animation: none;
+  }
 }
 
 /* 關卡卡底部：裁切角標 */
@@ -264,12 +279,14 @@ body {
 
 /* 章末頻道：與主色 #F59E0B 同系微脈衝描邊 */
 @keyframes mission-boss-tape-edge {
+
   0%,
   100% {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
       0 0 0 1px rgba(245, 158, 11, 0.35);
   }
+
   50% {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.28),
@@ -332,9 +349,11 @@ body {
     transform: scale(0.04);
     opacity: 0.52;
   }
+
   78% {
     opacity: 0.1;
   }
+
   100% {
     transform: scale(20);
     opacity: 0;
@@ -352,6 +371,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .mission-tactical-radar-pulse,
   .mission-tactical-radar-pulse--echo {
     animation: none;
@@ -361,6 +381,7 @@ body {
 
 /* 六角節點：下一挑戰關 — 橘色閃爍外框（取代原黃圈） */
 @keyframes mission-hex-next-challenge {
+
   0%,
   100% {
     box-shadow:
@@ -369,6 +390,7 @@ body {
       inset 0 0 6px rgba(249, 115, 22, 0.1);
     opacity: 1;
   }
+
   50% {
     box-shadow:
       0 0 0 3px rgba(251, 146, 60, 0.75),
@@ -400,11 +422,13 @@ body {
 }
 
 @keyframes mission-hex-bloom-pulse {
+
   0%,
   100% {
     transform: scale(1);
     opacity: 0.85;
   }
+
   50% {
     transform: scale(1.18);
     opacity: 1;
@@ -413,6 +437,34 @@ body {
 
 .mission-hex-bloom-pulse {
   animation: mission-hex-bloom-pulse 1.4s ease-in-out infinite;
+}
+
+/* 六角節點：雙擊確認進場的短促爆閃 */
+@keyframes mission-hex-confirm-flash {
+  0% {
+    transform: scale(0.82);
+    opacity: 0;
+    box-shadow:
+      0 0 0 0 rgba(245, 158, 11, 0.95),
+      0 0 0 0 rgba(56, 189, 248, 0.8);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.26);
+    opacity: 0;
+    box-shadow:
+      0 0 0 3px rgba(245, 158, 11, 0.18),
+      0 0 16px 8px rgba(56, 189, 248, 0);
+  }
+}
+
+.mission-hex-confirm-flash {
+  border: 2px solid rgba(245, 158, 11, 0.75);
+  animation: mission-hex-confirm-flash 180ms ease-out 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -424,6 +476,12 @@ body {
     animation: none;
   }
 
+  .mission-hex-confirm-flash {
+    animation: none;
+    opacity: 0.55;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.65);
+  }
+
   .mission-route-flow-dash {
     animation: none;
   }
@@ -431,6 +489,7 @@ body {
 
 /* 戰情底部：主 CTA 微弱螢光呼吸（唯一動態焦點） */
 @keyframes mission-docked-cta-neon-breathe {
+
   0%,
   100% {
     box-shadow:
@@ -438,6 +497,7 @@ body {
       0 0 14px rgba(245, 158, 11, 0.18),
       0 0 22px rgba(34, 211, 153, 0.08);
   }
+
   50% {
     box-shadow:
       0 0 0 1px rgba(245, 158, 11, 0.55),
@@ -462,6 +522,7 @@ body {
   0% {
     transform: translateY(-100%);
   }
+
   100% {
     transform: translateY(220%);
   }
@@ -473,40 +534,39 @@ body {
   right: 0;
   top: 0;
   height: 42%;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(45, 212, 191, 0.45) 48%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(45, 212, 191, 0.45) 48%,
+      rgba(0, 0, 0, 0) 100%);
   animation: dossier-fingerprint-sweep 2.4s ease-in-out infinite;
   pointer-events: none;
   mix-blend-mode: screen;
 }
 
 .dossier-fp-grid {
-  background: repeating-linear-gradient(
-      0deg,
+  background: repeating-linear-gradient(0deg,
       rgba(6, 182, 212, 0.06) 0px,
       rgba(6, 182, 212, 0.06) 1px,
       rgba(0, 0, 0, 0) 1px,
-      rgba(0, 0, 0, 0) 3px
-    )
-    0 0/100% 3px;
+      rgba(0, 0, 0, 0) 3px) 0 0/100% 3px;
 }
 
 @keyframes dossier-signal-flicker {
+
   0%,
   100% {
     opacity: 1;
     box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.35);
   }
+
   37% {
     opacity: 0.82;
   }
+
   40% {
     opacity: 0.96;
   }
+
   60% {
     opacity: 0.88;
     box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.25);

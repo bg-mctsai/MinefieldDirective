@@ -14,6 +14,8 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   locked,
   isBoss,
   onSelect,
+  onDoubleClick,
+  confirmFlash,
 }: {
   stage: number;
   xPct: number;
@@ -24,6 +26,8 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   locked: boolean;
   isBoss: boolean;
   onSelect: () => void;
+  onDoubleClick?: () => void;
+  confirmFlash?: boolean;
 }) {
   const [hover, setHover] = useState(false);
   const neonFilterId = useId().replace(/:/g, '');
@@ -47,6 +51,7 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
       type="button"
       data-mission-hex="1"
       onClick={onSelect}
+      onDoubleClick={onDoubleClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{ left: `${xPct}%`, top: `${yPct}%` }}
@@ -57,6 +62,12 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
       {inProgress && !locked ? (
         <span
           className="mission-hex-next-challenge pointer-events-none absolute inset-[-5px] rounded-full"
+          aria-hidden
+        />
+      ) : null}
+      {confirmFlash && !locked ? (
+        <span
+          className="mission-hex-confirm-flash pointer-events-none absolute inset-[-8px] rounded-full"
           aria-hidden
         />
       ) : null}
@@ -105,9 +116,8 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
         <span className="pointer-events-none absolute inset-0 z-[2] flex flex-col items-center justify-center gap-0.5">
           {locked ? <Lock className="text-slate-500" size={11} strokeWidth={2.25} aria-hidden /> : null}
           <span
-            className={`font-mono text-[10px] font-black leading-none drop-shadow-[0_0_6px_rgba(57,255,20,0.55)] ${
-              locked ? 'text-slate-500' : cleared ? 'text-[#4ade80]' : 'text-[#86efac]'
-            }`}
+            className={`font-mono text-[10px] font-black leading-none drop-shadow-[0_0_6px_rgba(57,255,20,0.55)] ${locked ? 'text-slate-500' : cleared ? 'text-[#4ade80]' : 'text-[#86efac]'
+              }`}
           >
             {String(stage).padStart(2, '0')}
           </span>

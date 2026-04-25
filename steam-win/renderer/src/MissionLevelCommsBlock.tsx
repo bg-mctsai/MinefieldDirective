@@ -89,6 +89,10 @@ export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
   let bracketTone = '';
   /** CH.xx 本體 */
   let chTone = '';
+  /** 章末外框有動態斜紋：內層須不透明，否則半透明底 + 動畫背景會讓字體像糊／碎格 */
+  const bossInnerOpaque =
+    'border-2 border-[#F59E0B]/50 bg-[#07090e] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_rgba(245,158,11,0.06)]';
+
   if (locked) {
     shell =
       'border border-slate-700 bg-[#06080d]/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]';
@@ -98,15 +102,15 @@ export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
     chTone = 'text-slate-500';
   } else if (cleared) {
     /** 與「返回卷宗」按鈕同色：邊 50% 琥珀、底 10% 琥珀、字主色 */
-    shell =
-      'border-2 border-[#F59E0B]/50 bg-[#F59E0B]/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]';
+    shell = isBossStage
+      ? bossInnerOpaque
+      : 'border-2 border-[#F59E0B]/50 bg-[#F59E0B]/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]';
     scanCls = 'mission-comms-scanlines-tape';
     waveVariant = 'clearedTape';
     bracketTone = 'text-[#F59E0B]/80';
     chTone = 'text-[#F59E0B]';
   } else if (isBossStage) {
-    shell =
-      'border-2 border-[#F59E0B]/50 bg-[#F59E0B]/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]';
+    shell = bossInnerOpaque;
     scanCls = 'mission-comms-scanlines-tape';
     waveVariant = 'tape';
     bracketTone = 'text-[#F59E0B]/80';

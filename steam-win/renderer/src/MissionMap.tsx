@@ -16,12 +16,15 @@ import {
   missionTacticalBriefingPaletteFromDefinition,
   resolveMissionTacticalNodePositionPct,
 } from './missionTacticalBriefingMapResolve';
+import { emit } from './audio/AudioEngine';
+import { useBgmChannel } from './audio/useBgmChannel';
 
 /** 作戰地圖固定 10 個章節槽位（第 1～10 章），每章一列 */
 const CHAPTER_SLOT_COUNT = 10;
 
 /** 「卷宗拉開」過場時間（與 BriefingFolderCard 的視覺強調節拍對齊） */
 const FOLDER_OPEN_TRANSITION_MS = 220;
+const ENTER_FEEDBACK_DELAY_MS = 100;
 
 const CHAPTER_BLURBS = missionChapterBlurbs.byChapter as Record<string, string>;
 
@@ -67,6 +70,7 @@ export default function MissionMap({
   /** 非 null 時一進作戰地圖即顯示該章關卡列表（例如從對局返回） */
   initialOpenChapter?: number | null;
 }) {
+  useBgmChannel('mission');
   const chapters = useMemo(() => {
     const byChapter = new Map<number, { idx: number; levelId: number }[]>();
     for (let idx = 0; idx < LEVELS.length; idx += 1) {
@@ -99,6 +103,10 @@ export default function MissionMap({
   const pendingTimerRef = useRef<number | null>(null);
   /** 點選六角後於地圖下方顯示戰情摘要 */
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+  /** 雙擊進場前短閃回饋（僅 1 個節點） */
+  const [confirmFlashLevelId, setConfirmFlashLevelId] = useState<number | null>(null);
+  const enterStartTimerRef = useRef<number | null>(null);
+  const confirmFlashClearTimerRef = useRef<number | null>(null);
 
   const activeLevels = useMemo(() => {
     if (openedChapter == null) return [];
@@ -159,6 +167,7 @@ export default function MissionMap({
     }
     setPendingChapter(null);
     setSelectedLevelId(null);
+    emit('ui.briefing.closeFolder');
     setPhase('pickChapter');
     setOpenedChapter(null);
   };
@@ -174,6 +183,16 @@ export default function MissionMap({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  useEffect(
+    () => () => {
+      if (enterStartTimerRef.current != null) window.clearTimeout(enterStartTimerRef.current);
+      if (confirmFlashClearTimerRef.current != null) {
+        window.clearTimeout(confirmFlashClearTimerRef.current);
+      }
+    },
+    []
+  );
 
   useLayoutEffect(() => {
     if (phase === 'pickLevel') {
@@ -215,6 +234,29 @@ export default function MissionMap({
       onStart: () => onStart(row.idx),
     };
   }, [selectedLevelId, openedChapter, activeLevels, highestClearedLevel, hintChapter, onStart]);
+
+  const triggerEnterFeedbackAndStart = (levelIndex: number, levelId: number) => {
+    if (enterStartTimerRef.current != null) return;
+    setConfirmFlashLevelId(levelId);
+    emit('ui.mission.enterConfirm');
+    if (confirmFlashClearTimerRef.current != null) window.clearTimeout(confirmFlashClearTimerRef.current);
+    confirmFlashClearTimerRef.current = window.setTimeout(() => {
+      setConfirmFlashLevelId(null);
+      confirmFlashClearTimerRef.current = null;
+    }, ENTER_FEEDBACK_DELAY_MS + 70);
+    enterStartTimerRef.current = window.setTimeout(() => {
+      enterStartTimerRef.current = null;
+      onStart(levelIndex);
+    }, ENTER_FEEDBACK_DELAY_MS);
+  };
+
+  const startSelectedLevelFromMap = () => {
+    if (selectedLevelId == null) return;
+    const row = activeLevels.find((item) => item.levelId === selectedLevelId);
+    if (!row) return;
+    if (!isLevelUnlocked(row.levelId, highestClearedLevel)) return;
+    triggerEnterFeedbackAndStart(row.idx, row.levelId);
+  };
 
   return (
     <TerminalBackdrop className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
@@ -359,7 +401,10 @@ export default function MissionMap({
                         aria-hidden
                       />
                     </div>
-                    <div className="relative z-10 aspect-[10/7] min-h-[280px] w-full sm:aspect-[16/9] sm:min-h-[340px]">
+                    <div
+                      className="relative z-10 aspect-[10/7] min-h-[280px] w-full sm:aspect-[16/9] sm:min-h-[340px]"
+                      onDoubleClick={startSelectedLevelFromMap}
+                    >
                       {activeLevels.map((row) => {
                         const lv = LEVELS[row.idx]!;
                         const chapter = openedChapter;
@@ -388,8 +433,18 @@ export default function MissionMap({
                             locked={!unlocked}
                             isBoss={stage === 10}
                             onSelect={() =>
-                              setSelectedLevelId((cur) => (cur === lv.id ? null : lv.id))
+                              setSelectedLevelId((cur) => {
+                                const next = cur === lv.id ? null : lv.id;
+                                if (next !== cur) emit('ui.select.change');
+                                return next;
+                              })
                             }
+                            onDoubleClick={() => {
+                              if (!unlocked) return;
+                              setSelectedLevelId(lv.id);
+                              triggerEnterFeedbackAndStart(row.idx, lv.id);
+                            }}
+                            confirmFlash={confirmFlashLevelId === lv.id}
                           />
                         );
                       })}

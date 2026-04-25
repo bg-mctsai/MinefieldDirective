@@ -27,8 +27,7 @@ import {
   SOLDIER_MOVE_MS,
 } from './constants';
 import { sortLossExplosionCells, timeoutLossExplosionKeys } from './lossExplosionChain';
-import { playExplosionPop } from './playExplosionPop';
-import { playCountdownTick, playPlaceNumberSound, playTimeUpChirp } from './playGameSfx';
+import { emit } from '../audio/AudioEngine';
 import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
 import { signalJammingDisplayedDigit } from './signalJamming';
@@ -159,11 +158,11 @@ export function useMineGame(initialLevelIndex: number) {
         const next = prev.secondsLeft - 1;
         if (next > 0) {
           if (next <= LAST_COUNTDOWN_SOUND_SECONDS) {
-            queueMicrotask(() => playCountdownTick(next));
+            queueMicrotask(() => emit('game.countdown.tick', { remainingSeconds: next }));
           }
           return { ...prev, secondsLeft: next };
         }
-        queueMicrotask(() => playTimeUpChirp());
+        queueMicrotask(() => emit('game.time.up'));
         return {
           ...prev,
           status: 'exploding',
@@ -256,7 +255,7 @@ export function useMineGame(initialLevelIndex: number) {
             lossTopo,
           );
           const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, anchor);
-          queueMicrotask(() => playTimeUpChirp());
+          queueMicrotask(() => emit('game.time.up'));
           return {
             ...prev,
             blastPointsCountdown: newCountdown,
@@ -272,7 +271,7 @@ export function useMineGame(initialLevelIndex: number) {
         }
 
         if (shouldExplode) {
-          queueMicrotask(() => playTimeUpChirp());
+          queueMicrotask(() => emit('game.time.up'));
           return {
             ...prev,
             blastPointsCountdown: newCountdown,
@@ -323,7 +322,7 @@ export function useMineGame(initialLevelIndex: number) {
     const delay = wi < 0 ? LOSS_EXPLOSION_FIRST_DELAY_MS : LOSS_EXPLOSION_STAGGER_MS;
     const t = window.setTimeout(() => {
       const nextIdx = wi + 1;
-      playExplosionPop(nextIdx);
+      emit('game.mine.explode', { stepIndex: nextIdx });
       setGameState((prev) => {
         if (!prev || prev.status !== 'exploding') return prev;
         return { ...prev, lossExplosionWaveIndex: nextIdx };
@@ -520,7 +519,7 @@ export function useMineGame(initialLevelIndex: number) {
       return;
     }
 
-    playPlaceNumberSound(newValue);
+    emit('game.number.place', { value: newValue });
 
     // 所有紅雷/空白揭示都只採「玩家可見」邏輯：炸點為可見已知地雷，隱藏 forcedMineCells 不納入。
     // 之前有同時跑一份含隱藏先驗的 solver.findForced，但其結果最終都會被 logicOnly 過濾掉，

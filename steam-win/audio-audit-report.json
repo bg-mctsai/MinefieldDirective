@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-04-25T10:35:44.197Z",
+  "totals": {
+    "blocked": 0,
+    "needsFix": 0,
+    "missing": 0,
+    "orphan": 0,
+    "catalogKeys": 13,
+    "usedKeys": 13
+  },
+  "blocked": [],
+  "needsFix": [],
+  "missing": [],
+  "orphan": []
+}

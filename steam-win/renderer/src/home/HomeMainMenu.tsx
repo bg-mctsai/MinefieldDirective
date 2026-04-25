@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Crosshair, Settings, Users } from 'lucide-react';
+import { useState } from 'react';
 import { HOME_MENU_BTN_CLASS } from './constants';
 import type { HomeNavigate } from './types';
 
@@ -12,6 +13,14 @@ export function HomeMainMenu({
   onMenuHover: () => void;
   onOpenSettings: () => void;
 }) {
+  const [activeMenu, setActiveMenu] = useState<HomeNavigate | 'settings' | null>(null);
+  const getMenuClass = (menu: HomeNavigate | 'settings') =>
+    `${HOME_MENU_BTN_CLASS} ${
+      activeMenu === menu
+        ? '!border-[#F59E0B] !shadow-[0_0_24px_rgba(245,158,11,0.35)] -translate-y-0.5'
+        : ''
+    }`;
+
   return (
     <motion.nav
       initial={{ opacity: 0, x: -16 }}
@@ -23,17 +32,15 @@ export function HomeMainMenu({
       <motion.button
         type="button"
         whileTap={{ scale: 0.985 }}
-        onMouseEnter={onMenuHover}
-        onClick={() => onNavigate('mission')}
-        className={`${HOME_MENU_BTN_CLASS} !border-[#F59E0B]/40 !bg-gradient-to-r from-[#1a1408] to-[#121923] shadow-[0_0_28px_rgba(245,158,11,0.15)]`}
-        animate={{
-          boxShadow: [
-            '0 0 20px rgba(245,158,11,0.12)',
-            '0 0 36px rgba(245,158,11,0.28)',
-            '0 0 20px rgba(245,158,11,0.12)',
-          ],
+        onMouseEnter={() => {
+          onMenuHover();
+          setActiveMenu('mission');
         }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+        onMouseLeave={() => setActiveMenu(null)}
+        onFocus={() => setActiveMenu('mission')}
+        onBlur={() => setActiveMenu(null)}
+        onClick={() => onNavigate('mission')}
+        className={getMenuClass('mission')}
       >
         <span className="flex items-center gap-3">
           <Crosshair className="text-[#F59E0B]" size={22} />
@@ -47,9 +54,15 @@ export function HomeMainMenu({
       <motion.button
         type="button"
         whileTap={{ scale: 0.985 }}
-        onMouseEnter={onMenuHover}
+        onMouseEnter={() => {
+          onMenuHover();
+          setActiveMenu('hero');
+        }}
+        onMouseLeave={() => setActiveMenu(null)}
+        onFocus={() => setActiveMenu('hero')}
+        onBlur={() => setActiveMenu(null)}
         onClick={() => onNavigate('hero')}
-        className={HOME_MENU_BTN_CLASS}
+        className={getMenuClass('hero')}
       >
         <span className="flex items-center gap-3">
           <Users className="text-slate-400 group-hover:text-[#F59E0B]" size={22} />
@@ -63,9 +76,15 @@ export function HomeMainMenu({
       <motion.button
         type="button"
         whileTap={{ scale: 0.985 }}
-        onMouseEnter={onMenuHover}
+        onMouseEnter={() => {
+          onMenuHover();
+          setActiveMenu('settings');
+        }}
+        onMouseLeave={() => setActiveMenu(null)}
+        onFocus={() => setActiveMenu('settings')}
+        onBlur={() => setActiveMenu(null)}
         onClick={onOpenSettings}
-        className={HOME_MENU_BTN_CLASS}
+        className={getMenuClass('settings')}
       >
         <span className="flex items-center gap-3">
           <Settings className="text-slate-400 group-hover:text-[#F59E0B]" size={22} />

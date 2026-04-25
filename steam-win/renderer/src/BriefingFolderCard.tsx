@@ -6,6 +6,7 @@
  */
 import { motion } from 'motion/react';
 import { ChevronRight } from 'lucide-react';
+import { emit } from './audio/AudioEngine';
 
 const PAPER_BG: React.CSSProperties = {
   background:
@@ -45,7 +46,11 @@ export function BriefingFolderCard({
     >
       <button
         type="button"
-        onClick={onClick}
+        onClick={() => {
+          // 行動卷宗使用與地圖選擇同一顆選取音
+          emit('ui.select.change');
+          onClick();
+        }}
         aria-label={`開啟「${headline}」戰區卷宗`}
         title={`開啟「${headline}」戰區卷宗`}
         className={`group relative flex w-full items-stretch justify-between gap-3 overflow-hidden rounded-2xl border-double border-[3px] py-3.5 pl-4 pr-3 text-left transition-[border-color,transform,box-shadow] sm:gap-4 sm:py-4 sm:pl-6 sm:pr-4 ${

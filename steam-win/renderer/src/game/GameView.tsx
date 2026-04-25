@@ -15,6 +15,8 @@ import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
 import { getHeroCombatTheme } from './heroCombatTheme';
 import { stageInChapter } from './chapterStage';
+import { AudioEngine } from '../audio/AudioEngine';
+import { useBgmChannel } from '../audio/useBgmChannel';
 
 export type BackToMissionContext = {
   /** 在勝利狀態自章內第 10 關「返回」時，帶出剛完成的章，供上層顯示行動卷宗前對話 */
@@ -32,6 +34,15 @@ export default function GameView({
   highestClearedLevel: number;
   onHighestClearedLevelChange: (next: number) => void;
 }) {
+  useEffect(() => {
+    // 戰場掛載時強制收掉選單系 BGM，避免與戰場曲重疊。
+    AudioEngine.stopLoop('bgm.home.settings', 0.2);
+    AudioEngine.stopLoop('bgm.mission.map', 0.2);
+    AudioEngine.stopLoop('bgm.base.ambience', 0.2);
+  }, []);
+
+  useBgmChannel('combat');
+
   const requestedLevelId = GAME_LEVELS[initialLevelProp]?.id ?? 1;
   const isRequestedUnlocked = isLevelUnlocked(requestedLevelId, highestClearedLevel);
   const safeInitialLevelId = isRequestedUnlocked ? requestedLevelId : Math.min(LEVEL_MAX, highestClearedLevel + 1);

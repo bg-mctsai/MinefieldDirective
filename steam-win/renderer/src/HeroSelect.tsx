@@ -21,6 +21,7 @@ import { TerminalBackdrop } from './ui/TerminalBackdrop';
 import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
 import { heroSkillHudLucideIcon } from './game/heroSkillHudIcons';
+import { emit } from './audio/AudioEngine';
 
 function ConfidentialStamp({ className = '' }: { className?: string }) {
   return (
@@ -217,6 +218,7 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   onClick={() => {
+                    if (h.id !== selected) emit('ui.select.change');
                     setSelected(h.id);
                     setStoredHeroId(h.id);
                   }}
