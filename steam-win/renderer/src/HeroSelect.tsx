@@ -4,10 +4,10 @@ import {
   Camera,
   ChevronLeft,
   Compass,
+  Lock,
   ScrollText,
   StickyNote,
   Tag,
-  ZoomIn,
 } from 'lucide-react';
 import {
   HEROES,
@@ -22,6 +22,8 @@ import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
 import { heroSkillHudLucideIcon } from './game/heroSkillHudIcons';
 import { emit } from './audio/AudioEngine';
+import { loadUnlockedHeroIds } from './game/heroUnlockedStorage';
+import { requiredCompletedChapterForHero } from './game/heroUnlockByChapter';
 
 function ConfidentialStamp({ className = '' }: { className?: string }) {
   return (
@@ -68,9 +70,15 @@ function HeroDossierPanel({ hero }: { hero: HeroDef }) {
           onClick={() => openPortrait(hero.id)}
           title="點擊放大頭像"
           aria-label={`放大 ${hero.name} 頭像`}
-          className="group relative h-28 w-28 shrink-0 cursor-zoom-in self-center overflow-hidden rounded-2xl border border-[#F59E0B]/30 bg-[#0B0E14] outline-none ring-offset-2 ring-offset-[#0f141c] transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-[0_0_0_2px_rgba(245,158,11,0.35)] focus-visible:ring-2 focus-visible:ring-amber-500/75 active:scale-[0.99] sm:self-auto"
+          className="relative h-28 w-28 shrink-0 cursor-zoom-in self-center overflow-hidden rounded-2xl border border-[#F59E0B]/30 bg-[#0B0E14] outline-none ring-offset-2 ring-offset-[#0f141c] focus-visible:ring-2 focus-visible:ring-amber-500/75 sm:self-auto"
         >
           <HeroAvatarSilhouette heroId={hero.id} size={112} />
+          <span
+            className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/55 bg-slate-950/95 text-[11px] font-black leading-none text-amber-400 ring-1 ring-black/45"
+            aria-hidden
+          >
+            +
+          </span>
         </button>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-slate-500">
@@ -176,7 +184,8 @@ function HeroDossierPanel({ hero }: { hero: HeroDef }) {
 }
 
 export default function HeroSelect({ onBack }: { onBack: () => void }) {
-  const [selected, setSelected] = useState(getStoredHeroId);
+  const [selected, setSelected] = useState(() => getStoredHeroId());
+  const unlocked = useMemo(() => new Set(loadUnlockedHeroIds()), []);
   const hero = useMemo(() => HEROES.find((h) => h.id === selected) ?? HEROES[0], [selected]);
   const { openPortrait } = useHeroPortraitLightbox();
 
@@ -207,6 +216,12 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
             </h2>
             {HEROES.map((h, i) => {
               const active = h.id === selected;
+              const canUse = unlocked.has(h.id);
+              const needCh = requiredCompletedChapterForHero(h.id);
+              const lockHint =
+                canUse || needCh == null
+                  ? null
+                  : `通關第 ${needCh} 章整章解鎖`;
               const rosterSkills = getHeroCombatSkills(h)
                 .map((s) => s.name)
                 .join(' · ');
@@ -214,38 +229,45 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
                 <motion.button
                   key={h.id}
                   type="button"
+                  disabled={!canUse}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   onClick={() => {
+                    if (!canUse) return;
                     if (h.id !== selected) emit('ui.select.change');
                     setSelected(h.id);
                     setStoredHeroId(h.id);
                   }}
+                  title={!canUse && lockHint ? lockHint : undefined}
                   className={`relative w-full overflow-hidden rounded-3xl border-2 p-4 text-left transition-all ${
-                    active
-                      ? 'border-[#F59E0B] bg-[#1a1408] shadow-[0_0_32px_rgba(245,158,11,0.22)]'
-                      : 'border-[#1e293b] bg-[#0f141c]/95 hover:border-slate-600'
+                    !canUse
+                      ? 'cursor-not-allowed border-slate-800/90 bg-[#0a0d12]/90 opacity-60'
+                      : active
+                        ? 'border-[#F59E0B] bg-[#1a1408] shadow-[0_0_32px_rgba(245,158,11,0.22)]'
+                        : 'border-[#1e293b] bg-[#0f141c]/95 hover:border-slate-600'
                   }`}
                 >
                   <ShoulderTape className="opacity-70" />
                   <div className="flex items-center gap-3">
-                    <div className="relative h-14 w-14 shrink-0">
+                    <div
+                      className="relative h-14 w-14 shrink-0 cursor-zoom-in"
+                      title={`放大 ${h.name} 頭像`}
+                      aria-label={`放大 ${h.name} 頭像`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPortrait(h.id);
+                      }}
+                    >
                       <div className="h-14 w-14 overflow-hidden rounded-xl border border-[#F59E0B]/30 bg-[#0B0E14]">
                         <HeroAvatarSilhouette heroId={h.id} size={56} />
                       </div>
-                      <button
-                        type="button"
-                        title={`放大 ${h.name} 頭像`}
-                        aria-label={`放大 ${h.name} 頭像`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openPortrait(h.id);
-                        }}
-                        className="absolute -bottom-0.5 -right-0.5 z-10 flex h-[18px] w-[18px] items-center justify-center rounded-md border border-slate-600/90 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40 transition-colors hover:border-amber-500/60 hover:text-amber-300"
+                      <span
+                        className="pointer-events-none absolute -bottom-0.5 -right-0.5 z-10 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/55 bg-slate-950/95 text-[11px] font-black leading-none text-amber-400 ring-1 ring-black/45"
+                        aria-hidden
                       >
-                        <ZoomIn size={11} strokeWidth={2.6} />
-                      </button>
+                        +
+                      </span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -253,6 +275,12 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
                         <span className="font-mono text-[10px] text-slate-500">{h.codename}</span>
                       </div>
                       <div className="text-xs font-bold text-[#F59E0B]/85">{h.role}</div>
+                      {lockHint ? (
+                        <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                          <Lock size={10} className="shrink-0 text-slate-500" aria-hidden />
+                          {lockHint}
+                        </div>
+                      ) : null}
                       {rosterSkills ? (
                         <div className="mt-0.5 truncate text-[11px] text-slate-400">
                           <span className="text-emerald-400">{rosterSkills}</span>
@@ -261,9 +289,14 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
                         <div className="mt-0.5 text-[11px] text-slate-500">教學基礎</div>
                       )}
                     </div>
-                    {active && (
+                    {canUse && active && (
                       <span className="shrink-0 rounded-md border border-[#F59E0B]/60 bg-[#F59E0B]/15 px-1.5 py-0.5 text-[10px] font-black text-[#F59E0B]">
                         IN USE
+                      </span>
+                    )}
+                    {!canUse && (
+                      <span className="shrink-0 flex items-center gap-0.5 rounded-md border border-slate-600/80 bg-slate-900/80 px-1.5 py-0.5 text-[10px] font-black text-slate-500">
+                        <Lock size={10} /> 未解鎖
                       </span>
                     )}
                   </div>

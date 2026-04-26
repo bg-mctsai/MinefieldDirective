@@ -56,6 +56,23 @@ function missionBriefDockHeading(level: Level): string {
   return `關卡 ${level.id}`;
 }
 
+function chapterPrimaryObjective(chapter: number, chapterTitle: string): string {
+  const canned: Record<number, string> = {
+    1: '建立佈雷標準流程，完成基礎防區封鎖與節點控制。',
+    2: '沿東向走廊擴張雷網，壓縮敵方機動空間。',
+    3: '在鋸齒防線布設多層雷區，阻斷敵軍反撲路線。',
+    4: '完成右翼包抄佈雷，建立前沿牽制與火力引導帶。',
+    5: '鞏固中軸戰線，串接連續雷帶與後勤保護區。',
+    6: '整合雙錨兵力，在匯合點構築縱深雷區。',
+    7: '沿外擴路徑逐層佈雷，切斷敵方機動縫隙。',
+    8: '穿越淺灘迂迴線，部署高風險地形的封鎖雷網。',
+    9: '控制稜線制高點，完成壓制型雷區與觀測聯防。',
+    10: '執行終局封鎖，佈設核心圈防線並確保戰區穩定。',
+  };
+  if (canned[chapter]) return canned[chapter]!;
+  return `${chapterTitle || `第 ${chapter} 章`}：完成戰區佈雷部署與防線強化。`;
+}
+
 export default function MissionMap({
   onBack,
   onStart,
@@ -114,16 +131,11 @@ export default function MissionMap({
     return pair?.[1] ?? [];
   }, [chapters, openedChapter]);
 
-  /** 底圖色票／地形相位：以選中關為主，否則章內下一個可玩關 */
-  const backdropVisualLevelId = useMemo(() => {
+  /** 底圖色票／地形相位：章內固定，不隨選中關卡跳動 */
+  const chapterBackdropLevelId = useMemo(() => {
     if (openedChapter == null) return 1;
-    if (selectedLevelId != null) return selectedLevelId;
-    const nextId = Math.min(LEVEL_MAX, Math.max(1, highestClearedLevel + 1));
-    const nextInChapter = activeLevels.find((r) => r.levelId === nextId);
-    if (nextInChapter && isLevelUnlocked(nextId, highestClearedLevel)) return nextId;
-    const unlocked = activeLevels.find((r) => isLevelUnlocked(r.levelId, highestClearedLevel));
-    return unlocked?.levelId ?? activeLevels[0]?.levelId ?? nextId;
-  }, [openedChapter, selectedLevelId, activeLevels, highestClearedLevel]);
+    return activeLevels[0]?.levelId ?? 1;
+  }, [openedChapter, activeLevels]);
 
   const tacticalBackdrop = useMemo(() => {
     if (openedChapter == null || activeLevels.length === 0) {
@@ -143,10 +155,10 @@ export default function MissionMap({
         override: lv.definition.missionTacticalBriefingMap?.nodePositionPct,
       });
     });
-    const focalLv = LEVELS.find((l) => l.id === backdropVisualLevelId) ?? LEVELS[activeLevels[0]!.idx]!;
+    const focalLv = LEVELS.find((l) => l.id === chapterBackdropLevelId) ?? LEVELS[activeLevels[0]!.idx]!;
     const palette = missionTacticalBriefingPaletteFromDefinition(focalLv.id, focalLv.definition);
-    return { routePoints, palette, visualSeed: backdropVisualLevelId };
-  }, [openedChapter, activeLevels, backdropVisualLevelId]);
+    return { routePoints, palette, visualSeed: chapterBackdropLevelId };
+  }, [openedChapter, activeLevels, chapterBackdropLevelId]);
 
   const requestOpenChapter = (chapter: number) => {
     if (pendingChapter != null) return;
@@ -206,6 +218,11 @@ export default function MissionMap({
   }, [phase, scrollRestoreYRef]);
 
   const chapterTitle = openedChapter != null ? chapterCampaignTagline(openedChapter) : '';
+  const overallChapterBrief = useMemo(() => {
+    if (openedChapter == null) return null;
+    const objective = chapterPrimaryObjective(openedChapter, chapterTitle);
+    return { objective };
+  }, [openedChapter, chapterTitle]);
 
   const dockedBriefProps = useMemo(() => {
     if (selectedLevelId == null || openedChapter == null) return null;
@@ -260,7 +277,7 @@ export default function MissionMap({
 
   return (
     <TerminalBackdrop className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
-      <div className="relative z-10 mx-auto max-w-3xl px-4 py-8">
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-6xl flex-col px-4 py-3">
         <AnimatePresence mode="wait">
           {phase === 'pickChapter' ? (
             <motion.div
@@ -311,8 +328,12 @@ export default function MissionMap({
                         : '本章資料尚未接上。');
                     const isHint = hintChapter === chapter;
                     const hasData = rows != null && rows.length > 0;
+                    const chapterUnlocked =
+                      hasData && rows.length > 0
+                        ? isLevelUnlocked(rows[0]!.levelId, highestClearedLevel)
+                        : false;
 
-                    if (!hasData) {
+                    if (!hasData || !chapterUnlocked) {
                       return (
                         <BriefingFolderLocked
                           key={chapter}
@@ -348,47 +369,46 @@ export default function MissionMap({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.2 }}
-              className="relative flex flex-col"
+              className="relative flex min-h-0 flex-1 flex-col"
             >
-              <header className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex flex-wrap items-center gap-3">
+              <header className="mb-2 flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={backToChapters}
-                    className="flex items-center gap-2 rounded-xl border-2 border-[#F59E0B]/50 bg-[#F59E0B]/10 px-3 py-2 text-sm font-bold text-[#F59E0B] hover:bg-[#F59E0B]/20"
+                    className="flex items-center gap-1.5 rounded-lg border border-[#F59E0B]/50 bg-[#F59E0B]/10 px-2.5 py-1.5 text-xs font-bold text-[#F59E0B] hover:bg-[#F59E0B]/20"
                   >
-                    <ChevronLeft size={18} />
+                    <ChevronLeft size={16} />
                     返回卷宗
                   </button>
                   <button
                     type="button"
                     onClick={onBack}
-                    className="flex items-center gap-2 rounded-xl border-2 border-[#1e293b] bg-[#0f141c] px-3 py-2 text-sm font-bold text-slate-400 hover:border-slate-600 hover:text-slate-200"
+                    className="flex items-center gap-1.5 rounded-lg border border-[#1e293b] bg-[#0f141c] px-2.5 py-1.5 text-xs font-bold text-slate-400 hover:border-slate-600 hover:text-slate-200"
                   >
-                    <Home size={18} />
+                    <Home size={16} />
                     首頁
                   </button>
                 </div>
                 <div className="min-w-0 sm:text-right">
-                  <div className="flex items-center gap-2 text-[#F59E0B] sm:justify-end">
-                    <MapIcon size={22} />
-                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                  <div className="flex items-center gap-1.5 text-[#F59E0B] sm:justify-end">
+                    <MapIcon size={16} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                       第 {openedChapter} 章 · 戰區佈防
                     </span>
                   </div>
-                  <h1 className="mt-1 text-2xl font-black text-white md:text-3xl">
+                  <h1 className="text-lg font-black text-white md:text-xl">
                     {chapterTitle || '戰區清單'}
                   </h1>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-300/55">
+                    戰術地圖 · 點六角檢視戰情
+                  </p>
                 </div>
               </header>
 
-              <p className="relative z-10 mb-2 text-center text-[11px] font-bold uppercase tracking-widest text-slate-500 sm:text-xs">
-                戰術地圖 · 點六角檢視戰情
-              </p>
-
               {openedChapter != null ? (
-                <div className="relative z-10 mt-1 w-full">
-                  <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-[#1e293b] bg-[#05070c] shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]">
+                <div className="relative z-10 mt-1 flex min-h-0 w-full flex-1 flex-col">
+                  <div className="relative mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col overflow-hidden rounded-2xl border border-emerald-500/28 bg-[#040806] shadow-[0_0_0_1px_rgba(16,185,129,0.2),inset_0_0_80px_rgba(0,0,0,0.72)]">
                     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl">
                       <MissionChapterTacticalBackdrop
                         chapter={openedChapter}
@@ -397,12 +417,16 @@ export default function MissionMap({
                         visualSeed={tacticalBackdrop.visualSeed}
                       />
                       <div
-                        className="absolute inset-0 bg-gradient-to-b from-[#0a0d12]/75 via-transparent to-[#0a0d12]/88"
+                        className="absolute inset-0 bg-gradient-to-b from-[#05100a]/76 via-transparent to-[#040907]/92"
                         aria-hidden
                       />
                     </div>
+                    <div className="pointer-events-none absolute left-0 right-0 top-0 z-[11] flex items-start justify-between px-5 pt-3 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-300/70">
+                      <span>STRATEGIC COMMAND MAP</span>
+                      <span className="text-emerald-300/40">CH-{String(openedChapter).padStart(2, '0')}</span>
+                    </div>
                     <div
-                      className="relative z-10 aspect-[10/7] min-h-[280px] w-full sm:aspect-[16/9] sm:min-h-[340px]"
+                      className="relative z-10 min-h-[320px] w-full flex-1"
                       onDoubleClick={startSelectedLevelFromMap}
                     >
                       {activeLevels.map((row) => {
@@ -421,6 +445,7 @@ export default function MissionMap({
                           !cleared &&
                           hintChapter === chapter &&
                           lv.id === Math.min(LEVEL_MAX, highestClearedLevel + 1);
+                        const inProgressVisual = inProgress && stage !== 1;
                         return (
                           <MissionChapterHexNode
                             key={lv.id}
@@ -429,7 +454,7 @@ export default function MissionMap({
                             yPct={pos.y}
                             selected={selectedLevelId === lv.id}
                             cleared={cleared}
-                            inProgress={inProgress}
+                            inProgress={inProgressVisual}
                             locked={!unlocked}
                             isBoss={stage === 10}
                             onSelect={() =>
@@ -450,18 +475,40 @@ export default function MissionMap({
                       })}
                     </div>
                   </div>
+                  <div className="mx-auto mt-2 min-h-[164px] w-full max-w-3xl shrink-0">
+                    <AnimatePresence mode="wait" initial={false}>
+                      {dockedBriefProps ? (
+                        <MissionLevelTacticalDockedBrief
+                          key={dockedBriefProps.level.id}
+                          {...dockedBriefProps}
+                          onClose={() => setSelectedLevelId(null)}
+                        />
+                      ) : overallChapterBrief ? (
+                        <motion.div
+                          key="brief-placeholder"
+                          initial={{ opacity: 0.2, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0.2, y: -4 }}
+                          transition={{ duration: 0.16 }}
+                          className="flex min-h-[164px] w-full items-center rounded-md border border-emerald-500/22 bg-[#050a08]/72 px-4 py-3 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.08)]"
+                        >
+                          <div className="w-full">
+                            <p className="mt-1 text-lg font-black text-emerald-100 sm:text-xl">
+                              總體戰術簡報
+                            </p>
+                            <p className="mt-2 text-sm font-black text-emerald-100/92 sm:text-base">
+                              主要目標：{overallChapterBrief.objective}
+                            </p>
+                            <p className="mt-2 text-sm text-emerald-200/72">
+                              點選任一六角節點即可檢視該關戰情與進場資訊。
+                            </p>
+                          </div>
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
+                  </div>
                 </div>
               ) : null}
-
-              <AnimatePresence>
-                {dockedBriefProps ? (
-                  <MissionLevelTacticalDockedBrief
-                    key={dockedBriefProps.level.id}
-                    {...dockedBriefProps}
-                    onClose={() => setSelectedLevelId(null)}
-                  />
-                ) : null}
-              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>

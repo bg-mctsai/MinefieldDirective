@@ -39,7 +39,7 @@
     "blastPoints[].defuseBonusSec": "可選；解除炸點後加入主計時器的獎勵秒數（未填為 0）。",
     "digitOutposts": "可選；戰術據點座標 [[x,y],…]（須為可部署格）。每格必須有數字佈署（含開局 prePlaced）；覆蓋率達標仍有據點未填數字則失敗。據點若被邏輯揭示為紅雷或出現動態廢雷佔格亦立即失敗。廢雷生成會排除據點座標。",
     "neighborPlacedDigitBonus": "可選；本機制唯一開關：僅當設為 true 時啟用，程式不依 chapter／levelId 推斷。true 時實際放下數字 = 電報底數 + 與目標格「邏輯相鄰」且已佈數字之鄰格個數（含開局 prePlaced／提示格）。鄰接規則與盤面 solver 相同。",
-    "rewards": "通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。",
+    "rewards": "通關敘事／企劃標記；可含 narrativeFlag、todo 等。幹員解鎖：levelData/heroUnlockByChapter.json。",
     "missionTacticalBriefingMap": "可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央三角→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。",
     "missionTacticalBriefingMap.nodePositionPct": "可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章各有獨立十點幾何，見程式 missionChapterNodePositions）。",
     "missionTacticalBriefingMap.mapPalette": "可選；底圖與路徑色票：aurora | ember | jade | steel | violet | monsoon；未填則依 levelId 在六種預設間輪替。"
@@ -564,14 +564,7 @@
           6
         ]
       ],
-      "rewards": {
-        "unlockCharacterIds": [
-          "engineer"
-        ],
-        "todo": [
-          "TODO: 實作工程師角色技能與 UI 解鎖"
-        ]
-      },
+      "rewards": {},
       "mapRef": "21"
     },
     {
@@ -1065,14 +1058,7 @@
         }
       },
       "events": [],
-      "rewards": {
-        "unlockCharacterIds": [
-          "veteran"
-        ],
-        "todo": [
-          "TODO: 實作老兵角色與三角格邏輯"
-        ]
-      },
+      "rewards": {},
       "mapRef": "36"
     },
     {

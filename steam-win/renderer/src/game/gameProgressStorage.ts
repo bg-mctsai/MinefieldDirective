@@ -2,8 +2,7 @@ export const LS_HIGHEST_CLEARED_LEVEL = 'md:highestClearedLevel';
 
 export const LEVEL_MIN = 1;
 export const LEVEL_MAX = 100;
-const FORCE_UNLOCK_ALL_LEVELS =
-  import.meta.env.DEV || import.meta.env.VITE_UNLOCK_ALL_LEVELS === '1';
+const FORCE_UNLOCK_ALL_LEVELS = import.meta.env.VITE_UNLOCK_ALL_LEVELS?.trim() === '1';
 
 export type GameProgress = {
   highestClearedLevel: number; // 0..100 (0 means no level cleared)

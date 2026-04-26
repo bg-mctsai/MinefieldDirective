@@ -77,8 +77,6 @@ export type CommandConfig = {
 export type LevelEvent = never;
 
 export type LevelRewards = {
-  /** 通關解鎖角色 id，尚未實作則僅供企劃標記 */
-  unlockCharacterIds?: string[];
   narrativeFlag?: string;
   /** 企劃待辦說明 */
   todo?: string[];

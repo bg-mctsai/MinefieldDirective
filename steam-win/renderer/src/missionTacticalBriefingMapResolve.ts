@@ -87,8 +87,8 @@ export function resolveMissionTacticalNodePositionPct(args: {
   const base = layout[idx]!;
   if (args.override) {
     return {
-      x: clampPct(args.override.x, 4, 96),
-      y: clampPct(args.override.y, 8, 92),
+      x: clampPct(args.override.x, 8, 92),
+      y: clampPct(args.override.y, 16, 84),
     };
   }
   /** 預設佈局為企劃定案之散點；未覆寫時不再位移，以免破壞戰術路徑幾何 */

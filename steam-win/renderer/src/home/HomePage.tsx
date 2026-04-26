@@ -7,6 +7,7 @@ import { useBgmChannel } from '../audio/useBgmChannel';
 import { HOME_TITLE_FULL } from './constants';
 import { HomeHeader } from './HomeHeader';
 import { HomeMainMenu } from './HomeMainMenu';
+import { HomeOpsDashboard } from './HomeOpsDashboard';
 import { HeroSpotlight } from './HeroSpotlight';
 import { SettingsModal } from './SettingsModal';
 import { BaseAmbience } from './BaseAmbience';
@@ -25,7 +26,7 @@ export default function HomePage({
   onDevLevelsReloaded?: () => void;
 }) {
   const [typed, setTyped] = useState('');
-  const [heroId, setHeroId] = useState(getStoredHeroId);
+  const [heroId, setHeroId] = useState(() => getStoredHeroId());
   const [quoteIdx, setQuoteIdx] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<HomeSettings>(loadHomeSettings);
@@ -109,23 +110,40 @@ export default function HomePage({
           }
         />
 
-        <div className="mt-8 grid flex-1 grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center">
-          <HomeMainMenu
-            onNavigate={onNavigate}
-            onMenuHover={onMenuHover}
-            onOpenSettings={() => setSettingsOpen(true)}
-          />
-          <HeroSpotlight
-            hero={hero}
-            heroId={heroId}
-            quoteIdx={quoteIdx}
-            onPickHero={(id) => {
-              setHeroId(id);
-              setStoredHeroId(id);
-              setQuoteIdx(0);
-            }}
-          />
-        </div>
+        <section className="relative mt-8 flex-1">
+          <div className="pointer-events-none absolute inset-x-4 top-1/2 hidden -translate-y-1/2 lg:block">
+            <div className="absolute left-[25%] right-[28%] top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/25 to-transparent" />
+            <div className="absolute left-[34%] top-[-9.5rem] h-[19rem] w-px bg-gradient-to-b from-transparent via-[#F59E0B]/20 to-transparent" />
+            <div className="absolute right-[27%] top-[-9.5rem] h-[19rem] w-px bg-gradient-to-b from-transparent via-cyan-300/20 to-transparent" />
+            <div className="absolute left-[33%] top-[-7rem] h-56 w-56 rounded-full border border-emerald-400/10" />
+            <div className="absolute right-[20%] top-[-6rem] h-48 w-48 rounded-full border border-[#F59E0B]/10" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-start">
+            <HomeMainMenu
+              onNavigate={onNavigate}
+              onMenuHover={onMenuHover}
+              onOpenSettings={() => setSettingsOpen(true)}
+            />
+            <HomeOpsDashboard />
+            <HeroSpotlight
+              hero={hero}
+              heroId={heroId}
+              quoteIdx={quoteIdx}
+              onPickHero={(id) => {
+                setHeroId(id);
+                setStoredHeroId(id);
+                setQuoteIdx(0);
+              }}
+            />
+          </div>
+
+          <div className="pointer-events-none mt-4 hidden rounded-2xl border border-slate-800/80 bg-slate-950/35 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-600 lg:flex lg:items-center lg:justify-between">
+            <span>Signal Route // Campaign</span>
+            <span>Loadout Sync // Hero Channel</span>
+            <span>Minefield Directive // Ready</span>
+          </div>
+        </section>
       </div>
 
       <SettingsModal
@@ -133,7 +151,7 @@ export default function HomePage({
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onChange={setSettings}
-        onResetHero={() => setHeroId(HEROES[0].id)}
+        onResetHero={() => setHeroId(getStoredHeroId())}
       />
     </TerminalBackdrop>
   );

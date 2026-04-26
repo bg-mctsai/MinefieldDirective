@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Crown, Sparkles, X } from 'lucide-react';
+import { Check, Crown, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { GameState } from './types';
@@ -58,7 +58,7 @@ export function GameStatusMessageBar({
 }) {
   const { openPortrait } = useHeroPortraitLightbox();
   const dynamicBarrage = useDynamicHeroBarrage(gameState);
-  const supportBarrage = enableSupportBarrage ? dynamicBarrage : null;
+  const supportBarrage = null;
   const [boardAnchor, setBoardAnchor] = useState<{ left: number; top: number } | null>(null);
   const [skillBriefOpen, setSkillBriefOpen] = useState(false);
   const [skillBriefPos, setSkillBriefPos] = useState<{ top: number; left: number } | null>(null);
@@ -136,7 +136,7 @@ export function GameStatusMessageBar({
   const skillPanels =
     speakerHeroId != null ? getHeroSkillBriefPanels(speakerHeroId, buckEmergencyAvailable) : [];
   const speakerName = speakerHeroId != null ? getHeroDef(speakerHeroId).name : '';
-  const statusMessage = gameState.message ?? '';
+  const statusMessage = dynamicBarrage?.text ?? gameState.message ?? '';
   const statusMsgKey = `${gameState.gameId}|||${statusMessage}`;
 
   return (
@@ -158,13 +158,15 @@ export function GameStatusMessageBar({
                   title="再點一次全螢幕放大頭像"
                   aria-label="全螢幕放大頭像"
                   onClick={() => openPortrait(speakerHeroId)}
-                  className="cursor-zoom-in rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 transition-transform hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-amber-500/80 active:scale-[0.99]"
+                  className="relative cursor-zoom-in rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/80"
                 >
-                  <HeroAvatarSilhouette
-                    heroId={speakerHeroId}
-                    size={120}
-                    className="ring-2 ring-amber-500/30 shadow-lg"
-                  />
+                  <HeroAvatarSilhouette heroId={speakerHeroId} size={120} />
+                  <span
+                    className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/55 bg-slate-950/95 text-[11px] font-black leading-none text-amber-400 ring-1 ring-black/45"
+                    aria-hidden
+                  >
+                    +
+                  </span>
                 </button>
                 <p className="text-center text-[11px] font-bold text-slate-500">{getHeroDef(speakerHeroId).role}</p>
               </div>
@@ -217,22 +219,18 @@ export function GameStatusMessageBar({
                   ref={avatarSkillBtnRef}
                   type="button"
                   title="查看大頭像與被動／作戰說明"
-                  className="group relative shrink-0 self-center cursor-pointer rounded-xl outline-none ring-offset-2 ring-offset-slate-900 transition-[transform,box-shadow] hover:scale-[1.04] hover:shadow-[0_0_0_2px_rgba(245,158,11,0.45)] focus-visible:ring-2 focus-visible:ring-amber-500/80 active:scale-[0.98]"
+                  className="relative shrink-0 self-center cursor-pointer rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/80"
                   aria-expanded={skillBriefOpen}
                   aria-haspopup="dialog"
                   aria-label={`查看${speakerName}大頭像與被動／作戰說明`}
                   onClick={() => setSkillBriefOpen((v) => !v)}
                 >
-                  <HeroAvatarSilhouette
-                    heroId={speakerHeroId}
-                    size={40}
-                    className="ring-2 ring-slate-600/55 shadow-sm transition-[box-shadow] group-hover:ring-amber-400/75"
-                  />
+                  <HeroAvatarSilhouette heroId={speakerHeroId} size={48} />
                   <span
                     className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/40 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40"
                     aria-hidden
                   >
-                    <Sparkles size={11} strokeWidth={2.4} />
+                    <span className="text-[11px] font-black leading-none">+</span>
                   </span>
                 </button>
               ) : null}

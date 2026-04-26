@@ -19,6 +19,8 @@ import type { GameState } from './types';
 export interface HeroBarrageOut {
   id: number;
   text: string;
+  /** 觸發來源，供渲染端決定顯示管線（例：victory 走上方訊息框） */
+  trigger: HeroBarrageTrigger;
   /** 0~2 軌道，避免疊在同一行 */
   lane: number;
   /** 'normal' | 'alert'：alert 顯示紅色脈動描邊 */
@@ -85,6 +87,7 @@ export function useDynamicHeroBarrage(gameState: GameState): HeroBarrageOut | nu
       setBarrage({
         id: now + Math.floor(Math.random() * 999),
         text,
+        trigger,
         lane: Math.floor(Math.random() * 3),
         tone,
       });

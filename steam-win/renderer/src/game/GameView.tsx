@@ -13,6 +13,7 @@ import { LEVEL_MAX, isLevelUnlocked, saveGameProgress } from './gameProgressStor
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
+import { mergeUnlockedOnChapterCleared } from './heroUnlockedStorage';
 import { getHeroCombatTheme } from './heroCombatTheme';
 import { stageInChapter } from './chapterStage';
 import { AudioEngine } from '../audio/AudioEngine';
@@ -125,10 +126,15 @@ export default function GameView({
     if (lastRecordedWinGameId.current === gameState.gameId) return;
 
     const clearedLevelId = gameState.level.id;
+    const ch = gameState.level.definition.chapter;
+    if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(clearedLevelId, ch) === 10) {
+      mergeUnlockedOnChapterCleared(ch);
+    }
     const nextHighestCleared = Math.max(highestClearedLevel, clearedLevelId);
 
     saveGameProgress({ highestClearedLevel: nextHighestCleared });
     _onHighestClearedLevelChange(nextHighestCleared);
+    getStoredHeroId();
     lastRecordedWinGameId.current = gameState.gameId;
   }, [gameState?.status, gameState?.gameId, gameState?.level.id, highestClearedLevel, _onHighestClearedLevelChange]);
 

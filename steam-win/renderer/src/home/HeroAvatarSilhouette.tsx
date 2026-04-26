@@ -3,12 +3,12 @@
  */
 import type { CSSProperties } from 'react';
 
-import adaPortrait from '../assets/heroes/hero-ada.webp';
-import bobbyPortrait from '../assets/heroes/hero-bobby.webp';
-import commanderPortrait from '../assets/heroes/hero-commander.webp';
-import laozhangPortrait from '../assets/heroes/hero-laozhang.webp';
-import selinaPortrait from '../assets/heroes/hero-selina.webp';
-import xiaomingPortrait from '../assets/heroes/hero-xiaoming.webp';
+import adaPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-ada.png';
+import bobbyPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-bobby-v2-young.png';
+import commanderPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-commander-v2-indoor.png';
+import laozhangPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-laozhang-v2-helmet.png';
+import selinaPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-selina.png';
+import xiaomingPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-xiaoming-v3-recruit-fix.png';
 
 export type HeroAvatarVariant = 'recruit' | 'engineer' | 'veteran';
 
@@ -66,7 +66,7 @@ export function HeroAvatarSilhouette({
           width: size,
           height: size,
           objectFit: 'cover',
-          objectPosition: 'top center',
+          objectPosition: 'center center',
           borderRadius: radius,
           ...style,
         }}

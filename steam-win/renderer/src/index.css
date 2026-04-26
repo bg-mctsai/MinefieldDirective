@@ -52,6 +52,66 @@ body {
   }
 }
 
+/* 首頁 BaseAmbience：戰術網格明暗呼吸（只動 opacity） */
+@keyframes home-tech-grid-breath {
+
+  0%,
+  100% {
+    opacity: 0.38;
+  }
+
+  50% {
+    opacity: 0.62;
+  }
+}
+
+.home-tech-grid-layer {
+  animation: home-tech-grid-breath 14s ease-in-out infinite;
+}
+
+/* 極淡「掃描帶」下移：transform + overflow hidden 父層，合成層單一路徑 */
+@keyframes home-tech-band-drift {
+  0% {
+    transform: translate3d(0, -15%, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 15%, 0);
+  }
+}
+
+.home-tech-band-drift {
+  animation: home-tech-band-drift 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* 首頁左欄選單台：同步燈號（錯相閃爍） */
+@keyframes home-menu-led {
+
+  0%,
+  100% {
+    opacity: 0.28;
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(52, 211, 153, 0.45);
+  }
+}
+
+.home-menu-led-dot {
+  animation: home-menu-led 2.2s ease-in-out infinite;
+}
+
+.home-menu-led-dot:nth-child(2) {
+  animation-delay: -0.73s;
+}
+
+.home-menu-led-dot:nth-child(3) {
+  animation-delay: -1.46s;
+}
+
 /* 行動指揮車：戰術燈光左右擺動（極輕量） */
 @keyframes opsLampSway {
 
@@ -309,8 +369,21 @@ body {
   animation: mission-route-dash-flow 14s linear infinite;
 }
 
+/* 反向（副股）流動：與主股錯開方向與節奏，雙股更有層次 */
+@keyframes mission-route-dash-flow-reverse {
+  to {
+    stroke-dashoffset: 48;
+  }
+}
+
+.mission-route-flow-dash--reverse {
+  animation: mission-route-dash-flow-reverse 18s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .mission-route-flow-dash {
+
+  .mission-route-flow-dash,
+  .mission-route-flow-dash--reverse {
     animation: none;
   }
 }
@@ -370,6 +443,27 @@ body {
   animation-delay: 2.5s;
 }
 
+/* 戰術地圖：大圓雷達掃描扇形（沿雷達中心旋轉） */
+@keyframes mission-tactical-radar-sweep-rot {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mission-tactical-radar-sweep {
+  animation: mission-tactical-radar-sweep-rot 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mission-tactical-radar-sweep {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   .mission-tactical-radar-pulse,
@@ -379,36 +473,71 @@ body {
   }
 }
 
-/* 六角節點：下一挑戰關 — 橘色閃爍外框（取代原黃圈） */
-@keyframes mission-hex-next-challenge {
+/* 六角節點：當前挑戰關 — 橘色呼吸外框（#FF9F1C）緩慢脈衝、強化戰術引導 */
+@keyframes mission-hex-current-pulse {
 
   0%,
   100% {
     box-shadow:
-      0 0 0 2px rgba(249, 115, 22, 0.95),
-      0 0 12px rgba(249, 115, 22, 0.5),
-      inset 0 0 6px rgba(249, 115, 22, 0.1);
+      0 0 0 2px rgba(255, 159, 28, 0.9),
+      0 0 14px rgba(255, 159, 28, 0.45);
+    transform: scale(1);
     opacity: 1;
   }
 
   50% {
     box-shadow:
-      0 0 0 3px rgba(251, 146, 60, 0.75),
-      0 0 22px rgba(249, 115, 22, 0.72),
-      inset 0 0 10px rgba(251, 146, 60, 0.16);
-    opacity: 0.88;
+      0 0 0 3px rgba(255, 159, 28, 0.55),
+      0 0 28px rgba(255, 159, 28, 0.75),
+      0 0 44px rgba(255, 159, 28, 0.3);
+    transform: scale(1.04);
+    opacity: 0.92;
   }
 }
 
+.mission-hex-current-pulse {
+  border: 2px solid rgba(255, 159, 28, 0.9);
+  animation: mission-hex-current-pulse 1.8s ease-in-out infinite;
+}
+
+/* 舊別名保留：下一挑戰 — 指向同一動畫 */
 .mission-hex-next-challenge {
-  border: 2px solid rgba(249, 115, 22, 0.88);
-  animation: mission-hex-next-challenge 1.05s ease-in-out infinite;
+  border: 2px solid rgba(255, 159, 28, 0.9);
+  animation: mission-hex-current-pulse 1.8s ease-in-out infinite;
+}
+
+/* SVG 同形（六角／八角星）外框呼吸：用 opacity + stroke-width 調整，不動 transform */
+@keyframes mission-hex-shape-pulse {
+
+  0%,
+  100% {
+    opacity: 0.9;
+    stroke-width: 1.15;
+  }
+
+  50% {
+    opacity: 0.55;
+    stroke-width: 1.55;
+  }
+}
+
+.mission-hex-shape-pulse {
+  animation: mission-hex-shape-pulse 1.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mission-hex-shape-pulse {
+    animation: none;
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .mission-hex-current-pulse,
   .mission-hex-next-challenge {
     animation: none;
-    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.85);
+    box-shadow: 0 0 0 2px rgba(255, 159, 28, 0.85);
   }
 }
 
@@ -517,6 +646,104 @@ body {
   }
 }
 
+/* 波比遠端通訊：頭像 Glitch（色差 + 細微位移 + 掃描線） */
+@keyframes mission-comm-glitch-shift {
+
+  0%,
+  92%,
+  100% {
+    transform: translate(0, 0);
+    filter: none;
+  }
+
+  93% {
+    transform: translate(0.6px, -0.4px);
+    filter: hue-rotate(-12deg) saturate(1.15);
+  }
+
+  95% {
+    transform: translate(-0.8px, 0.3px);
+    filter: hue-rotate(10deg) contrast(1.1);
+  }
+
+  97% {
+    transform: translate(0.4px, 0.6px);
+    filter: none;
+  }
+}
+
+@keyframes mission-comm-glitch-chroma {
+
+  0%,
+  92%,
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  93% {
+    opacity: 0.55;
+    transform: translate(1.2px, 0);
+  }
+
+  96% {
+    opacity: 0.45;
+    transform: translate(-1.4px, 0.4px);
+  }
+
+  98% {
+    opacity: 0.35;
+    transform: translate(0.6px, -0.4px);
+  }
+}
+
+.mission-comm-glitch {
+  position: relative;
+  animation: mission-comm-glitch-shift 5.2s steps(1, end) infinite;
+}
+
+.mission-comm-glitch::before,
+.mission-comm-glitch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background-image: inherit;
+  background-size: inherit;
+  background-position: inherit;
+  background-repeat: inherit;
+}
+
+.mission-comm-glitch::before {
+  background-color: rgba(239, 68, 68, 0.45);
+  mix-blend-mode: multiply;
+  animation: mission-comm-glitch-chroma 5.2s steps(1, end) infinite;
+}
+
+.mission-comm-glitch::after {
+  background-image: repeating-linear-gradient(to bottom,
+      transparent 0px,
+      transparent 1px,
+      rgba(255, 255, 255, 0.08) 1px,
+      rgba(255, 255, 255, 0.08) 2px);
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .mission-comm-glitch,
+  .mission-comm-glitch::before {
+    animation: none;
+  }
+
+  .mission-comm-glitch::before {
+    opacity: 0;
+  }
+}
+
 /* 行動卷宗前戰術平板：指紋掃描、訊號閃爍、霧面噪點層 */
 @keyframes dossier-fingerprint-sweep {
   0% {
@@ -577,6 +804,55 @@ body {
   animation: dossier-signal-flicker 2.6s ease-in-out infinite;
 }
 
+@keyframes dossier-hazard-pulse {
+
+  0%,
+  100% {
+    opacity: 0.24;
+    transform: translateX(0);
+  }
+
+  46% {
+    opacity: 0.34;
+    transform: translateX(-0.5%);
+  }
+
+  52% {
+    opacity: 0.18;
+    transform: translateX(0.5%);
+  }
+}
+
+.dossier-hazard-pulse {
+  background:
+    repeating-linear-gradient(0deg, rgba(248, 113, 113, 0.08) 0px, rgba(248, 113, 113, 0.08) 1px, transparent 1px, transparent 3px),
+    radial-gradient(circle at 16% 18%, rgba(220, 38, 38, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 75%, rgba(244, 63, 94, 0.12) 0%, transparent 46%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: dossier-hazard-pulse 3.1s ease-in-out infinite;
+}
+
+@keyframes dossier-hazard-button-flicker {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.35);
+  }
+
+  38% {
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.22);
+  }
+
+  62% {
+    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.12);
+  }
+}
+
+.dossier-hazard-btn {
+  animation: dossier-hazard-button-flicker 2.2s ease-in-out infinite;
+}
+
 .dossier-film-grain {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");
   background-size: 100px 100px;
@@ -604,6 +880,11 @@ body {
   }
 
   .dossier-signal-btn {
+    animation: none;
+  }
+
+  .dossier-hazard-pulse,
+  .dossier-hazard-btn {
     animation: none;
   }
 }

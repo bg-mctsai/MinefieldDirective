@@ -1,3 +1,5 @@
+import { isHeroIdUnlocked, loadUnlockedHeroIds } from './game/heroUnlockedStorage';
+
 /** 工兵動態台詞觸發類型 */
 export type HeroBarrageTrigger =
   | 'opening'
@@ -387,7 +389,7 @@ export function telegraphHandSlotCount(heroId: string): number {
   return heroId === 'ada' ? 4 : 3;
 }
 
-export function getStoredHeroId(): string {
+function readRawMappedSelectedId(): string | null {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
     const mapped = v ? (LEGACY_HERO_ID[v] ?? v) : null;
@@ -395,10 +397,26 @@ export function getStoredHeroId(): string {
   } catch {
     /* ignore */
   }
-  return HEROES[0].id;
+  return null;
+}
+
+export function getStoredHeroId(): string {
+  const unlocked = new Set(loadUnlockedHeroIds());
+  const raw = readRawMappedSelectedId();
+  const firstAvailable = HEROES.find((h) => unlocked.has(h.id))?.id ?? HEROES[0].id;
+  const pick = raw != null && unlocked.has(raw) ? raw : firstAvailable;
+  if (raw != null && pick !== raw) {
+    try {
+      localStorage.setItem(STORAGE_KEY, pick);
+    } catch {
+      /* ignore */
+    }
+  }
+  return pick;
 }
 
 export function setStoredHeroId(id: string) {
+  if (!isHeroIdUnlocked(id)) return;
   try {
     localStorage.setItem(STORAGE_KEY, id);
   } catch {

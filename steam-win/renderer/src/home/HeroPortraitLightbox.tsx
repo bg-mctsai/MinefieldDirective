@@ -95,11 +95,7 @@ function PortraitLightboxOverlay({ heroId, onClose }: { heroId: string; onClose:
             <X size={20} strokeWidth={2.25} />
           </button>
           <div className="flex flex-col items-center gap-3 pt-5">
-            <HeroAvatarSilhouette
-              heroId={heroId}
-              size={256}
-              className="ring-2 ring-amber-500/35 shadow-[0_0_40px_rgba(245,158,11,0.12)]"
-            />
+            <HeroAvatarSilhouette heroId={heroId} size={256} />
             <div className="text-center">
               <h2 id="hero-portrait-lightbox-title" className="text-lg font-black tracking-tight text-white">
                 {caption.name}

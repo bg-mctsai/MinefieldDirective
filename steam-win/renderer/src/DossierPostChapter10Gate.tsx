@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { Fingerprint } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DossierPostChapter10Block } from './levelData/dossierPostChapter10Content';
 import { getDossierPostChapter10Content } from './levelData/dossierPostChapter10Content';
 import { getHeroDef } from './heroes';
@@ -8,12 +8,12 @@ import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
 import { SequentialTypedLines } from './teletype';
 
-/** 指揮官勉勵全部播畢 → 戰情通傳段開打前的靜默間隔（ms） */
-const HAZARD_SECTION_DELAY_MS = 2000;
-
 const HAZARD_SECTION_HEADING = '聯參戰情室通傳';
 const HAZARD_SPEAKER_HERO_ID = 'ada' as const;
 const COMMANDER_AVATAR_HERO_ID = 'commander' as const;
+const COMMANDER_SECTION_HEADING = '指揮官勉勵';
+
+type GatePhase = 'commander' | 'hazard';
 
 type Props = {
   completedChapter: number;
@@ -64,51 +64,19 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
     [completedChapter, contentOverride, c.title, c.encouragement, c.nextHazard, c.penSketches],
   );
 
-  /** 勉勵 → 藍筆 → 艱險：一次只跑一區，避免三塊同時打字 */
+  const [phase, setPhase] = useState<GatePhase>('commander');
   const [encDone, setEncDone] = useState(false);
-  const [penDone, setPenDone] = useState(!showPen);
+  const [hazardDone, setHazardDone] = useState(false);
 
   useEffect(() => {
+    setPhase('commander');
     setEncDone(c.encouragement.length === 0);
-    setPenDone(!showPen);
-  }, [dossierReset, showPen, c.encouragement.length]);
-
-  /** 藍筆不跑打字機：勉勵結束一露出藍筆即視為可進艱險 */
-  useEffect(() => {
-    if (encDone && showPen) {
-      setPenDone(true);
-    }
-  }, [encDone, showPen]);
-
-  /** 勉勵全結束後，間隔一段再讓戰情通傳段掛載開始打字 */
-  const [hazardDelayPassed, setHazardDelayPassed] = useState(false);
-  const hazardDelayTimerRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (hazardDelayTimerRef.current != null) {
-      window.clearTimeout(hazardDelayTimerRef.current);
-      hazardDelayTimerRef.current = null;
-    }
-    if (!encDone) {
-      setHazardDelayPassed(false);
-      return;
-    }
-    setHazardDelayPassed(false);
-    hazardDelayTimerRef.current = window.setTimeout(() => {
-      setHazardDelayPassed(true);
-      hazardDelayTimerRef.current = null;
-    }, HAZARD_SECTION_DELAY_MS);
-    return () => {
-      if (hazardDelayTimerRef.current != null) {
-        window.clearTimeout(hazardDelayTimerRef.current);
-        hazardDelayTimerRef.current = null;
-      }
-    };
-  }, [encDone]);
+    setHazardDone(c.nextHazard.length === 0);
+  }, [dossierReset, c.encouragement.length, c.nextHazard.length]);
 
   const onEncDone = useCallback(() => setEncDone(true), []);
-  const showPenBlock = encDone && showPen;
-  const showHazardBlock =
-    encDone && (!showPen || penDone) && hazardDelayPassed && c.nextHazard.length > 0;
+  const onHazardDone = useCallback(() => setHazardDone(true), []);
+  const showPenBlock = showPen;
 
   return (
     <div className="relative min-h-screen min-w-[360px] overflow-hidden bg-slate-950 font-sans text-slate-200">
@@ -150,126 +118,143 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
             <div className="dossier-film-grain pointer-events-none absolute inset-0 opacity-[0.14]" style={{ zIndex: 2 }} />
 
             <div className="relative z-10 p-5 sm:p-6" style={{ zIndex: 3 }}>
-              <div className="relative pr-0 sm:min-h-[4.5rem] sm:pr-36">
-                <ArchiveStamp completedChapter={completedChapter} />
-
-                <div className="flex items-start gap-3">
-                  <FingerprintScanModule />
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <p
-                      id="dossier-gate-kicker"
-                      className="text-[0.6rem] font-bold uppercase tracking-[0.28em] text-cyan-500/80"
-                    >
-                      戰術平板 · 授權讀取
-                    </p>
-                    <h2
-                      id="dossier-gate-title"
-                      className="mt-1.5 text-lg font-black leading-snug text-white [text-shadow:0_0_20px_rgba(34,211,238,0.15)] sm:text-xl"
-                    >
-                      {c.title}
-                    </h2>
-                    <p className="mt-1 text-[0.6rem] font-mono text-slate-500/90">SECURE LINK · 回到行動卷宗前最後一則筆記</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-1 mt-5 h-px bg-gradient-to-r from-transparent via-slate-600/60 to-transparent" />
-
-              <div className="mb-5 space-y-5 text-[0.9rem] leading-relaxed">
-                <section aria-label="指揮官勉勵台詞">
-                  <div className="mb-2.5 flex items-center gap-2.5 sm:gap-3">
-                    <button
-                      type="button"
-                      title="放大指揮官頭像"
-                      aria-label="放大指揮官頭像"
-                      onClick={() => openPortrait(COMMANDER_AVATAR_HERO_ID)}
-                      className="shrink-0 cursor-zoom-in rounded-lg outline-none ring-emerald-500/40 ring-offset-2 ring-offset-slate-950 transition-transform hover:scale-[1.04] focus-visible:ring-2 active:scale-[0.98]"
-                    >
-                      <HeroAvatarSilhouette
-                        heroId={COMMANDER_AVATAR_HERO_ID}
-                        size={40}
-                        className="ring-2 ring-emerald-500/40 shadow-md"
-                      />
-                    </button>
-                    <div className="min-w-0">
-                      <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-500/90">指揮官勉勵</p>
+              {phase === 'commander' ? (
+                <>
+                  <div className="relative pr-0 sm:min-h-[4.5rem] sm:pr-36">
+                    <ArchiveStamp completedChapter={completedChapter} />
+                    <div className="flex items-start gap-3">
+                      <FingerprintScanModule />
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <p
+                          id="dossier-gate-kicker"
+                          className="text-[0.6rem] font-bold uppercase tracking-[0.28em] text-cyan-500/80"
+                        >
+                          戰術平板 · 授權讀取
+                        </p>
+                        <h2
+                          id="dossier-gate-title"
+                          className="mt-1.5 text-lg font-black leading-snug text-white [text-shadow:0_0_20px_rgba(34,211,238,0.15)] sm:text-xl"
+                        >
+                          {c.title}
+                        </h2>
+                        <p className="mt-1 text-[0.6rem] font-mono text-slate-500/90">SECURE LINK · 回到行動卷宗前最後一則筆記</p>
+                      </div>
                     </div>
                   </div>
-                  <div className={`flex flex-col gap-3 ${showPen ? 'md:flex-row md:items-start' : ''}`}>
-                    <SequentialTypedLines
-                      as="ul"
-                      itemAs="li"
-                      lines={c.encouragement}
-                      resetKey={`${dossierReset}-enc`}
-                      className={`min-w-0 list-none text-left text-sm font-semibold text-slate-200/95 ${
-                        showPen ? 'flex-1 md:min-w-0' : 'w-full'
-                      }`}
-                      itemClassName="border-l-2 border-emerald-500/45 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.3)] not-last:mb-2.5"
-                      pace="slow"
-                      onAllLinesDone={onEncDone}
-                    />
-                    {showPenBlock ? (
-                      <div className="relative w-full max-w-full shrink-0 border border-dashed border-sky-600/35 bg-slate-900/50 px-3 py-2.5 md:max-w-[12rem] md:rotate-[-0.2deg]">
-                        <p className="text-[0.5rem] font-mono text-sky-600/70">CMD BLUE PEN</p>
-                        {c.penSketches.map((s, j) => (
-                          <p
-                            key={`pen-${dossierReset}-${j}`}
-                            className="dossier-pen-sketch pt-1 text-[0.8rem] font-medium italic leading-relaxed text-sky-200/90"
-                          >
-                            {s}
-                          </p>
-                        ))}
+
+                  <div className="mb-1 mt-5 h-px bg-gradient-to-r from-transparent via-slate-600/60 to-transparent" />
+
+                  <div className="mb-5 space-y-5 text-[0.9rem] leading-relaxed">
+                    <section aria-label="指揮官勉勵台詞">
+                      <div className="mb-2.5 flex items-center gap-2.5 sm:gap-3">
+                        <button
+                          type="button"
+                          title="放大指揮官頭像"
+                          aria-label="放大指揮官頭像"
+                          onClick={() => openPortrait(COMMANDER_AVATAR_HERO_ID)}
+                          className="shrink-0 cursor-zoom-in rounded-lg outline-none ring-emerald-500/40 ring-offset-2 ring-offset-slate-950 focus-visible:ring-2"
+                        >
+                          <HeroAvatarSilhouette heroId={COMMANDER_AVATAR_HERO_ID} size={40} />
+                        </button>
+                        <div className="min-w-0">
+                          <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-500/90">{COMMANDER_SECTION_HEADING}</p>
+                        </div>
                       </div>
-                    ) : null}
+                      <div className={`flex flex-col gap-3 ${showPen ? 'md:flex-row md:items-start' : ''}`}>
+                        <SequentialTypedLines
+                          as="ul"
+                          itemAs="li"
+                          lines={c.encouragement}
+                          resetKey={`${dossierReset}-enc`}
+                          className={`min-w-0 list-none text-left text-sm font-semibold text-slate-200/95 ${
+                            showPen ? 'flex-1 md:min-w-0' : 'w-full'
+                          }`}
+                          itemClassName="border-l-2 border-emerald-500/45 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.3)] not-last:mb-2.5"
+                          pace="slow"
+                          onAllLinesDone={onEncDone}
+                        />
+                        {showPenBlock ? (
+                          <div className="relative w-full max-w-full shrink-0 border border-dashed border-sky-600/35 bg-slate-900/50 px-3 py-2.5 md:max-w-[12rem] md:rotate-[-0.2deg]">
+                            <p className="text-[0.5rem] font-mono text-sky-600/70">CMD BLUE PEN</p>
+                            {c.penSketches.map((s, j) => (
+                              <p
+                                key={`pen-${dossierReset}-${j}`}
+                                className="dossier-pen-sketch pt-1 text-[0.8rem] font-medium italic leading-relaxed text-sky-200/90"
+                              >
+                                {s}
+                              </p>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </section>
                   </div>
-                </section>
-                {showHazardBlock ? (
-                  <section aria-label={`${HAZARD_SECTION_HEADING}，${hazardSpeaker.name}台詞`}>
-                    <div className="mb-2.5 flex items-center gap-2.5 sm:gap-3">
+
+                  <button
+                    type="button"
+                    onClick={() => setPhase('hazard')}
+                    disabled={!encDone}
+                    className="dossier-signal-btn w-full rounded-xl border border-cyan-400/25 bg-gradient-to-b from-cyan-600/95 to-cyan-800/90 py-3.5 text-sm font-black text-slate-950 [text-shadow:0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:from-cyan-500/95 hover:to-cyan-700/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    確定
+                  </button>
+                </>
+              ) : (
+                <section
+                  aria-label={`${HAZARD_SECTION_HEADING}，${hazardSpeaker.name}台詞`}
+                  className="dossier-hazard-brief relative overflow-hidden rounded-2xl border border-red-500/35 bg-gradient-to-b from-[#22050b]/95 via-[#0f0509]/95 to-[#08050a]/95 p-4 sm:p-5"
+                >
+                  <div className="dossier-hazard-pulse absolute inset-0" aria-hidden />
+                  <div className="relative z-[1]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[0.58rem] font-black uppercase tracking-[0.3em] text-red-400/90">Joint Ops Relay · Priority One</p>
+                        <h2 className="mt-1 text-[1.05rem] font-black leading-tight text-red-100 sm:text-[1.15rem]">
+                          {HAZARD_SECTION_HEADING}
+                        </h2>
+                        <p className="mt-1 text-[0.6rem] font-mono text-red-300/80">Transmission ID // CH-{completedChapter}-STAGE10</p>
+                      </div>
                       <button
                         type="button"
                         title={`放大 ${hazardSpeaker.name} 頭像`}
                         aria-label={`放大 ${hazardSpeaker.name} 頭像`}
                         onClick={() => openPortrait(HAZARD_SPEAKER_HERO_ID)}
-                        className="shrink-0 cursor-zoom-in rounded-lg outline-none ring-amber-500/40 ring-offset-2 ring-offset-slate-950 transition-transform hover:scale-[1.04] focus-visible:ring-2 active:scale-[0.98]"
+                        className="shrink-0 cursor-zoom-in rounded-lg outline-none ring-red-500/45 ring-offset-2 ring-offset-slate-950 focus-visible:ring-2"
                       >
-                        <HeroAvatarSilhouette
-                          heroId={HAZARD_SPEAKER_HERO_ID}
-                          size={40}
-                          className="ring-2 ring-amber-500/40 shadow-md"
-                        />
+                        <HeroAvatarSilhouette heroId={HAZARD_SPEAKER_HERO_ID} size={42} />
                       </button>
-                      <div className="min-w-0">
-                        <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-amber-500/90">
-                          {HAZARD_SECTION_HEADING}
-                        </p>
-                        <p className="text-[0.55rem] font-medium leading-tight text-slate-500/90">
-                          {hazardSpeaker.name}
-                          {hazardSpeaker.codename ? ` · ${hazardSpeaker.codename}` : null}
-                        </p>
-                      </div>
                     </div>
+
+                    <div className="mt-4 border-y border-red-500/25 py-2">
+                      <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-red-300/90">{hazardSpeaker.name}</p>
+                      <p className="text-[0.58rem] font-medium text-red-200/75">
+                        {hazardSpeaker.codename ? `代號 ${hazardSpeaker.codename}` : '戰況轉發官'}
+                      </p>
+                    </div>
+
                     <SequentialTypedLines
                       as="ul"
                       itemAs="li"
                       lines={c.nextHazard}
                       resetKey={`${dossierReset}-haz`}
-                      className="list-none text-left text-sm font-semibold text-slate-200/95"
-                      itemClassName="border-l-2 border-amber-500/50 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.3)] not-last:mb-2.5"
+                      className="mt-4 list-none text-left text-sm font-semibold text-red-100/95"
+                      itemClassName="border-l-2 border-red-400/60 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.45)] not-last:mb-2.5"
                       pace="slow"
-                      activeCaretClassName="bg-amber-400/80"
+                      activeCaretClassName="bg-red-300/85"
+                      onAllLinesDone={onHazardDone}
                     />
-                  </section>
-                ) : null}
-              </div>
 
-              <button
-                type="button"
-                onClick={onConfirm}
-                className="dossier-signal-btn w-full rounded-xl border border-cyan-400/25 bg-gradient-to-b from-cyan-600/95 to-cyan-800/90 py-3.5 text-sm font-black text-slate-950 [text-shadow:0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:from-cyan-500/95 hover:to-cyan-700/90"
-              >
-                確定，回到行動卷宗
-              </button>
+                    <button
+                      type="button"
+                      onClick={onConfirm}
+                      disabled={!hazardDone}
+                      className="dossier-hazard-btn mt-5 w-full rounded-xl border border-red-400/30 bg-gradient-to-b from-red-500/90 to-red-700/90 py-3.5 text-sm font-black text-red-50 transition-colors hover:from-red-400/95 hover:to-red-600/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      確定
+                    </button>
+                  </div>
+                </section>
+              )}
             </div>
           </motion.div>
         </motion.div>

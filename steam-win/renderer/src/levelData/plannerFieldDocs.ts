@@ -71,7 +71,7 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   neighborPlacedDigitBonus:
     '可選；本機制唯一開關：僅當設為 true 時啟用，程式不依 chapter／levelId 推斷。true 時實際放下數字 = 電報底數 + 與目標格「邏輯相鄰」且已佈數字之鄰格個數（含開局 prePlaced／提示格）。鄰接規則與盤面 solver 相同。',
 
-  rewards: '通關獎勵／解鎖；可含 unlockCharacterIds、narrativeFlag、todo 等，依遊戲實作進度而定。',
+  rewards: '通關敘事／企劃標記；可含 narrativeFlag、todo 等。幹員解鎖：levelData/heroUnlockByChapter.json。',
 
   missionTacticalBriefingMap:
     '可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央三角→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。',

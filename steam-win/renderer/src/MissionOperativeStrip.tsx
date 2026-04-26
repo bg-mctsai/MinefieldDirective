@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ZoomIn } from 'lucide-react';
+import { Lock, ZoomIn } from 'lucide-react';
 import { HEROES, resolveMissionBriefCarouselLines, setStoredHeroId } from './heroes';
+import { loadUnlockedHeroIds } from './game/heroUnlockedStorage';
+import { requiredCompletedChapterForHero } from './game/heroUnlockByChapter';
 import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
 import { TeletypeInline } from './teletype';
@@ -20,6 +22,7 @@ export function MissionOperativeStrip({
   previewLevelId: number;
   className?: string;
 }) {
+  const unlocked = useMemo(() => new Set(loadUnlockedHeroIds()), []);
   const hero = HEROES.find((h) => h.id === operativeId) ?? HEROES[0];
   const briefLines = useMemo(
     () => resolveMissionBriefCarouselLines(operativeId, previewLevelId),
@@ -55,23 +58,41 @@ export function MissionOperativeStrip({
         <div className="flex items-center justify-center gap-2 sm:justify-start">
           {HEROES.map((h) => {
             const active = h.id === operativeId;
+            const canUse = unlocked.has(h.id);
+            const needCh = requiredCompletedChapterForHero(h.id);
+            const title =
+              canUse
+                ? `切換為 ${h.name}`
+                : needCh != null
+                  ? `通關第 ${needCh} 章整章解鎖`
+                  : '尚未解鎖';
             return (
               <div key={h.id} className="relative inline-flex">
                 <button
                   type="button"
-                  title={`切換為 ${h.name}`}
+                  title={title}
+                  disabled={!canUse}
                   onClick={() => {
+                    if (!canUse) return;
                     setStoredHeroId(h.id);
                     onOperativeChange(h.id);
                   }}
                   className={`relative rounded-xl border-2 p-0.5 transition-all ${
-                    active
-                      ? 'border-[#F59E0B] bg-[#F59E0B]/15 shadow-[0_0_16px_rgba(245,158,11,0.25)]'
-                      : 'border-transparent opacity-70 hover:border-slate-600 hover:opacity-100'
+                    !canUse
+                      ? 'cursor-not-allowed border-slate-700/80 opacity-40'
+                      : active
+                        ? 'border-[#F59E0B] bg-[#F59E0B]/15 shadow-[0_0_16px_rgba(245,158,11,0.25)]'
+                        : 'border-transparent opacity-70 hover:border-slate-600 hover:opacity-100'
                   }`}
                 >
                   <HeroAvatarSilhouette heroId={h.id} size={40} />
+                  {!canUse && (
+                    <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
+                      <Lock size={14} className="text-slate-300" aria-hidden />
+                    </span>
+                  )}
                 </button>
+                {canUse && (
                 <button
                   type="button"
                   title={`放大 ${h.name} 頭像`}
@@ -81,6 +102,7 @@ export function MissionOperativeStrip({
                 >
                   <ZoomIn size={11} strokeWidth={2.6} />
                 </button>
+                )}
               </div>
             );
           })}
