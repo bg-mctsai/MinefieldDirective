@@ -1,4 +1,5 @@
 import type { Level } from '../gameLogic';
+import type { Medal } from './medalThresholds';
 
 /** 佈署中：鄰焰共振關卡會先有 approach（小兵），再有 resonance（格上底數遞增到最終值） */
 export type MovingSoldierState =
@@ -68,4 +69,10 @@ export interface GameState {
   blastPointsCountdown: Map<string, number>;
   /** 老張「加固模組」（每局一次）：solver 放錯抵銷後為 false；非老張幹員固定 false */
   buckEmergencyAvailable: boolean;
+  /** 結算當下的勳章（status === 'won' 時寫入）；非過關狀態為 null */
+  settledMedal: Medal | null;
+  /** 結算當下覆蓋率（0～100）；非過關狀態為 null */
+  settledFillPercentage: number | null;
+  /** 結算當下剩餘秒數（不計時關卡為 null） */
+  settledSecondsLeft: number | null;
 }

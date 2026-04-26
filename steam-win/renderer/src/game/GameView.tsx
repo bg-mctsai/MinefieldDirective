@@ -9,7 +9,7 @@ import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
 import { VictoryCelebrationOverlay } from './VictoryCelebrationOverlay';
-import { LEVEL_MAX, isLevelUnlocked, saveGameProgress } from './gameProgressStorage';
+import { LEVEL_MAX, getBestMedal, isLevelUnlocked, recordMedal, saveGameProgress } from './gameProgressStorage';
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
@@ -63,6 +63,10 @@ export default function GameView({
     forceCompleteForTest,
     fillPercentage,
     bonusFxKeys,
+    medalThresholds,
+    projectedMedal,
+    canEarlySettle,
+    requestEarlySettle,
   } = useMineGame(safeInitialLevelIndex);
 
   const [chapterBriefingDismissed, setChapterBriefingDismissed] = useState(false);
@@ -131,12 +135,14 @@ export default function GameView({
       mergeUnlockedOnChapterCleared(ch);
     }
     const nextHighestCleared = Math.max(highestClearedLevel, clearedLevelId);
-
+    if (gameState.settledMedal != null) {
+      recordMedal(clearedLevelId, gameState.settledMedal);
+    }
     saveGameProgress({ highestClearedLevel: nextHighestCleared });
     _onHighestClearedLevelChange(nextHighestCleared);
     getStoredHeroId();
     lastRecordedWinGameId.current = gameState.gameId;
-  }, [gameState?.status, gameState?.gameId, gameState?.level.id, highestClearedLevel, _onHighestClearedLevelChange]);
+  }, [gameState?.status, gameState?.gameId, gameState?.level.id, gameState?.settledMedal, highestClearedLevel, _onHighestClearedLevelChange]);
 
   if (!gameState) return null;
 
@@ -173,7 +179,10 @@ export default function GameView({
     >
       <GameHeader
         fillPercentage={fillPercentage}
-        coverageGoalPercent={gameState.level.definition.coverageGoal * 100}
+        medalThresholds={medalThresholds ?? { bronze: gameState.level.definition.coverageGoal, silver: gameState.level.definition.coverageGoal, gold: gameState.level.definition.coverageGoal }}
+        projectedMedal={projectedMedal}
+        showEarlySettleButton={canEarlySettle}
+        onEarlySettle={requestEarlySettle}
         onBack={handleExitToMission}
         onRestart={() => initGame(currentLevelIndex, gameState.runSeed)}
         showNextLevelButton={winInlineActionsUnlocked && !isLastLevel && !isChapterStage10}
@@ -254,9 +263,14 @@ export default function GameView({
       <VictoryCelebrationOverlay
         visible={showVictoryCelebration}
         variant={isLastLevel ? 'campaign' : 'level'}
-        fillPercentage={fillPercentage}
+        fillPercentage={gameState.settledFillPercentage ?? fillPercentage}
         levelCount={levelList.length}
         onConfirm={() => setDismissedWinCelebrationGameId(gameState.gameId)}
+        settledMedal={gameState.settledMedal}
+        previousBestMedal={getBestMedal(gameState.level.id)}
+        secondsLeft={gameState.settledSecondsLeft}
+        timeLimit={gameState.level.definition.timeLimit}
+        medalThresholds={medalThresholds}
       />
 
       <ChapterEntryBriefingOverlay
@@ -269,3 +283,4 @@ export default function GameView({
     </div>
   );
 }
+

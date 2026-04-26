@@ -1,5 +1,6 @@
 import { memo, useState } from 'react';
 import { Lock } from 'lucide-react';
+import type { Medal } from './game/medalThresholds';
 
 /** 扁頂六角（flat-top 上下）— 一般關卡 */
 const HEX_PATH = 'M 0,-10 L 8.66,-5 L 8.66,5 L 0,10 L -8.66,5 L -8.66,-5 Z';
@@ -199,6 +200,7 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   onSelect,
   onDoubleClick,
   confirmFlash,
+  bestMedal,
 }: {
   stage: number;
   xPct: number;
@@ -211,6 +213,7 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   onSelect: () => void;
   onDoubleClick?: () => void;
   confirmFlash?: boolean;
+  bestMedal?: Medal | null;
 }) {
   const [hover, setHover] = useState(false);
   const tone = resolveTone({ locked, cleared, inProgress, isBoss });
@@ -363,6 +366,15 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
             {String(stage).padStart(2, '0')}
           </span>
         </span>
+        {!locked && bestMedal ? (
+          <span
+            className="pointer-events-none absolute right-[1px] top-[1px] z-[3]"
+            title={`最佳勳章：${bestMedalToLabel(bestMedal)}`}
+            aria-label={`最佳勳章：${bestMedalToLabel(bestMedal)}`}
+          >
+            <MedalShieldBadge medal={bestMedal} />
+          </span>
+        ) : null}
         {stateLabel ? (
           <span
             className={`pointer-events-none absolute left-1/2 top-[calc(100%+4px)] -translate-x-1/2 whitespace-nowrap text-[10px] font-black uppercase tracking-[0.14em] drop-shadow-[0_0_8px_rgba(0,0,0,0.95)] sm:text-[11px] ${tone.labelClass}`}
@@ -374,3 +386,67 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
     </button>
   );
 });
+
+function bestMedalToLabel(medal: Medal): string {
+  if (medal === 'gold') return '金級勳章';
+  if (medal === 'silver') return '銀級勳章';
+  return '銅級勳章';
+}
+
+function MedalShieldBadge({ medal }: { medal: Medal }) {
+  const tone =
+    medal === 'gold'
+      ? {
+          frame: '#fcd34d',
+          fillA: '#fef3c7',
+          fillB: '#f59e0b',
+          mark: '#fef9c3',
+          glow: 'drop-shadow-[0_0_6px_rgba(252,211,77,0.7)]',
+        }
+      : medal === 'silver'
+        ? {
+            frame: '#cbd5e1',
+            fillA: '#f8fafc',
+            fillB: '#94a3b8',
+            mark: '#ffffff',
+            glow: 'drop-shadow-[0_0_6px_rgba(226,232,240,0.65)]',
+          }
+        : {
+            frame: '#f59e0b',
+            fillA: '#fde68a',
+            fillB: '#b45309',
+            mark: '#fef3c7',
+            glow: 'drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]',
+          };
+  return (
+    <svg
+      viewBox="0 0 20 22"
+      className={`h-[16px] w-[15px] ${tone.glow}`}
+      aria-hidden
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id={`badgeFill-${medal}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={tone.fillA} />
+          <stop offset="100%" stopColor={tone.fillB} />
+        </linearGradient>
+      </defs>
+      <path
+        d="M10 1.2 L17.5 4.2 L17.5 11.2 C17.5 15.3 14.8 18.5 10 20.6 C5.2 18.5 2.5 15.3 2.5 11.2 L2.5 4.2 Z"
+        fill={`url(#badgeFill-${medal})`}
+        stroke={tone.frame}
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 3.2 L15.5 5.4 L15.5 10.7 C15.5 13.8 13.5 16.2 10 17.8 C6.5 16.2 4.5 13.8 4.5 10.7 L4.5 5.4 Z"
+        fill="none"
+        stroke={tone.mark}
+        strokeOpacity="0.55"
+        strokeWidth="0.8"
+        strokeLinejoin="round"
+      />
+      <path d="M10 6.2 L11.1 8.5 L13.6 8.9 L11.8 10.7 L12.2 13.2 L10 12 L7.8 13.2 L8.2 10.7 L6.4 8.9 L8.9 8.5 Z" fill={tone.mark} fillOpacity="0.9" />
+    </svg>
+  );
+}

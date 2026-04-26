@@ -27,6 +27,7 @@ import {
   SOLDIER_MOVE_MS,
 } from './constants';
 import { sortLossExplosionCells, timeoutLossExplosionKeys } from './lossExplosionChain';
+import { judgeMedal, resolveMedalThresholds, type Medal } from './medalThresholds';
 import { emit } from '../audio/AudioEngine';
 import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
@@ -134,6 +135,9 @@ export function useMineGame(initialLevelIndex: number) {
       jammingLockedSlot: null,
       blastPointsCountdown: initBlastCountdown,
       buckEmergencyAvailable: getStoredHeroId() === 'laozhang',
+      settledMedal: null,
+      settledFillPercentage: null,
+      settledSecondsLeft: null,
     });
     for (const t of bonusFxTimeoutsRef.current.values()) {
       window.clearTimeout(t);
@@ -717,14 +721,15 @@ export function useMineGame(initialLevelIndex: number) {
       return;
     }
 
-    const winPct = gameState.level.definition.coverageGoal * 100;
+    const medalThresholds = resolveMedalThresholds(gameState.level.definition);
+    const goldPct = medalThresholds.gold * 100;
     const outposts = gameState.level.definition.digitOutposts ?? [];
     const placedKeySetForOutpost = new Set(newPlacedNumbers.map((p) => `${p.x},${p.y}`));
     const outpostsIncomplete =
       outposts.length > 0 &&
       outposts.some(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
 
-    if (fillPercentage >= winPct) {
+    if (fillPercentage >= goldPct) {
       if (outpostsIncomplete) {
         const lossTopo = lossUiTopologyFromLevel(gameState.level);
         const missing = outposts.filter(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
@@ -785,6 +790,10 @@ export function useMineGame(initialLevelIndex: number) {
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
+              settledMedal: 'gold' as Medal,
+              settledFillPercentage: fillPercentage,
+              settledSecondsLeft:
+                prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
             }
           : null,
       );
@@ -829,14 +838,62 @@ export function useMineGame(initialLevelIndex: number) {
       100
     : 0;
 
-  /** 測試捷徑：直接將當前對局標記為過關，便於驗證章節流轉與對話。 */
-  const forceCompleteForTest = useCallback(() => {
+  const medalThresholds = gameState
+    ? resolveMedalThresholds(gameState.level.definition)
+    : null;
+
+  /** 對局中即時投影：若此刻結算可拿到的勳章（未達銅為 null） */
+  const projectedMedal: Medal | null =
+    gameState && medalThresholds ? judgeMedal(fillPercentage, medalThresholds) : null;
+
+  const canEarlySettle =
+    gameState != null && gameState.status === 'playing' && projectedMedal != null;
+
+  /** 玩家主動「撤離」：達銅以上即可結算，醒目顯示當下勳章。 */
+  const requestEarlySettle = useCallback(() => {
     setGameState((prev) => {
-      if (!prev || prev.status === 'won') return prev;
+      if (!prev || prev.status !== 'playing') return prev;
+      const totalKnown =
+        prev.placedNumbers.length +
+        prev.revealedMines.size +
+        prev.revealedClear.size +
+        prev.dynamicMines.size;
+      const fillPct = (totalKnown / prev.level.cells.length) * 100;
+      const t = resolveMedalThresholds(prev.level.definition);
+      const m = judgeMedal(fillPct, t);
+      if (!m) return prev;
       return {
         ...prev,
         status: 'won',
         message: GAME_FIXED.victoryStatus.plain,
+        settledMedal: m,
+        settledFillPercentage: fillPct,
+        settledSecondsLeft: prev.secondsLeft,
+      };
+    });
+    setMovingSoldier(null);
+    setSelectedHandIndex(null);
+  }, []);
+
+  /** 測試捷徑：直接將當前對局標記為過關，便於驗證章節流轉與對話。 */
+  const forceCompleteForTest = useCallback(() => {
+    setGameState((prev) => {
+      if (!prev || prev.status === 'won') return prev;
+      const totalKnown =
+        prev.placedNumbers.length +
+        prev.revealedMines.size +
+        prev.revealedClear.size +
+        prev.dynamicMines.size;
+      const fillPct = (totalKnown / prev.level.cells.length) * 100;
+      const t = resolveMedalThresholds(prev.level.definition);
+      const m = judgeMedal(fillPct, t) ?? 'bronze';
+      return {
+        ...prev,
+        status: 'won',
+        message: GAME_FIXED.victoryStatus.plain,
+        settledMedal: m,
+        settledFillPercentage: fillPct,
+        settledSecondsLeft: prev.secondsLeft,
       };
     });
     setMovingSoldier(null);
@@ -857,5 +914,9 @@ export function useMineGame(initialLevelIndex: number) {
     forceCompleteForTest,
     fillPercentage,
     bonusFxKeys,
+    medalThresholds,
+    projectedMedal,
+    canEarlySettle,
+    requestEarlySettle,
   } as const;
 }

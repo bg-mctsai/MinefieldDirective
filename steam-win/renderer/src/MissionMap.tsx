@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, Home, Map as MapIcon } from 'lucide-react';
 import { LEVELS, type Level } from './gameLogic';
 import { TerminalBackdrop } from './ui/TerminalBackdrop';
-import { isLevelUnlocked, LEVEL_MAX } from './game/gameProgressStorage';
+import { getAllBestMedals, isLevelUnlocked, LEVEL_MAX } from './game/gameProgressStorage';
 import { chapterCampaignTagline } from './game/levelStrategyGuideModel';
 import { stageInChapter } from './game/chapterStage';
 import missionChapterBlurbs from './missionMapChapterBlurbs.json';
@@ -103,6 +103,8 @@ export default function MissionMap({
     }
     return [...byChapter.entries()].sort((a, b) => a[0] - b[0]);
   }, []);
+
+  const bestMedalByLevel = useMemo(() => getAllBestMedals(), []);
 
   const hintChapter = useMemo(() => nextPlayableChapter(highestClearedLevel), [highestClearedLevel]);
 
@@ -470,6 +472,7 @@ export default function MissionMap({
                               triggerEnterFeedbackAndStart(row.idx, lv.id);
                             }}
                             confirmFlash={confirmFlashLevelId === lv.id}
+                            bestMedal={bestMedalByLevel[lv.id] ?? null}
                           />
                         );
                       })}

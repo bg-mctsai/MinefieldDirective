@@ -10,7 +10,14 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   chapter: '章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。',
   title: '關卡標題（介面顯示用）。',
   gridSystem: '地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。',
-  coverageGoal: '過關覆蓋率目標，0～1（例：0.7 = 70%；1 = 100%）。',
+  coverageGoal:
+    '過關覆蓋率目標，0～1（例：0.7 = 70%；1 = 100%）。若未填 medalThresholds，勳章門檻使用全域固定值（銅 0.70、銀 0.84、金 0.98）。',
+  medalThresholds:
+    '可選；逐關自訂三段勳章覆蓋率門檻（皆 0～1）。需為物件 { bronze, silver, gold }。規則：達銅後玩家可主動撤離領牌；達金自動結算；時間歸零一律失敗。建議 0 < bronze ≤ silver ≤ gold ≤ 1。',
+  'medalThresholds.bronze': '銅級勳章覆蓋率門檻 0～1。建議等於或略低於 coverageGoal。',
+  'medalThresholds.silver': '銀級勳章覆蓋率門檻 0～1。建議比銅高 0.05～0.15。',
+  'medalThresholds.gold':
+    '金級勳章覆蓋率門檻 0～1。達此值對局自動結算；建議比銀高 0.05～0.15。受 forbiddenCells 影響時請避免逼近 1.0。',
   timeLimit: '時間限制（秒）；須為正整數，全戰役關卡皆計時。',
   initialSeed: '盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。',
 

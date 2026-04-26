@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { ChevronRight, Flag, X } from 'lucide-react';
+import { Award, ChevronRight, Flag, X } from 'lucide-react';
 import { HEROES, resolveMissionBriefCarouselLines } from './heroes';
 import { TeletypeInline } from './teletype';
 import { MissionLevelCommsBlock } from './MissionLevelCommsBlock';
 import { HeroPortraitZoomButton } from './home/HeroPortraitZoomButton';
 import { missionEnemyIntelAbbrev, missionEnemySituationLine } from './missionMapLevelBrief';
+import { resolveMedalThresholds, type Medal } from './game/medalThresholds';
+import { getBestMedal } from './game/gameProgressStorage';
 import type { Level } from './gameLogic';
+
+const MEDAL_DOT_TONE: Record<Medal, string> = {
+  bronze: 'text-amber-700',
+  silver: 'text-slate-200',
+  gold: 'text-yellow-300',
+};
+const MEDAL_LABEL_SHORT: Record<Medal, string> = { bronze: '銅', silver: '銀', gold: '金' };
 
 /** 戰術地圖下方通訊固定由艾達擔當（冷靜解析、遠端資料側翼） */
 const COMMS_HERO_ID = 'ada';
@@ -51,7 +60,14 @@ export function MissionLevelTacticalDockedBrief({
 }: MissionLevelTacticalDockedBriefProps) {
   const def = level.definition;
   const timeLimit = def.timeLimit;
-  const coveragePct = Math.round(def.coverageGoal * 1000) / 10;
+  const medalThresholds = useMemo(() => resolveMedalThresholds(def), [def]);
+  const bronzePct = Math.round(medalThresholds.bronze * 1000) / 10;
+  const silverPct = Math.round(medalThresholds.silver * 1000) / 10;
+  const goldPct = Math.round(medalThresholds.gold * 1000) / 10;
+  const bestMedal: Medal | null = useMemo(
+    () => (cleared ? getBestMedal(level.id) : null),
+    [cleared, level.id],
+  );
   const enemyFull = useMemo(() => missionEnemySituationLine(def), [def]);
   const enemyAbbrev = useMemo(() => missionEnemyIntelAbbrev(def), [def]);
   const locCoord = useMemo(
@@ -64,8 +80,9 @@ export function MissionLevelTacticalDockedBrief({
     [timeLimit],
   );
   const tipCoverage = useMemo(
-    () => `覆蓋目標：可部署格之覆蓋率須達 ${coveragePct}% 以上。`,
-    [coveragePct],
+    () =>
+      `三段勳章（覆蓋率）：銅 ${bronzePct}% ／ 銀 ${silverPct}% ／ 金 ${goldPct}%。達銅後可主動撤離領牌；達金自動結算；時間歸零一律失敗。`,
+    [bronzePct, silverPct, goldPct],
   );
   const tipEnemy = enemyFull;
 
@@ -174,12 +191,25 @@ export function MissionLevelTacticalDockedBrief({
             </span>
             <span className="text-emerald-500/25 select-none" aria-hidden>·</span>
             <span
-              className="inline-flex cursor-help items-center gap-0.5 border-b border-dotted border-emerald-500/25 pb-px"
+              className="inline-flex cursor-help items-center gap-1 border-b border-dotted border-emerald-500/25 pb-px"
               title={tipCoverage}
             >
-              <span aria-hidden>◎</span>
-              <span>{coveragePct}%</span>
+              <span className={MEDAL_DOT_TONE.bronze} aria-hidden>●</span>
+              <span>{bronzePct}%</span>
+              <span className={MEDAL_DOT_TONE.silver} aria-hidden>●</span>
+              <span>{silverPct}%</span>
+              <span className={MEDAL_DOT_TONE.gold} aria-hidden>●</span>
+              <span>{goldPct}%</span>
             </span>
+            {bestMedal && (
+              <span
+                className={`inline-flex items-center gap-0.5 rounded border border-current/40 px-1 ${MEDAL_DOT_TONE[bestMedal]}`}
+                title={`本關最佳：${MEDAL_LABEL_SHORT[bestMedal]}級勳章`}
+              >
+                <Award size={10} strokeWidth={2.5} aria-hidden />
+                <span>{MEDAL_LABEL_SHORT[bestMedal]}</span>
+              </span>
+            )}
             <span className="text-emerald-500/25 select-none" aria-hidden>·</span>
             <span
               className="inline-flex max-w-[12rem] min-w-0 cursor-help items-center gap-0.5 border-b border-dotted border-emerald-500/25 pb-px sm:max-w-none"

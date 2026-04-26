@@ -1,10 +1,65 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { Check, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Flag, RefreshCw } from 'lucide-react';
 import { MissionDirectiveEmblem } from './MissionDirectiveEmblem';
 import { LAST_COUNTDOWN_SOUND_SECONDS } from './constants';
 import type { HeroCombatTheme } from './heroCombatTheme';
 import { getHeroCombatTheme } from './heroCombatTheme';
+import type { Medal } from './medalThresholds';
+import type { MedalThresholds } from '../levelData/types';
+
+const MEDAL_TONE: Record<
+  Medal,
+  { text: string; ring: string; glow: string; tickOn: string; tickOff: string; label: string }
+> = {
+  bronze: {
+    text: 'text-amber-700',
+    ring: 'ring-amber-700/60',
+    glow: 'shadow-[0_0_18px_rgba(180,83,9,0.55)]',
+    tickOn: 'bg-amber-500',
+    tickOff: 'bg-slate-600',
+    label: 'text-amber-600/95',
+  },
+  silver: {
+    text: 'text-slate-200',
+    ring: 'ring-slate-300/70',
+    glow: 'shadow-[0_0_18px_rgba(226,232,240,0.55)]',
+    tickOn: 'bg-slate-200',
+    tickOff: 'bg-slate-600',
+    label: 'text-slate-300/90',
+  },
+  gold: {
+    text: 'text-yellow-300',
+    ring: 'ring-yellow-300/80',
+    glow: 'shadow-[0_0_22px_rgba(253,224,71,0.7)]',
+    tickOn: 'bg-yellow-300',
+    tickOff: 'bg-slate-600',
+    label: 'text-yellow-200/90',
+  },
+};
+
+const MEDAL_LABEL: Record<Medal, string> = { bronze: '銅', silver: '銀', gold: '金' };
+
+const PROGRESS_THEME_BY_MEDAL: Record<
+  Medal,
+  { valueColor: string; barFill: string; glow: string }
+> = {
+  bronze: {
+    valueColor: 'text-amber-400',
+    barFill: 'bg-gradient-to-r from-amber-800 via-amber-500 to-amber-300',
+    glow: 'shadow-[0_0_16px_rgba(245,158,11,0.35)]',
+  },
+  silver: {
+    valueColor: 'text-slate-100',
+    barFill: 'bg-gradient-to-r from-slate-700 via-slate-300 to-slate-100',
+    glow: 'shadow-[0_0_16px_rgba(226,232,240,0.35)]',
+  },
+  gold: {
+    valueColor: 'text-yellow-300',
+    barFill: 'bg-gradient-to-r from-yellow-800 via-yellow-400 to-yellow-200',
+    glow: 'shadow-[0_0_18px_rgba(253,224,71,0.45)]',
+  },
+};
 
 /** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
 export const GAME_HEADER_CARD_CLASS =
@@ -12,7 +67,10 @@ export const GAME_HEADER_CARD_CLASS =
 
 export function GameHeader({
   fillPercentage,
-  coverageGoalPercent,
+  medalThresholds,
+  projectedMedal,
+  showEarlySettleButton,
+  onEarlySettle,
   onBack,
   onRestart,
   showNextLevelButton,
@@ -28,8 +86,13 @@ export function GameHeader({
   heroTheme: heroThemeProp,
 }: {
   fillPercentage: number;
-  /** 企劃定義之覆蓋率目標（%） */
-  coverageGoalPercent: number;
+  /** 三段勳章覆蓋率門檻（0～1） */
+  medalThresholds: MedalThresholds;
+  /** 對局中即時投影：此刻結算可拿到的勳章（未達銅為 null） */
+  projectedMedal: Medal | null;
+  /** 是否顯示「撤離」按鈕（達銅且 status === 'playing'） */
+  showEarlySettleButton?: boolean;
+  onEarlySettle?: () => void;
   onBack: () => void;
   onRestart: () => void;
   /** 過關並按慶祝「確定」後，非最終關且非章內第 10 關時顯示「下一關」 */
@@ -54,6 +117,14 @@ export function GameHeader({
 }) {
   const heroTheme = heroThemeProp ?? getHeroCombatTheme('xiaoming');
   const progressCardClass = `${GAME_HEADER_CARD_CLASS} ${heroTheme.headerProgressCard}`;
+  const progressTheme =
+    projectedMedal != null
+      ? PROGRESS_THEME_BY_MEDAL[projectedMedal]
+      : {
+          valueColor: 'text-emerald-500',
+          barFill: 'bg-gradient-to-r from-emerald-800 via-emerald-500 to-emerald-400',
+          glow: '',
+        };
 
   return (
     <div className="mb-4 flex w-full max-w-6xl flex-col gap-3">
@@ -96,20 +167,29 @@ export function GameHeader({
         className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch"
       >
         <div className={progressCardClass}>
-          <div className="flex flex-1 flex-wrap items-center justify-center gap-4 sm:justify-start">
-            <div className="px-2 text-center">
-              <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">任務進度</div>
-              <div className="text-2xl font-black text-emerald-500">{fillPercentage.toFixed(1)}%</div>
-            </div>
-            <div className="hidden h-10 w-0.5 bg-slate-800 sm:block" />
-            <div className="px-2 text-center">
-              <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">目標</div>
-              <div className="text-2xl font-black text-slate-600">{coverageGoalPercent.toFixed(0)}%</div>
+          <div className="flex w-full min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <div className="min-w-0 flex-1 px-1 sm:px-2">
+              <div className="mb-1.5 flex items-end justify-between gap-2">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">任務進度</div>
+                  <div className="mt-0.5 hidden text-[9px] font-bold text-slate-600 sm:block">刻度＝勳章門檻</div>
+                </div>
+                <div className={`shrink-0 text-2xl font-black tabular-nums ${progressTheme.valueColor}`}>
+                  {fillPercentage.toFixed(1)}%
+                </div>
+              </div>
+              <MedalThresholdProgressBar
+                fillPercentage={fillPercentage}
+                medalThresholds={medalThresholds}
+                projectedMedal={projectedMedal}
+                barFillClass={progressTheme.barFill}
+                barGlowClass={progressTheme.glow}
+              />
             </div>
             {secondsLeft !== null && (
               <>
-                <div className="hidden h-10 w-0.5 bg-slate-800 sm:block" />
-                <div className="px-2 text-center">
+                <div className="hidden h-10 w-0.5 shrink-0 self-center bg-slate-800 sm:block" />
+                <div className="shrink-0 px-2 text-center sm:min-w-[4.5rem]">
                   <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">
                     {countdownStarted ? '剩餘時間' : '任務時限'}
                   </div>
@@ -134,6 +214,17 @@ export function GameHeader({
             )}
           </div>
           <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 self-center sm:mt-0 sm:ml-auto sm:justify-end sm:self-auto">
+            {showEarlySettleButton && onEarlySettle != null && projectedMedal != null && (
+              <button
+                type="button"
+                onClick={onEarlySettle}
+                className={`inline-flex items-center gap-1.5 rounded-2xl border-2 px-3.5 py-2 text-xs font-black tracking-wide transition-all active:scale-95 ring-1 ${MEDAL_TONE[projectedMedal].text} ${MEDAL_TONE[projectedMedal].ring} ${MEDAL_TONE[projectedMedal].glow} border-current bg-slate-900/70 hover:bg-slate-900`}
+                title={`現在撤離可獲：${MEDAL_LABEL[projectedMedal]}級勳章`}
+              >
+                <Flag size={14} strokeWidth={2.5} />
+                撤離
+              </button>
+            )}
             {showChapterEndButton && onChapterEnd != null && (
               <button
                 type="button"
@@ -169,6 +260,75 @@ export function GameHeader({
           <div className="flex min-h-[3.75rem] min-w-0 flex-1 flex-col">{telegraphPanel}</div>
         )}
       </motion.div>
+    </div>
+  );
+}
+
+const MEDAL_ORDER: { key: Medal; pct: (t: MedalThresholds) => number }[] = [
+  { key: 'bronze', pct: (t) => t.bronze * 100 },
+  { key: 'silver', pct: (t) => t.silver * 100 },
+  { key: 'gold', pct: (t) => t.gold * 100 },
+];
+
+function MedalThresholdProgressBar({
+  fillPercentage,
+  medalThresholds,
+  projectedMedal,
+  barFillClass,
+  barGlowClass,
+}: {
+  fillPercentage: number;
+  medalThresholds: MedalThresholds;
+  projectedMedal: Medal | null;
+  barFillClass: string;
+  barGlowClass?: string;
+}) {
+  const fillW = Math.min(100, Math.max(0, fillPercentage));
+  return (
+    <div className="w-full min-w-0">
+      <div className="relative w-full overflow-visible pb-4">
+        <div className="relative h-2.5 w-full">
+          <div className="h-full w-full overflow-hidden rounded-full bg-slate-800/90 ring-1 ring-slate-700/40">
+            <div
+              className={`h-full max-w-full rounded-full transition-[width] duration-300 ease-out ${barFillClass} ${barGlowClass ?? ''}`}
+              style={{ width: `${fillW}%` }}
+            />
+          </div>
+          {MEDAL_ORDER.map(({ key, pct: pctFn }) => {
+            const pct = pctFn(medalThresholds);
+            const left = Math.min(100, Math.max(0, pct));
+            const passed = fillPercentage + 1e-6 >= pct;
+            const isActive = projectedMedal === key;
+            const tone = MEDAL_TONE[key];
+            return (
+              <div
+                key={key}
+                className="pointer-events-none absolute top-1/2 w-0 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${left}%` }}
+                aria-hidden
+              >
+                <div
+                  className={`h-3.5 w-px rounded-full shadow-sm transition-colors ${
+                    passed ? tone.tickOn : tone.tickOff
+                  } ${isActive && passed ? 'opacity-100 ring-1 ring-white/30' : ''}`}
+                />
+                <div
+                  className={`absolute left-1/2 top-[calc(100%+3px)] -translate-x-1/2 whitespace-nowrap text-[9px] font-black leading-none tabular-nums sm:text-[10px] ${
+                    passed ? `${tone.label} font-extrabold` : 'text-slate-600'
+                  } ${
+                    isActive
+                      ? 'underline decoration-dotted decoration-current underline-offset-2'
+                      : ''
+                  } ${passed ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]' : ''}`}
+                >
+                  {MEDAL_LABEL[key]}
+                  {Math.round(pct)}%
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

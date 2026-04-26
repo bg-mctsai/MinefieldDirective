@@ -6,6 +6,7 @@ import { stageInChapter } from '../game/chapterStage';
 import { loadGameProgress, LEVEL_MAX } from '../game/gameProgressStorage';
 import { loadUnlockedHeroIds } from '../game/heroUnlockedStorage';
 import { HEROES } from '../heroes';
+import { ChapterMedalSummary } from './ChapterMedalSummary';
 
 function pct(n: number) {
   return `${Math.round(Math.max(0, Math.min(1, n)) * 100)}%`;
@@ -141,6 +142,10 @@ export function HomeOpsDashboard() {
             主線戰役已完成，等待後續卷宗內容。
           </div>
         ) : null}
+
+        <div className="relative mt-4">
+          <ChapterMedalSummary />
+        </div>
       </div>
     </motion.section>
   );
