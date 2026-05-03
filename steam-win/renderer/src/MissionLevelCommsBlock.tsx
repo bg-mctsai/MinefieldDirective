@@ -1,5 +1,7 @@
 import { memo, useMemo } from 'react';
 
+import { LEVELS_PER_CHAPTER } from './game/chapterStage';
+
 const TACTICAL_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 
 function tacticalLetter(levelId: number, chapter: number, stage: number): string {
@@ -10,7 +12,7 @@ function tacticalLetter(levelId: number, chapter: number, stage: number): string
 /** 依關卡／章節固定：介面不重骰、存檔前後一致 */
 export function formatMissionChannelCode(levelId: number, chapter: number, stage: number): string {
   const pad = String(stage).padStart(2, '0');
-  if (stage >= 10) return `BOSS-${pad}`;
+  if (stage >= LEVELS_PER_CHAPTER) return `BOSS-${pad}`;
   return `#${pad}-${tacticalLetter(levelId, chapter, stage)}`;
 }
 
@@ -57,12 +59,14 @@ export type MissionLevelCommsBlockProps = {
   chapter: number;
   cleared: boolean;
   locked?: boolean;
-  /** 章末第 10 槽：警示外框 */
+  /** 章末第 8 槽：警示外框 */
   isBossStage: boolean;
   /** 橫幅列略加寬 */
   relaxed?: boolean;
   /** 章內下一個可接關卡（未完成）— 頻道微脈衝 */
   inProgress?: boolean;
+  /** 浮動戰情卡等縮小版面 */
+  compact?: boolean;
 };
 
 export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
@@ -72,12 +76,16 @@ export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
   isBossStage,
   relaxed = false,
   inProgress = false,
+  compact = false,
 }: MissionLevelCommsBlockProps) {
   const ch = useMemo(() => String(stage).padStart(2, '0'), [stage]);
   const live = !locked && !cleared;
 
-  const sizePad =
-    relaxed ? 'min-w-[5.95rem] px-2 py-1.25 sm:min-w-[6.35rem]' : 'min-w-[5.2rem] px-1.5 py-1 sm:min-w-[5.55rem]';
+  const sizePad = compact
+    ? 'min-w-[4.2rem] px-1 py-0.5 sm:min-w-[4.45rem]'
+    : relaxed
+      ? 'min-w-[5.95rem] px-2 py-1.25 sm:min-w-[6.35rem]'
+      : 'min-w-[5.2rem] px-1.5 py-1 sm:min-w-[5.55rem]';
 
   const tunePulse = inProgress && !locked && !cleared ? 'mission-ch-tune-pulse' : '';
   const bossTapeEdge = isBossStage && !locked && !cleared ? 'mission-boss-tape-edge' : '';
@@ -129,8 +137,12 @@ export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
       className={`relative overflow-hidden rounded-md ${sizePad} ${shell} ${tunePulse} ${bossTapeEdge}`}
     >
       <div className={`pointer-events-none absolute inset-0 z-[2] ${scanCls}`} aria-hidden />
-      <div className="relative z-[3] flex items-center gap-1.5">
-        <span className="inline-flex items-baseline font-mono text-[10px] font-black leading-none tracking-tight sm:text-[11px]">
+      <div className="relative z-[3] flex items-center gap-1 sm:gap-1.5">
+        <span
+          className={`inline-flex items-baseline font-mono font-black leading-none tracking-tight ${
+            compact ? 'text-[9px] sm:text-[10px]' : 'text-[10px] sm:text-[11px]'
+          }`}
+        >
           <span className={bracketTone}>{'['}</span>
           <span className={`px-0.5 ${chTone}`}>CH.{ch}</span>
           <span className={bracketTone}>{']'}</span>

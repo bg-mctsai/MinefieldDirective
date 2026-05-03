@@ -1,5 +1,7 @@
 # 05 · Dialogue & Voice Guide（台詞與口氣）
 
+**V2（靜默佈署、地雷主詞、禁衝鋒語彙傾向）**：[05_dialogue_voice_guide_2.md](05_dialogue_voice_guide_2.md)（與本頁並存；硬性 JSON／教學規則仍以本頁與 emotion-route-balance 為準）。
+
 ## 實裝與規範來源
 
 - Cursor skill（長官語氣、嚴厲／關懷、JSON 交付）：[../../../.cursor/skills/emotion-route-balance/SKILL.md](../../../.cursor/skills/emotion-route-balance/SKILL.md)

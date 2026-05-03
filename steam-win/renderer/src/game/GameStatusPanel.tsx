@@ -58,7 +58,11 @@ export function GameStatusMessageBar({
 }) {
   const { openPortrait } = useHeroPortraitLightbox();
   const dynamicBarrage = useDynamicHeroBarrage(gameState);
-  const supportBarrage = null;
+  /** 棋盤下方飄字：與 hook 同步；victory 僅用上方訊息列（見 useDynamicHeroBarrage 註解） */
+  const supportBarrage: HeroBarrageOut | null =
+    enableSupportBarrage && dynamicBarrage != null && dynamicBarrage.trigger !== 'victory'
+      ? dynamicBarrage
+      : null;
   const [boardAnchor, setBoardAnchor] = useState<{ left: number; top: number } | null>(null);
   const [skillBriefOpen, setSkillBriefOpen] = useState(false);
   const [skillBriefPos, setSkillBriefPos] = useState<{ top: number; left: number } | null>(null);
@@ -140,7 +144,7 @@ export function GameStatusMessageBar({
   const statusMsgKey = `${gameState.gameId}|||${statusMessage}`;
 
   return (
-    <div className="relative mb-2 w-full max-w-6xl shrink-0">
+    <div className="relative mb-3 w-full max-w-7xl shrink-0">
       {skillBriefOpen && speakerHeroId != null && (
         <>
           <div role="presentation" className="fixed inset-0 z-[100] bg-black/50" onClick={closeSkillBrief} />
@@ -150,7 +154,7 @@ export function GameStatusMessageBar({
               aria-modal="true"
               aria-labelledby="hero-skill-brief-heading"
               style={{ top: skillBriefPos.top, left: skillBriefPos.left }}
-              className="fixed z-[101] w-[min(22rem,calc(100vw-1.5rem))] max-h-[min(70vh,26rem)] overflow-y-auto rounded-2xl border-2 border-slate-600 bg-slate-900/98 p-4 shadow-2xl backdrop-blur-sm"
+              className="fixed z-[101] w-[min(28rem,calc(100vw-1.5rem))] max-h-[min(76vh,34rem)] overflow-y-auto rounded-2xl border-2 border-slate-600 bg-slate-900/98 p-5 shadow-2xl backdrop-blur-sm"
             >
               <div className="mb-4 flex flex-col items-center gap-2 border-b border-slate-700/80 pb-4">
                 <button
@@ -168,10 +172,10 @@ export function GameStatusMessageBar({
                     +
                   </span>
                 </button>
-                <p className="text-center text-[11px] font-bold text-slate-500">{getHeroDef(speakerHeroId).role}</p>
+                <p className="text-center text-sm font-bold text-slate-300">{getHeroDef(speakerHeroId).role}</p>
               </div>
               <div className="mb-3 flex items-start justify-between gap-2">
-                <h2 id="hero-skill-brief-heading" className="text-sm font-black tracking-tight text-white">
+                <h2 id="hero-skill-brief-heading" className="text-lg font-black tracking-tight text-white">
                   {speakerName} · 被動／作戰說明
                 </h2>
                 <button
@@ -186,11 +190,11 @@ export function GameStatusMessageBar({
               <div className="space-y-4">
                 {skillPanels.map((p) => (
                   <div key={p.title}>
-                    <div className="mb-1.5 text-[11px] font-black uppercase tracking-wider text-amber-400/95">
+                    <div className="mb-1.5 text-sm font-black uppercase tracking-[0.08em] text-amber-300">
                       {p.title}
                     </div>
                     {p.paragraphs.map((line, i) => (
-                      <p key={i} className="text-[13px] font-semibold leading-relaxed text-slate-300">
+                      <p key={i} className="text-base font-semibold leading-relaxed text-slate-200">
                         {line}
                       </p>
                     ))}
@@ -210,7 +214,7 @@ export function GameStatusMessageBar({
           transition={{ duration: 0.12 }}
           className="w-full"
         >
-          <div className={`rounded-xl border px-3 py-1.5 shadow-md ${statusBarFrameClass}`}>
+          <div className={`rounded-xl border px-4 py-2 shadow-md ${statusBarFrameClass}`}>
             <div
               className={`flex min-w-0 items-center gap-2.5 sm:gap-3 ${speakerHeroId ? 'pb-2' : ''} ${speakerHeroId ? '' : 'justify-center'}`}
             >
@@ -236,7 +240,7 @@ export function GameStatusMessageBar({
               ) : null}
               <div className="min-w-0 flex-1 overflow-x-auto [-webkit-overflow-scrolling:touch]">
                 <p
-                  className={`whitespace-nowrap text-[13px] font-bold leading-snug sm:text-sm ${speakerHeroId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
+                  className={`whitespace-nowrap text-base font-bold leading-snug sm:text-lg ${speakerHeroId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
                 >
                   <TeletypeInline
                     full={statusMessage}
@@ -285,6 +289,7 @@ export function GameStatusPanel({
   currentLevelIndex,
   levelCount,
   fillPercentage,
+  destructivePowerPercentage,
   showInlineWinActions,
   onReturnToMission,
   onReplayFinalLevel,
@@ -293,6 +298,7 @@ export function GameStatusPanel({
   currentLevelIndex: number;
   levelCount: number;
   fillPercentage: number;
+  destructivePowerPercentage: number;
   /** 過關慶祝按「確定」後才顯示最終關操作列 */
   showInlineWinActions: boolean;
   onReturnToMission?: () => void;
@@ -307,7 +313,7 @@ export function GameStatusPanel({
     Boolean(onReturnToMission);
 
   return (
-    <div className="mt-2 w-full max-w-6xl">
+    <div className="mt-3 w-full max-w-7xl">
       <AnimatePresence>
         {showWinPanel && (
           <motion.div
@@ -330,8 +336,10 @@ export function GameStatusPanel({
                     </p>
                     <p className="text-sm font-black leading-tight text-white sm:text-base">恭喜破關！</p>
                     <p className="text-[11px] font-medium leading-tight text-slate-400 sm:text-xs">
-                      已完成 {levelCount} 關 · 覆蓋率{' '}
-                      <span className="font-bold text-emerald-400">{fillPercentage.toFixed(1)}%</span>
+                      已完成 {levelCount} 關 · 破壞力{' '}
+                      <span className="font-bold text-emerald-400">{destructivePowerPercentage.toFixed(1)}%</span>
+                      {' '}
+                      <span className="text-slate-500">（覆蓋 {fillPercentage.toFixed(1)}%）</span>
                     </p>
                   </div>
                 </div>

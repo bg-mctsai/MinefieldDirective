@@ -11,7 +11,7 @@ export function campaignLevelStageLabel(level: Level): string {
 
 /**
  * 對局頂欄等：章節標語(章內關次)；若有 `mapTheme`（戰場主題短名）則附加 `-主題`。
- * 例如：`新兵訓練營(2)-長條`
+ * 例如：`新兵訓練(2)-長條`
  */
 export function campaignLevelHeaderTitle(level: Level): string {
   const tag = chapterCampaignTagline(level.definition.chapter).trim();

@@ -32,7 +32,7 @@ function ArchiveStamp({ completedChapter }: { completedChapter: number }) {
         <p className="text-[0.6rem] font-black uppercase tracking-[0.35em] text-red-500/95 [text-shadow:0_0_1px_rgba(0,0,0,0.4)]">CONFIRMED</p>
         <p className="mt-0.5 text-[0.5rem] font-bold uppercase tracking-[0.12em] text-red-300/80">[ ARCHIVED ]</p>
         <p className="mt-1.5 text-[0.6rem] font-bold leading-tight text-red-200/90">
-          第 {completedChapter} 章 · 第 10 關
+          第 {completedChapter} 章 · 第 8 關
         </p>
         <p className="text-[0.5rem] font-bold text-red-400/80">戰果已寫入指揮鏈</p>
       </div>
@@ -104,7 +104,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 6, opacity: 0, scale: 0.99 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="dossier-tablet-aura relative max-h-[min(82vh,38rem)] w-full max-w-lg overflow-y-auto rounded-2xl"
+            className="dossier-tablet-aura relative max-h-[min(88vh,48rem)] w-full max-w-2xl overflow-y-auto rounded-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="dossier-gate-title"
@@ -117,7 +117,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
             <div className="scanlines pointer-events-none absolute inset-0 opacity-70" style={{ zIndex: 1 }} />
             <div className="dossier-film-grain pointer-events-none absolute inset-0 opacity-[0.14]" style={{ zIndex: 2 }} />
 
-            <div className="relative z-10 p-5 sm:p-6" style={{ zIndex: 3 }}>
+            <div className="relative z-10 p-6 sm:p-8" style={{ zIndex: 3 }}>
               {phase === 'commander' ? (
                 <>
                   <div className="relative pr-0 sm:min-h-[4.5rem] sm:pr-36">
@@ -127,24 +127,24 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                       <div className="min-w-0 flex-1 pt-0.5">
                         <p
                           id="dossier-gate-kicker"
-                          className="text-[0.6rem] font-bold uppercase tracking-[0.28em] text-cyan-500/80"
+                          className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-300/90"
                         >
                           戰術平板 · 授權讀取
                         </p>
                         <h2
                           id="dossier-gate-title"
-                          className="mt-1.5 text-lg font-black leading-snug text-white [text-shadow:0_0_20px_rgba(34,211,238,0.15)] sm:text-xl"
+                          className="mt-1.5 text-2xl font-black leading-snug text-white [text-shadow:0_0_20px_rgba(34,211,238,0.15)] sm:text-3xl"
                         >
                           {c.title}
                         </h2>
-                        <p className="mt-1 text-[0.6rem] font-mono text-slate-500/90">SECURE LINK · 回到行動卷宗前最後一則筆記</p>
+                        <p className="mt-1 text-sm font-mono text-slate-300/90">SECURE LINK · 回到行動卷宗前最後一則筆記</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="mb-1 mt-5 h-px bg-gradient-to-r from-transparent via-slate-600/60 to-transparent" />
 
-                  <div className="mb-5 space-y-5 text-[0.9rem] leading-relaxed">
+                  <div className="mb-5 space-y-6 text-base leading-relaxed">
                     <section aria-label="指揮官勉勵台詞">
                       <div className="mb-2.5 flex items-center gap-2.5 sm:gap-3">
                         <button
@@ -157,7 +157,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                           <HeroAvatarSilhouette heroId={COMMANDER_AVATAR_HERO_ID} size={40} />
                         </button>
                         <div className="min-w-0">
-                          <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-500/90">{COMMANDER_SECTION_HEADING}</p>
+                          <p className="text-sm font-bold uppercase tracking-[0.08em] text-emerald-300">{COMMANDER_SECTION_HEADING}</p>
                         </div>
                       </div>
                       <div className={`flex flex-col gap-3 ${showPen ? 'md:flex-row md:items-start' : ''}`}>
@@ -166,7 +166,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                           itemAs="li"
                           lines={c.encouragement}
                           resetKey={`${dossierReset}-enc`}
-                          className={`min-w-0 list-none text-left text-sm font-semibold text-slate-200/95 ${
+                          className={`min-w-0 list-none text-left text-lg font-semibold text-slate-100 ${
                             showPen ? 'flex-1 md:min-w-0' : 'w-full'
                           }`}
                           itemClassName="border-l-2 border-emerald-500/45 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.3)] not-last:mb-2.5"
@@ -179,7 +179,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                             {c.penSketches.map((s, j) => (
                               <p
                                 key={`pen-${dossierReset}-${j}`}
-                                className="dossier-pen-sketch pt-1 text-[0.8rem] font-medium italic leading-relaxed text-sky-200/90"
+                                className="dossier-pen-sketch pt-1 text-base font-medium italic leading-relaxed text-sky-100/95"
                               >
                                 {s}
                               </p>
@@ -194,7 +194,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                     type="button"
                     onClick={() => setPhase('hazard')}
                     disabled={!encDone}
-                    className="dossier-signal-btn w-full rounded-xl border border-cyan-400/25 bg-gradient-to-b from-cyan-600/95 to-cyan-800/90 py-3.5 text-sm font-black text-slate-950 [text-shadow:0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:from-cyan-500/95 hover:to-cyan-700/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="dossier-signal-btn w-full rounded-xl border border-cyan-400/25 bg-gradient-to-b from-cyan-600/95 to-cyan-800/90 py-4 text-lg font-black text-slate-950 [text-shadow:0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:from-cyan-500/95 hover:to-cyan-700/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     確定
                   </button>
@@ -208,11 +208,11 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                   <div className="relative z-[1]">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-[0.58rem] font-black uppercase tracking-[0.3em] text-red-400/90">Joint Ops Relay · Priority One</p>
-                        <h2 className="mt-1 text-[1.05rem] font-black leading-tight text-red-100 sm:text-[1.15rem]">
+                        <p className="text-xs font-black uppercase tracking-[0.15em] text-red-300">Joint Ops Relay · Priority One</p>
+                        <h2 className="mt-1 text-xl font-black leading-tight text-red-100 sm:text-2xl">
                           {HAZARD_SECTION_HEADING}
                         </h2>
-                        <p className="mt-1 text-[0.6rem] font-mono text-red-300/80">Transmission ID // CH-{completedChapter}-STAGE10</p>
+                        <p className="mt-1 text-sm font-mono text-red-200/90">Transmission ID // CH-{completedChapter}-STAGE08</p>
                       </div>
                       <button
                         type="button"
@@ -226,8 +226,8 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                     </div>
 
                     <div className="mt-4 border-y border-red-500/25 py-2">
-                      <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-red-300/90">{hazardSpeaker.name}</p>
-                      <p className="text-[0.58rem] font-medium text-red-200/75">
+                      <p className="text-sm font-bold uppercase tracking-[0.08em] text-red-200">{hazardSpeaker.name}</p>
+                      <p className="text-xs font-medium text-red-200/85">
                         {hazardSpeaker.codename ? `代號 ${hazardSpeaker.codename}` : '戰況轉發官'}
                       </p>
                     </div>
@@ -237,7 +237,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                       itemAs="li"
                       lines={c.nextHazard}
                       resetKey={`${dossierReset}-haz`}
-                      className="mt-4 list-none text-left text-sm font-semibold text-red-100/95"
+                      className="mt-4 list-none text-left text-lg font-semibold text-red-100"
                       itemClassName="border-l-2 border-red-400/60 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.45)] not-last:mb-2.5"
                       pace="slow"
                       activeCaretClassName="bg-red-300/85"
@@ -248,7 +248,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                       type="button"
                       onClick={onConfirm}
                       disabled={!hazardDone}
-                      className="dossier-hazard-btn mt-5 w-full rounded-xl border border-red-400/30 bg-gradient-to-b from-red-500/90 to-red-700/90 py-3.5 text-sm font-black text-red-50 transition-colors hover:from-red-400/95 hover:to-red-600/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="dossier-hazard-btn mt-5 w-full rounded-xl border border-red-400/30 bg-gradient-to-b from-red-500/90 to-red-700/90 py-4 text-lg font-black text-red-50 transition-colors hover:from-red-400/95 hover:to-red-600/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       確定
                     </button>

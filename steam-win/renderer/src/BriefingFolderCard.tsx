@@ -1,11 +1,11 @@
 /**
  * 章節「行動卷宗」卡片
  * - 牛皮紙紋背景 + 內網格 + 釘裝邊
- * - 右上 CONFIDENTIAL 印章
- * - 上欄：章節標題與描述；下欄：標籤條（戰區編號、進度提示）
+ * - 「展開卷宗」僅切換內文顯示；「進入作戰地圖」才開戰術選關
  */
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { ChevronRight } from 'lucide-react';
+import { Map as MapIcon } from 'lucide-react';
 import { emit } from './audio/AudioEngine';
 
 const PAPER_BG: React.CSSProperties = {
@@ -19,8 +19,9 @@ export function BriefingFolderCard({
   blurb,
   rowsCount,
   isHint,
+  collapsed,
   pending,
-  onClick,
+  onEnterMap,
   delaySec,
 }: {
   chapter: number;
@@ -28,80 +29,112 @@ export function BriefingFolderCard({
   blurb: string;
   rowsCount: number;
   isHint: boolean;
-  /** 是否為「正在拉開」狀態：放大、提亮、稍微外推 */
+  /** 整章已通關：預設縮略列、顯示紅章；展開後仍可看故事 */
+  collapsed: boolean;
+  /** 正在切入作戰地圖過場 */
   pending: boolean;
-  onClick: () => void;
+  onEnterMap: () => void;
   delaySec: number;
 }) {
+  const [storyOpen, setStoryOpen] = useState(false);
+  const compact = collapsed && !storyOpen;
+
   return (
     <motion.li
       initial={{ opacity: 0, y: 8 }}
       animate={{
         opacity: 1,
         y: 0,
-        scale: pending ? 1.015 : 1,
+        scale: pending ? 1.012 : 1,
       }}
       transition={{ delay: delaySec, duration: 0.22 }}
       className="w-full"
     >
-      <button
-        type="button"
-        onClick={() => {
-          // 行動卷宗使用與地圖選擇同一顆選取音
-          emit('ui.select.change');
-          onClick();
-        }}
-        aria-label={`開啟「${headline}」戰區卷宗`}
-        title={`開啟「${headline}」戰區卷宗`}
-        className={`group relative flex w-full items-stretch justify-between gap-3 overflow-hidden rounded-2xl border-double border-[3px] py-3.5 pl-4 pr-3 text-left transition-[border-color,transform,box-shadow] sm:gap-4 sm:py-4 sm:pl-6 sm:pr-4 ${
+      <div
+        className={`group relative flex w-full items-stretch justify-between gap-3 overflow-hidden rounded-2xl border-double border-[3px] pl-4 pr-3 text-left transition-[border-color,transform,box-shadow] sm:gap-4 sm:pl-6 sm:pr-4 ${
+          compact ? 'py-3 sm:py-3.5' : 'py-4 sm:py-5'
+        } ${
           pending
             ? 'border-[#F59E0B] shadow-[0_18px_44px_rgba(245,158,11,0.25)]'
-            : 'border-[#3a2f1a] shadow-[0_8px_28px_rgba(0,0,0,0.32)] hover:border-[#F59E0B]/80 hover:shadow-[0_14px_40px_rgba(245,158,11,0.18)]'
-        } active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0d12]`}
+            : 'border-[#3a2f1a] shadow-[0_8px_28px_rgba(0,0,0,0.32)] hover:border-[#F59E0B]/75 hover:shadow-[0_14px_40px_rgba(245,158,11,0.16)]'
+        } focus-within:outline-none focus-within:ring-2 focus-within:ring-[#F59E0B]/50 focus-within:ring-offset-2 focus-within:ring-offset-[#0a0d12]`}
         style={PAPER_BG}
       >
-        {/* 左側裝訂釘條 */}
         <span className="pointer-events-none absolute inset-y-2 left-1.5 w-1 rounded-full bg-[#F59E0B]/30" />
         <span className="pointer-events-none absolute left-2.5 top-3 h-1.5 w-1.5 rounded-full bg-[#F59E0B]/60" />
         <span className="pointer-events-none absolute bottom-3 left-2.5 h-1.5 w-1.5 rounded-full bg-[#F59E0B]/60" />
 
-        {/* 右上 CONFIDENTIAL 印章 */}
-        <span
-          className="pointer-events-none absolute right-3 top-2 select-none rounded-md border-[2.5px] border-red-500/60 px-1.5 py-[1px] font-mono text-[8px] font-black uppercase tracking-[0.32em] text-red-500/80 ops-stamp-wobble"
-          style={{ textShadow: '0 0 4px rgba(239,68,68,0.35)' }}
+        <div
+          className={`relative flex min-w-0 flex-1 flex-col pl-3 ${compact ? 'gap-1' : 'gap-2'} ${
+            collapsed ? 'pr-[4.75rem] sm:pr-[5.25rem]' : 'pr-1'
+          }`}
         >
-          CONFIDENTIAL
-        </span>
+          {collapsed ? (
+            <div
+              className="pointer-events-none absolute right-1 top-1/2 z-[1] -translate-y-1/2 select-none sm:right-2"
+              aria-hidden
+            >
+              <div
+                className="ops-stamp-wobble rounded-sm border-[2.5px] border-red-600/85 bg-red-950/40 px-2 py-1 text-center shadow-[0_0_14px_rgba(220,38,38,0.35),inset_0_0_12px_rgba(127,29,29,0.2)]"
+                style={{ textShadow: '0 0 5px rgba(220,38,38,0.5)' }}
+              >
+                <p className="text-xs font-black leading-none tracking-[0.06em] text-red-200 sm:text-[13px]">已結卷</p>
+                <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.24em] text-red-500/85">CONFIRMED</p>
+              </div>
+            </div>
+          ) : null}
 
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5 pl-3 pr-1">
-          <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-slate-500">
-            BRIEFING FOLDER · CH-{String(chapter).padStart(2, '0')}
-          </span>
-          <span className="truncate text-base font-black tracking-tight text-white sm:text-lg" title={headline}>
-            {headline}
-          </span>
-          <p className="text-xs leading-relaxed text-slate-300 sm:text-sm">{blurb}</p>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-400 sm:text-xs">
-            <span className="font-bold text-[#F59E0B]/95">展開卷宗</span>
-            <span className="text-slate-600">·</span>
-            <span>共 {rowsCount} 道戰區</span>
-            {isHint ? (
-              <span className="rounded border border-[#F59E0B]/55 bg-[#F59E0B]/15 px-1.5 py-0.5 text-[10px] font-black text-[#F59E0B]">
-                進行中
-              </span>
-            ) : null}
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+              第 {String(chapter).padStart(2, '0')} 章
+            </span>
+            <span className="truncate text-base font-black tracking-tight text-white sm:text-lg" title={headline}>
+              {headline}
+            </span>
+          </div>
+
+          {storyOpen ? (
+            <div className="mt-1 rounded-xl border border-white/[0.06] bg-black/25 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-3.5 sm:py-3">
+              <p className="whitespace-pre-line text-xs leading-relaxed text-slate-200/95 sm:text-sm">{blurb}</p>
+            </div>
+          ) : null}
+
+          <div className="mt-2 flex flex-col gap-2.5 border-t border-white/[0.06] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="flex min-w-0 flex-wrap items-stretch gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  emit('ui.select.change');
+                  setStoryOpen((v) => !v);
+                }}
+                className="rounded-xl border border-slate-600/70 bg-slate-950/50 px-3 py-2 text-[11px] font-bold text-slate-300 shadow-sm transition-colors hover:border-[#F59E0B]/50 hover:bg-slate-900/80 hover:text-[#F59E0B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] sm:px-3.5 sm:text-xs"
+              >
+                {storyOpen ? '收合卷宗' : '展開卷宗'}
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => {
+                  emit('ui.select.change');
+                  onEnterMap();
+                }}
+                className="inline-flex min-h-[2.25rem] flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-b from-[#FCD34D] via-[#F59E0B] to-[#D97706] px-3.5 py-2 text-[11px] font-black tracking-wide text-[#1c1003] shadow-[0_4px_18px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.38)] transition-[transform,filter,box-shadow] hover:brightness-105 hover:shadow-[0_6px_24px_rgba(245,158,11,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-55 sm:flex-initial sm:min-w-[9.5rem] sm:px-4 sm:text-xs"
+              >
+                <MapIcon size={15} strokeWidth={2.5} className="shrink-0 opacity-90" aria-hidden />
+                進入作戰地圖
+              </button>
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 sm:justify-end sm:text-xs">
+              <span className="tabular-nums text-slate-500">共 {rowsCount} 道戰區</span>
+              {isHint ? (
+                <span className="rounded-md border border-[#F59E0B]/50 bg-[#F59E0B]/12 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-[#F59E0B]">
+                  進行中
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
-
-        <div className="flex shrink-0 flex-col items-center justify-center border-l border-[#3a2f1a]/80 pl-2 sm:pl-3">
-          <ChevronRight
-            className="text-[#F59E0B]/70 transition-colors group-hover:text-[#F59E0B] group-focus-visible:text-[#F59E0B]"
-            size={22}
-            strokeWidth={2.25}
-            aria-hidden
-          />
-        </div>
-      </button>
+      </div>
     </motion.li>
   );
 }
@@ -130,13 +163,13 @@ export function BriefingFolderLocked({
         aria-disabled
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-slate-600">
-            FOLDER SEALED · CH-{String(chapter).padStart(2, '0')}
+          <span className="text-[10px] font-bold tracking-wide text-slate-600">
+            第 {String(chapter).padStart(2, '0')} 章 · 封存
           </span>
           <span className="truncate text-base font-black text-slate-500 sm:text-lg" title={headline}>
             {headline}
           </span>
-          <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">{blurb}</p>
+          <p className="whitespace-pre-line text-xs leading-relaxed text-slate-600 sm:text-sm">{blurb}</p>
           <div className="text-[11px] text-slate-600 sm:text-xs">第 {chapter} 章 · 尚未列入行動表</div>
         </div>
       </div>

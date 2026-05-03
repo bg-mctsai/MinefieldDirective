@@ -1,3 +1,5 @@
+import { LEVELS_PER_CHAPTER } from '../game/chapterStage';
+
 import type { LevelDefinition } from './types';
 import chapterEntryBriefingsJson from './chapterEntryBriefings.json';
 
@@ -22,7 +24,7 @@ function normalizeBriefingEntry(
 }
 
 function chapterFirstLevelId(chapter: number): number {
-  return (chapter - 1) * 10 + 1;
+  return (chapter - 1) * LEVELS_PER_CHAPTER + 1;
 }
 
 function shouldUseChapterFallback(level: LevelDefinition): boolean {

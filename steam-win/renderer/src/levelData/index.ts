@@ -45,7 +45,7 @@ export function parseLevelsJson(raw: unknown): LevelDefinition[] {
   return finalizeLevelDefinitions(hydrateLevelDefinitions(parseLevelsJsonStored(raw), mapFileFromBundledGlob));
 }
 
-/** 100 關：`levels.json` + `maps/*.json` 合併後之關卡定義；開發時可由 `applyReloadedLevelDefinitionsJson` 替換 */
+/** 80 關：`levels.json` + `maps/*.json` 合併後之關卡定義；開發時可由 `applyReloadedLevelDefinitionsJson` 替換 */
 export let LEVEL_DEFINITIONS: LevelDefinition[] = parseLevelsJson(levelDefinitionsJson);
 
 /**

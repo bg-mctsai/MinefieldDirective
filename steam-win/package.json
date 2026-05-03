@@ -11,6 +11,8 @@
     "start:dist": "cross-env NODE_ENV=production electron .",
     "build:win:dir": "vite build && electron-builder --dir --win",
     "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "export-levels-json": "tsx scripts/export-levels-json.ts",
     "clean": "node -e \"try{require('fs').rmSync('release',{recursive:true,force:true});require('fs').rmSync('dist-renderer',{recursive:true,force:true})}catch(e){}\""
   },
@@ -36,6 +38,7 @@
     "tsx": "^4.19.3",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
+    "vitest": "^3.2.4",
     "wait-on": "^8.0.1"
   },
   "build": {

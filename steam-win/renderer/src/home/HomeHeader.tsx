@@ -4,10 +4,8 @@ import { HomeBrandLogo } from './HomeBrandLogo';
 import { HOME_APP_VERSION } from './constants';
 
 export function HomeHeader({
-  typedTitle,
   devReload,
 }: {
-  typedTitle: string;
   /** 僅開發模式：重讀 `levels.json` 與外置 `maps/*.json` */
   devReload?: { onClick: () => void; busy: boolean; hint: string | null };
 }) {
@@ -16,18 +14,9 @@ export function HomeHeader({
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      className="flex flex-col gap-6 border-b border-[#1e293b] pb-8 md:flex-row md:items-end md:justify-between"
+      className="relative flex flex-col gap-1.5 border-b border-[#1e293b] pb-1.5 md:pb-2"
     >
-      <div>
-        <HomeBrandLogo typedTitle={typedTitle} />
-        <p className="mt-2 text-sm text-emerald-400/90 md:text-base">
-          [電報線就緒] 長官部門來電，依電報數字於雷區執行佈雷。
-        </p>
-        <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.32em] text-slate-500/80 md:text-[11px]">
-          OPS-CHANNEL // BASE-07 // 02:14 LOCAL
-        </p>
-      </div>
-      <div className="flex flex-col items-end gap-2 text-xs md:text-sm">
+      <div className="absolute right-0 top-0 z-20 flex flex-col items-end gap-2.5 text-sm md:text-base">
         <div className="flex flex-wrap items-center justify-end gap-3">
           {devReload && (
             <button
@@ -41,7 +30,7 @@ export function HomeHeader({
               重讀設定
             </button>
           )}
-          <span className="rounded-lg border border-[#1e293b] bg-[#0f141c] px-3 py-1.5 text-slate-400">
+          <span className="rounded-lg border border-[#1e293b] bg-[#0f141c] px-3 py-1.5 font-bold text-slate-200">
             {HOME_APP_VERSION}
           </span>
           <span className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-bold text-emerald-400">
@@ -50,11 +39,20 @@ export function HomeHeader({
           </span>
         </div>
         {devReload?.hint && (
-          <p className="max-w-[18rem] text-right text-[10px] leading-snug text-slate-500 md:max-w-xs">
+          <p className="max-w-[18rem] text-right text-xs leading-snug text-slate-300 md:max-w-xs md:text-sm">
             {devReload.hint}
           </p>
         )}
       </div>
+
+      <div className="flex justify-center -mb-2 md:-mb-3">
+        <HomeBrandLogo />
+      </div>
+
+      <div className="pointer-events-none relative h-px overflow-hidden rounded-full bg-slate-800/70">
+        <span className="absolute inset-y-0 left-[-25%] w-1/4 animate-[scanline_2.6s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-cyan-300/80 to-transparent shadow-[0_0_16px_rgba(56,189,248,0.55)]" />
+      </div>
+
     </motion.header>
   );
 }

@@ -1,14 +1,16 @@
 /**
- * 幹員頭像：在編幹員＋指揮官 WebP 大頭照；其餘 id 仍用幾何 SVG 剪影
+ * 幹員頭像：有立繪者使用 `assets/heroes/<EnglishName>.png`（與下表檔名一致）；其餘 id 用幾何 SVG 剪影
  */
 import type { CSSProperties } from 'react';
 
-import adaPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-ada.png';
-import bobbyPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-bobby-v2-young.png';
-import commanderPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-commander-v2-indoor.png';
-import laozhangPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-laozhang-v2-helmet.png';
-import selinaPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-selina.png';
-import xiaomingPortrait from '../assets/heroes/preview-unified-cyberpunk/preview-unified-hero-xiaoming-v3-recruit-fix.png';
+import adaPortrait from '../assets/heroes/Ada.png';
+import bobbyPortrait from '../assets/heroes/Bobby.png';
+import commanderPortrait from '../assets/heroes/Commander.png';
+import laozhangPortrait from '../assets/heroes/Laozhang.png';
+import selinaPortrait from '../assets/heroes/Selina.png';
+import xiaomingPortrait from '../assets/heroes/Xiaoming.png';
+import tungstenPortrait from '../assets/heroes/Tungsten.png';
+import clairePortrait from '../assets/heroes/Claire.png';
 
 export type HeroAvatarVariant = 'recruit' | 'engineer' | 'veteran';
 
@@ -19,6 +21,8 @@ const VARIANT_BY_HERO: Record<string, HeroAvatarVariant> = {
   ada: 'engineer',
   bobby: 'recruit',
   selina: 'recruit',
+  tungsten: 'veteran',
+  claire: 'engineer',
 };
 
 const PORTRAIT_BY_HERO: Record<string, string> = {
@@ -28,6 +32,8 @@ const PORTRAIT_BY_HERO: Record<string, string> = {
   ada: adaPortrait,
   bobby: bobbyPortrait,
   selina: selinaPortrait,
+  tungsten: tungstenPortrait,
+  claire: clairePortrait,
 };
 
 export function variantFromHeroId(id: string): HeroAvatarVariant {
@@ -42,16 +48,53 @@ export function getHeroPortraitUrl(heroId: string): string | undefined {
 export function HeroAvatarSilhouette({
   heroId,
   size = 96,
+  /** 有肖像圖時以圖檔原始像素顯示（不縮放、不裁切）；剪影 SVG 仍依 size */
+  intrinsicPortrait = false,
+  /** 填滿外層已定寬高的容器（100% + object-fit: cover），避免 rem 框與固定 px 圖尺寸不一致 */
+  fillParent = false,
   className = '',
   style,
 }: {
   heroId: string;
   size?: number;
+  intrinsicPortrait?: boolean;
+  fillParent?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
   const portraitSrc = PORTRAIT_BY_HERO[heroId];
   if (portraitSrc) {
+    if (intrinsicPortrait) {
+      return (
+        <img
+          src={portraitSrc}
+          alt=""
+          draggable={false}
+          decoding="async"
+          className={className}
+          style={{
+            display: 'block',
+            width: 'auto',
+            height: 'auto',
+            maxWidth: 'none',
+            borderRadius: '1rem',
+            ...style,
+          }}
+        />
+      );
+    }
+    if (fillParent) {
+      return (
+        <img
+          src={portraitSrc}
+          alt=""
+          draggable={false}
+          decoding="async"
+          className={`block size-full object-cover object-center ${className}`.trim()}
+          style={style}
+        />
+      );
+    }
     const radius = Math.round(size * 0.16);
     return (
       <img
@@ -82,11 +125,11 @@ export function HeroAvatarSilhouette({
 
   return (
     <svg
-      width={size}
-      height={size}
+      width={fillParent ? '100%' : size}
+      height={fillParent ? '100%' : size}
       viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={`${fillParent ? 'block size-full ' : ''}${className}`.trim()}
       style={style}
       aria-hidden
     >

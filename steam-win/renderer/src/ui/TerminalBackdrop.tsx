@@ -7,10 +7,16 @@ export function TerminalBackdrop({
   children,
   className = '',
   showRadar = false,
+  /**
+   * CRT 掃描線全畫層不透明度。首頁/選單可維持 ~0.4；作戰地圖建議 0.08–0.15 以免圖示像「洗滿雜點」。
+   * 設 0 可完全關閉掃描線。
+   */
+  scanlineOpacity = 0.4,
 }: {
   children: ReactNode;
   className?: string;
   showRadar?: boolean;
+  scanlineOpacity?: number;
 }) {
   return (
     <div className={`relative min-h-screen overflow-hidden bg-[#0B0E14] text-slate-200 ${className}`}>
@@ -34,7 +40,12 @@ export function TerminalBackdrop({
           </div>
         </>
       )}
-      <div className="pointer-events-none fixed inset-0 z-[100] opacity-40 mix-blend-overlay scanlines" />
+      {scanlineOpacity > 0 ? (
+        <div
+          className="pointer-events-none fixed inset-0 z-[100] mix-blend-overlay scanlines"
+          style={{ opacity: scanlineOpacity }}
+        />
+      ) : null}
       {children}
     </div>
   );

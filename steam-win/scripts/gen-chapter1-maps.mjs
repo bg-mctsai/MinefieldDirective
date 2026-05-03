@@ -17,7 +17,7 @@ const MAPS_DIR = path.resolve(__dirname, '../renderer/src/levelData/maps');
 
 /** 格數 25～80 遞增；簡單長方形／正方形 */
 const LEVELS = [
-  { id: 1, W: 5, H: 5, cells: 25, theme: '新兵訓練營' },
+    { id: 1, W: 5, H: 5, cells: 25, theme: '新兵訓練' },
   { id: 2, W: 5, H: 6, cells: 30, theme: '長條' },
   { id: 3, W: 5, H: 7, cells: 35, theme: '橫展區' },
   { id: 4, W: 5, H: 8, cells: 40, theme: '穩定節奏' },

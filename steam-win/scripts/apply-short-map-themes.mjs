@@ -12,7 +12,7 @@ const mapsDir = path.resolve(__dirname, '../renderer/src/levelData/maps');
 
 /** 依關卡 1～100 順序；第 i 關字數 = [5,2,3,4][(i-1)%4] */
 const THEMES_ORDERED = [
-  '新兵訓練營',
+  '新兵訓練',
   '長條',
   '橫展區',
   '穩定節奏',

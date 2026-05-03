@@ -3,7 +3,15 @@ import { heroIdsUnlockedOnChapterCleared } from './heroUnlockByChapter';
 
 const LS = 'md:unlockedHeroIds';
 /** 與 heroes.ts 內 HEROES 同序，供遷移「全幹員」不 import heroes 避免循環匯入 */
-const ALL_OFFICER_IDS: readonly string[] = ['xiaoming', 'ada', 'selina', 'bobby', 'laozhang'];
+const ALL_OFFICER_IDS: readonly string[] = [
+  'xiaoming',
+  'ada',
+  'selina',
+  'bobby',
+  'laozhang',
+  'tungsten',
+  'claire',
+];
 const DEFAULT_START = 'xiaoming';
 
 function isValidId(id: string): id is (typeof ALL_OFFICER_IDS)[number] {

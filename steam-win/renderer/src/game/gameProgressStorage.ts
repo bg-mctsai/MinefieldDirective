@@ -4,11 +4,11 @@ export const LS_HIGHEST_CLEARED_LEVEL = 'md:highestClearedLevel';
 export const LS_BEST_MEDAL_BY_LEVEL = 'md:bestMedalByLevel';
 
 export const LEVEL_MIN = 1;
-export const LEVEL_MAX = 100;
+export const LEVEL_MAX = 80;
 const FORCE_UNLOCK_ALL_LEVELS = import.meta.env.VITE_UNLOCK_ALL_LEVELS?.trim() === '1';
 
 export type GameProgress = {
-  highestClearedLevel: number; // 0..100 (0 means no level cleared)
+  highestClearedLevel: number; // 0..80 (0 means no level cleared)
   /** 可選：寫入時若省略則不覆蓋既有勳章（避免 saveGameProgress 把已記錄的 bestMedal 清空） */
   bestMedalByLevel?: Record<number, Medal>;
 };

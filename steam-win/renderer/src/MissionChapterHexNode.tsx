@@ -1,21 +1,206 @@
-import { memo, useState } from 'react';
+import { memo, useId, useMemo, useState, type CSSProperties } from 'react';
 import { Lock } from 'lucide-react';
 import type { Medal } from './game/medalThresholds';
+import missionHexBase from './assets/mission-hex-badges/hex-base.png';
+import missionHexBronze from './assets/mission-hex-badges/hex-bronze.png';
+import missionHexGold from './assets/mission-hex-badges/hex-gold.png';
+import missionHexSilver from './assets/mission-hex-badges/hex-silver.png';
 
-/** 扁頂六角（flat-top 上下）— 一般關卡 */
-const HEX_PATH = 'M 0,-10 L 8.66,-5 L 8.66,5 L 0,10 L -8.66,5 L -8.66,-5 Z';
-/** 尖頂六角（pointy-top 左右扁）— 章末識別造型 */
-const HEX_PATH_POINTY = 'M 10,0 L 5,-8.66 L -5,-8.66 L -10,0 L -5,8.66 L 5,8.66 Z';
+type HexTone = { stroke: string; labelClass: string };
+type HexPaintTier = 'gold' | 'silver' | 'bronze' | 'unearned' | 'objective';
 
-/** 當前挑戰關橘色六角外框：比主六角放大更多，明顯包住內層 */
-const HEX_PATH_SCALE_FACTOR_PULSE = 1.32;
-
-type HexTone = {
-  /** 主外框（HEX） */
-  stroke: string;
-  /** 狀態字 tailwind class */
-  labelClass: string;
+const TIER_RASTER: Record<HexPaintTier, string> = {
+  gold: missionHexGold,
+  silver: missionHexSilver,
+  bronze: missionHexBronze,
+  unearned: missionHexBase,
+  objective: missionHexBase,
 };
+
+const TIER_TEXT_GLOW: Record<HexPaintTier, string> = {
+  gold: 'rgba(250, 204, 21, 0.42)',
+  silver: 'rgba(125, 211, 252, 0.4)',
+  bronze: 'rgba(251, 146, 60, 0.38)',
+  unearned: 'rgba(34, 197, 94, 0.25)',
+  objective: 'rgba(255, 159, 28, 0.45)',
+};
+
+type Theme = {
+  rimA: string;
+  rimB: string;
+  coreA: string;
+  coreB: string;
+  edge: string;
+  line: string;
+  dim?: boolean;
+};
+
+function themeForPaint(tier: HexPaintTier): Theme {
+  if (tier === 'gold') {
+    return { rimA: '#fde047', rimB: '#a16207', coreA: '#1a1006', coreB: '#0a0804', edge: '#facc15', line: '#fffbeb' };
+  }
+  if (tier === 'silver') {
+    return { rimA: '#7dd3fc', rimB: '#0369a1', coreA: '#0a1520', coreB: '#020617', edge: '#38bdf8', line: '#e0f2fe' };
+  }
+  if (tier === 'bronze') {
+    return { rimA: '#fb923c', rimB: '#9a3412', coreA: '#1a0f0a', coreB: '#0a0604', edge: '#ea580c', line: '#ffedd5' };
+  }
+  if (tier === 'objective') {
+    return { rimA: '#fb923c', rimB: '#c2410c', coreA: '#1a0d05', coreB: '#0a0402', edge: '#ff9f1c', line: '#ffedd5' };
+  }
+  return {
+    rimA: '#334155',
+    rimB: '#0f172a',
+    coreA: '#040907',
+    coreB: '#020a07',
+    edge: '#2dd4a3',
+    line: '#5eead4',
+    dim: true,
+  };
+}
+
+const HEX_D = 'M 0,-11 L 9.53,-5.5 L 9.53,5.5 L 0,11 L -9.53,5.5 L -9.53,-5.5 Z';
+const HEX_INNER = 'M 0,-6.8 L 5.9,-3.4 L 5.9,3.4 L 0,6.8 L -5.9,3.4 L -5.9,-3.4 Z';
+
+/** 戰術圖上徽章／光暈／選中框共用邊界（略小於 hit 區，青框貼圖） */
+const BADGE_FRAME_CLASS =
+  'h-[5.65rem] w-[7.85rem] sm:h-[6.1rem] sm:w-[8.45rem]';
+
+function WingedTierBadge({ tier, uid }: { tier: HexPaintTier; uid: string }) {
+  const t = themeForPaint(tier);
+  const gRim = `mwh-rim-${uid}`;
+  const gCore = `mwh-core-${uid}`;
+  const gSpark = `mwh-spark-${uid}`;
+
+  return (
+    <svg viewBox="0 0 100 64" className="h-full w-full max-h-full max-w-full select-none" fill="none" aria-hidden>
+      <defs>
+        <linearGradient id={gRim} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={t.rimA} />
+          <stop offset="100%" stopColor={t.rimB} />
+        </linearGradient>
+        <linearGradient id={gCore} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor={t.coreA} />
+          <stop offset="100%" stopColor={t.coreB} />
+        </linearGradient>
+        <radialGradient id={gSpark} cx="32%" cy="25%" r="60%">
+          <stop offset="0%" stopColor={t.line} stopOpacity="0.5" />
+          <stop offset="100%" stopColor={t.coreB} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <g transform="translate(50 32)">
+        <path
+          d="M-22,-1L-50,-3L-54,0.5L-50,4L-22,2.5L-20,-1Z"
+          fill={`url(#${gRim})`}
+          fillOpacity="0.92"
+        />
+        <g transform="scale(-1,1)">
+          <path
+            d="M-22,-1L-50,-3L-54,0.5L-50,4L-22,2.5L-20,-1Z"
+            fill={`url(#${gRim})`}
+            fillOpacity="0.92"
+          />
+        </g>
+        <path
+          d={HEX_D}
+          fill={`url(#${gRim})`}
+          stroke={t.edge}
+          strokeWidth="0.9"
+          strokeLinejoin="miter"
+        />
+        <path
+          d={HEX_D}
+          fill={`url(#${gCore})`}
+          stroke={t.edge}
+          strokeWidth="0.35"
+          strokeOpacity="0.45"
+          transform="scale(0.75)"
+        />
+        <path
+          d={HEX_INNER}
+          fill={`url(#${gSpark})`}
+          transform="scale(0.7)"
+          opacity={0.8}
+        />
+        {t.dim ? (
+          <g
+            stroke={t.line}
+            strokeWidth="0.4"
+            strokeOpacity="0.55"
+            fill="none"
+            vectorEffect="non-scaling-stroke"
+          >
+            <circle r="4.2" strokeDasharray="0.4 0.5" transform="scale(0.9)" />
+            <line x1="-1" y1="-8" x2="1" y2="-3" />
+            <line x1="6" y1="3" x2="10" y2="-1" />
+          </g>
+        ) : null}
+        <path
+          d="M0,-2.4L0.5,-0.2L1.4,0.2L0,1.1L-1.4,0.2L-0.5,-0.2Z"
+          fill={t.line}
+          fillOpacity="0.65"
+        />
+      </g>
+    </svg>
+  );
+}
+
+function resolveHexPaintTier(options: {
+  locked: boolean;
+  inProgress: boolean;
+  cleared: boolean;
+  bestMedal?: Medal | null;
+}): HexPaintTier {
+  const { locked, inProgress, cleared, bestMedal } = options;
+  if (locked) return 'unearned';
+  if (inProgress) return 'objective';
+  if (cleared) {
+    if (bestMedal === 'gold') return 'gold';
+    if (bestMedal === 'silver') return 'silver';
+    if (bestMedal === 'bronze') return 'bronze';
+    return 'unearned';
+  }
+  return 'unearned';
+}
+
+function missionHexDropShadow(options: {
+  tier: HexPaintTier;
+  hover: boolean;
+  locked: boolean;
+  inProgress: boolean;
+  isBoss: boolean;
+}): string {
+  const { tier, hover, locked, inProgress, isBoss } = options;
+  if (locked) return '';
+  if (inProgress || isBoss) {
+    return hover
+      ? 'drop-shadow-[0_0_5px_rgba(255,159,28,0.9)] drop-shadow-[0_0_12px_rgba(255,159,28,0.45)]'
+      : 'drop-shadow-[0_0_3px_rgba(255,159,28,0.75)] drop-shadow-[0_0_10px_rgba(255,159,28,0.32)]';
+  }
+  if (tier === 'gold') {
+    return hover
+      ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.85)] drop-shadow-[0_0_18px_rgba(202,138,4,0.45)]'
+      : 'drop-shadow-[0_0_5px_rgba(250,204,21,0.65)] drop-shadow-[0_0_12px_rgba(202,138,4,0.3)]';
+  }
+  if (tier === 'silver') {
+    return hover
+      ? 'drop-shadow-[0_0_7px_rgba(56,189,248,0.85)] drop-shadow-[0_0_16px_rgba(8,145,178,0.4)]'
+      : 'drop-shadow-[0_0_4px_rgba(56,189,248,0.6)] drop-shadow-[0_0_12px_rgba(8,145,178,0.25)]';
+  }
+  if (tier === 'bronze') {
+    return hover
+      ? 'drop-shadow-[0_0_7px_rgba(249,115,22,0.8)] drop-shadow-[0_0_15px_rgba(194,65,12,0.4)]'
+      : 'drop-shadow-[0_0_4px_rgba(249,115,22,0.6)] drop-shadow-[0_0_11px_rgba(194,65,12,0.3)]';
+  }
+  if (tier === 'objective') {
+    return hover
+      ? 'drop-shadow-[0_0_7px_rgba(255,159,28,0.9)] drop-shadow-[0_0_16px_rgba(234,88,12,0.4)]'
+      : 'drop-shadow-[0_0_4px_rgba(255,159,28,0.7)] drop-shadow-[0_0_12px_rgba(234,88,12,0.3)]';
+  }
+  return hover
+    ? 'drop-shadow-[0_0_6px_rgba(16,185,129,0.5)] drop-shadow-[0_0_14px_rgba(4,20,10,0.45)]'
+    : 'drop-shadow-[0_0_3px_rgba(20,100,60,0.4)] drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]';
+}
 
 function resolveTone(options: {
   locked: boolean;
@@ -25,7 +210,8 @@ function resolveTone(options: {
 }): HexTone {
   const { locked, cleared, inProgress, isBoss } = options;
   if (locked) return { stroke: '#475569', labelClass: 'text-slate-500/85' };
-  if (inProgress || isBoss) return { stroke: '#FF9F1C', labelClass: 'text-[#FF9F1C]' };
+  if (inProgress) return { stroke: '#FF9F1C', labelClass: 'text-amber-300' };
+  if (isBoss) return { stroke: '#FF9F1C', labelClass: 'text-[#FF9F1C]' };
   if (cleared) return { stroke: '#39ff7a', labelClass: 'text-[#59e391]' };
   return { stroke: '#34d399', labelClass: 'text-[#59e391]' };
 }
@@ -38,154 +224,47 @@ function stateLabelOf(options: {
 }): string {
   const { locked, cleared, inProgress, isBoss } = options;
   if (locked) return 'LOCKED';
-  if (inProgress) return 'CURRENT OBJECTIVE';
-  if (cleared) return 'COMPLETED';
+  if (inProgress) return '目前進度';
+  if (cleared) return '';
   if (isBoss) return 'BOSS';
   return '';
 }
 
-/** 以極座標產生 N 等分旋轉的 path 片段陣列（用於冠齒／齒紋） */
-function polarCrownTeeth(count: number, outerR: number, innerR: number, halfWidth = 0.35): string {
-  const parts: string[] = [];
-  for (let i = 0; i < count; i += 1) {
-    const a = (i / count) * Math.PI * 2 - Math.PI / 2;
-    const cx = Math.cos(a);
-    const cy = Math.sin(a);
-    const tx = -Math.sin(a);
-    const ty = Math.cos(a);
-    const o1x = cx * outerR + tx * halfWidth;
-    const o1y = cy * outerR + ty * halfWidth;
-    const o2x = cx * outerR - tx * halfWidth;
-    const o2y = cy * outerR - ty * halfWidth;
-    const i1x = cx * innerR + tx * halfWidth * 2.2;
-    const i1y = cy * innerR + ty * halfWidth * 2.2;
-    const i2x = cx * innerR - tx * halfWidth * 2.2;
-    const i2y = cy * innerR - ty * halfWidth * 2.2;
-    parts.push(
-      `M ${i1x.toFixed(2)} ${i1y.toFixed(2)} L ${o1x.toFixed(2)} ${o1y.toFixed(2)} L ${o2x.toFixed(2)} ${o2y.toFixed(2)} L ${i2x.toFixed(2)} ${i2y.toFixed(2)} Z`,
-    );
+/** 主線下一關：四角 HUD 角標（非矩形選框，與一般選中區隔） */
+function ObjectiveHudReticle() {
+  const corner =
+    'pointer-events-none absolute mission-hex-objective-reticle border-[#FFAE42] opacity-[0.92] shadow-[0_0_10px_rgba(255,159,28,0.45)]';
+  return (
+    <span className="pointer-events-none absolute inset-[5px] z-[4]" aria-hidden>
+      <span className={`${corner} left-0 top-0 h-3 w-3 border-l-[2.5px] border-t-[2.5px] rounded-tl-[1px]`} />
+      <span className={`${corner} right-0 top-0 h-3 w-3 border-r-[2.5px] border-t-[2.5px] rounded-tr-[1px]`} />
+      <span className={`${corner} bottom-0 left-0 h-3 w-3 border-b-[2.5px] border-l-[2.5px] rounded-bl-[1px]`} />
+      <span className={`${corner} bottom-0 right-0 h-3 w-3 border-b-[2.5px] border-r-[2.5px] rounded-br-[1px]`} />
+    </span>
+  );
+}
+
+function radialHaloForTier(
+  inProgress: boolean,
+  isBoss: boolean,
+  tier: HexPaintTier,
+): string {
+  if (inProgress || isBoss) {
+    return 'radial-gradient(circle, rgba(255,159,28,0.5) 0%, rgba(255,159,28,0.15) 45%, transparent 72%)';
   }
-  return parts.join(' ');
-}
-
-/** 章末皇冠徽章：多層六角 rosette + 冠齒 + 環印 + 中央印信（SVG viewBox -14..14） */
-function BossCrownEmblem() {
-  const crownTeeth = polarCrownTeeth(12, 13.2, 11.2, 0.32);
-  const innerTeeth = polarCrownTeeth(6, 7.4, 6.2, 0.28);
-
-  return (
-    <g>
-      {/* 最外層：12 冠齒（六邊尖角對應的齒紋） */}
-      <path
-        d={crownTeeth}
-        fill="#FF9F1C"
-        opacity={0.88}
-        stroke="#FF9F1C"
-        strokeWidth={0.12}
-        strokeLinejoin="round"
-      />
-      {/* 外框雙層輪廓 —— 12 角 rosette（扁頂 + 尖頂兩六角疊合） */}
-      <path
-        d={HEX_PATH}
-        fill="none"
-        stroke="#FF9F1C"
-        strokeWidth={0.95}
-        opacity={0.9}
-        strokeLinejoin="miter"
-        vectorEffect="non-scaling-stroke"
-        transform="scale(1.04) rotate(30)"
-      />
-      <path
-        d={HEX_PATH}
-        fill="none"
-        stroke="#FF9F1C"
-        strokeWidth={0.55}
-        opacity={0.45}
-        strokeLinejoin="miter"
-        vectorEffect="non-scaling-stroke"
-        transform="scale(1.22)"
-      />
-      <path
-        d={HEX_PATH}
-        fill="none"
-        stroke="#FF9F1C"
-        strokeWidth={0.35}
-        opacity={0.25}
-        strokeLinejoin="miter"
-        vectorEffect="non-scaling-stroke"
-        transform="scale(1.34)"
-      />
-      {/* 中層印環：一圈細虛線，營造徽章感 */}
-      <circle
-        cx={0}
-        cy={0}
-        r={8.4}
-        fill="none"
-        stroke="#FF9F1C"
-        strokeWidth={0.22}
-        strokeDasharray="0.8 0.8"
-        opacity={0.65}
-        vectorEffect="non-scaling-stroke"
-      />
-      <circle
-        cx={0}
-        cy={0}
-        r={7.4}
-        fill="none"
-        stroke="#FF9F1C"
-        strokeWidth={0.16}
-        opacity={0.35}
-        vectorEffect="non-scaling-stroke"
-      />
-      {/* 內層 6 齒紋（呼應皇冠） */}
-      <path
-        d={innerTeeth}
-        fill="#FF9F1C"
-        opacity={0.6}
-        stroke="none"
-      />
-      {/* 中央印信：小六角輪廓（數字就落在這個印信中） */}
-      <path
-        d={HEX_PATH}
-        fill="none"
-        stroke="#FF9F1C"
-        strokeWidth={0.5}
-        opacity={0.75}
-        strokeLinejoin="miter"
-        vectorEffect="non-scaling-stroke"
-        transform="scale(0.5)"
-      />
-      {/* 左右外側雙層 hazard 指標 */}
-      <g fill="#FF9F1C" opacity={0.95} stroke="#FF9F1C" strokeWidth={0.2} strokeLinejoin="round">
-        <path d="M -12.6,-1 L -12.6,1 L -11,0 Z" />
-        <path d="M 12.6,-1 L 12.6,1 L 11,0 Z" />
-      </g>
-    </g>
-  );
-}
-
-/** 四角 targeting bracket（附圖那種小括號點）— 繪於 SVG 內部座標 -14..14 */
-function TargetingBrackets({ color, opacity = 0.95 }: { color: string; opacity?: number }) {
-  const arm = 2.4;
-  const off = 11.2;
-  const sw = 0.9;
-  const lines: Array<[number, number, number, number]> = [
-    [-off, -off + arm, -off, -off],
-    [-off, -off, -off + arm, -off],
-    [off, -off + arm, off, -off],
-    [off, -off, off - arm, -off],
-    [-off, off - arm, -off, off],
-    [-off, off, -off + arm, off],
-    [off, off - arm, off, off],
-    [off, off, off - arm, off],
-  ];
-  return (
-    <g stroke={color} strokeWidth={sw} strokeLinecap="round" opacity={opacity} fill="none">
-      {lines.map((l, i) => (
-        <line key={i} x1={l[0]} y1={l[1]} x2={l[2]} y2={l[3]} vectorEffect="non-scaling-stroke" />
-      ))}
-    </g>
-  );
+  if (tier === 'gold') {
+    return 'radial-gradient(circle, rgba(250,204,21,0.35) 0%, rgba(180,100,0,0.1) 45%, transparent 72%)';
+  }
+  if (tier === 'silver') {
+    return 'radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(8,100,120,0.1) 45%, transparent 72%)';
+  }
+  if (tier === 'bronze') {
+    return 'radial-gradient(circle, rgba(249,115,22,0.32) 0%, rgba(150,50,0,0.1) 45%, transparent 72%)';
+  }
+  if (tier === 'objective') {
+    return 'radial-gradient(circle, rgba(255,159,28,0.45) 0%, rgba(180,50,0,0.12) 45%, transparent 72%)';
+  }
+  return 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, rgba(4,40,20,0.08) 50%, transparent 72%)';
 }
 
 export const MissionChapterHexNode = memo(function MissionChapterHexNode({
@@ -214,29 +293,29 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   onDoubleClick?: () => void;
   confirmFlash?: boolean;
   bestMedal?: Medal | null;
+  clipKey?: string;
 }) {
   const [hover, setHover] = useState(false);
+  const uid = useId().replace(/:/g, '');
   const tone = resolveTone({ locked, cleared, inProgress, isBoss });
+  const paint = resolveHexPaintTier({ locked, inProgress, cleared, bestMedal });
+  const textGlow = TIER_TEXT_GLOW[paint];
   const stateLabel = stateLabelOf({ locked, cleared, inProgress, isBoss });
+  const rasterSrc = TIER_RASTER[paint];
 
-  /** 章末用尖頂六角（與其他關的扁頂六角一眼區分，又不會銳利過頭像星星） */
-  const shapePath = isBoss ? HEX_PATH_POINTY : HEX_PATH;
+  const outerGlow = missionHexDropShadow({
+    tier: paint,
+    hover,
+    locked,
+    inProgress,
+    isBoss,
+  });
+  const showCurrentPulse = inProgress && !locked;
 
-  /** 選中框改用同形六角描邊（SVG 內），不再用 tailwind 的圓 ring */
-  const ring = '';
-
-  const outerGlow = locked
-    ? ''
-    : inProgress || isBoss
-      ? hover
-        ? 'drop-shadow-[0_0_6px_rgba(255,159,28,0.95)] drop-shadow-[0_0_18px_rgba(255,159,28,0.55)]'
-        : 'drop-shadow-[0_0_4px_rgba(255,159,28,0.8)] drop-shadow-[0_0_14px_rgba(255,159,28,0.42)]'
-      : hover
-        ? 'drop-shadow-[0_0_6px_rgba(57,255,122,0.9)] drop-shadow-[0_0_16px_rgba(57,255,122,0.45)]'
-        : 'drop-shadow-[0_0_3px_rgba(57,255,122,0.55)] drop-shadow-[0_0_10px_rgba(57,255,122,0.22)]';
-
-  /** 當前挑戰：外層同形呼吸描邊（不是圓圈） */
-  const showShapePulse = inProgress && !locked;
+  const tierRasterStyle = useMemo((): CSSProperties | undefined => {
+    if (rasterSrc == null || locked) return undefined;
+    return { mixBlendMode: 'normal' as const };
+  }, [rasterSrc, locked]);
 
   return (
     <button
@@ -247,206 +326,76 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{ left: `${xPct}%`, top: `${yPct}%` }}
-      className={`mission-hex-tactical-btn group absolute z-20 h-[4.2rem] w-[4.2rem] -translate-x-1/2 -translate-y-1/2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#39ff14]/70 sm:h-[4.8rem] sm:w-[4.8rem] ${ring} transition-transform active:scale-[0.98] ${locked ? 'cursor-not-allowed opacity-60' : 'hover:scale-[1.06]'}`}
+      className={`mission-hex-tactical-btn pointer-events-auto group absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded-lg border-0 bg-transparent shadow-none outline-none focus-visible:outline-none h-[11.4rem] w-[14.6rem] sm:h-[12.4rem] sm:w-[15.6rem] ${
+        locked ? 'cursor-not-allowed opacity-60' : 'hover:scale-[1.04]'
+      } p-0 transition-transform active:scale-[0.98]`}
       aria-pressed={selected}
       aria-label={`關卡 ${stage}${isBoss ? '（章末）' : ''}${locked ? '（鎖定）' : ''}`}
     >
       {confirmFlash && !locked ? (
         <span
-          className="mission-hex-confirm-flash pointer-events-none absolute inset-[-8px] rounded-full"
+          className="mission-hex-confirm-flash pointer-events-none absolute inset-[-4px] rounded-lg"
           aria-hidden
         />
       ) : null}
-      <div className="relative h-full w-full">
+      <div className="relative flex h-full w-full min-h-0 min-w-0 flex-col items-center justify-center">
         {!locked ? (
           <span
-            className={`pointer-events-none absolute inset-[-10px] rounded-full blur-md transition-opacity duration-300 ${hover ? 'opacity-100' : 'opacity-55'}`}
-            style={{
-              background: inProgress || isBoss
-                ? 'radial-gradient(circle, rgba(255,159,28,0.55) 0%, rgba(255,159,28,0.18) 45%, transparent 72%)'
-                : cleared
-                  ? 'radial-gradient(circle, rgba(57,255,122,0.4) 0%, rgba(52,211,153,0.15) 45%, transparent 72%)'
-                  : 'radial-gradient(circle, rgba(57,255,122,0.3) 0%, rgba(52,211,153,0.12) 45%, transparent 72%)',
-            }}
+            className={`pointer-events-none absolute rounded-xl blur-md transition-opacity duration-300 ${hover ? 'opacity-100' : 'opacity-50'} ${
+              showCurrentPulse ? '-inset-1' : '-inset-2'
+            }`}
+            style={{ background: radialHaloForTier(inProgress, isBoss, paint) }}
             aria-hidden
           />
         ) : null}
-        <svg
-          viewBox="-14 -14 28 28"
-          className={`relative z-[1] h-full w-full transition-[filter] duration-300 ${outerGlow}`}
-          aria-hidden
-        >
-          {/* 內層最深底：確保數字高對比 */}
-          <path d={shapePath} fill="#04070a" stroke="none" />
-          {/* 外層粗邊 */}
-          <path
-            d={shapePath}
-            fill="none"
-            stroke={tone.stroke}
-            strokeWidth={selected ? 1.9 : 1.55}
-            strokeLinejoin="miter"
-            vectorEffect="non-scaling-stroke"
-          />
-          {/* 當前挑戰：外層放大版橘色六角框（明顯包住內層，不是圓圈） */}
-          {showShapePulse ? (
-            <path
-              d={shapePath}
-              fill="none"
-              stroke="#FF9F1C"
-              strokeWidth={1.35}
-              strokeLinejoin="miter"
-              vectorEffect="non-scaling-stroke"
-              transform={`scale(${HEX_PATH_SCALE_FACTOR_PULSE})`}
-              className="mission-hex-shape-pulse"
-            />
-          ) : null}
-          {/* 選中：套用「強化版」雙外框 + hazard 指標（類章末規格，讓玩家看到強烈的選取回饋） */}
-          {selected ? (
-            <>
-              <path
-                d={shapePath}
-                fill="none"
-                stroke="#FF9F1C"
-                strokeWidth={0.9}
-                opacity={0.85}
-                strokeLinejoin="miter"
-                vectorEffect="non-scaling-stroke"
-                transform="scale(1.18)"
+
+        <div className="relative z-[1] mx-auto flex flex-col items-center">
+          <div
+            className={`relative flex items-center justify-center overflow-visible rounded-md ${BADGE_FRAME_CLASS}`}
+          >
+            {showCurrentPulse ? <ObjectiveHudReticle /> : null}
+            {selected && !showCurrentPulse ? (
+              <span
+                className="pointer-events-none absolute inset-0 z-0 rounded-md ring-[1.5px] ring-cyan-400/85 ring-offset-0"
+                aria-hidden
               />
-              <path
-                d={shapePath}
-                fill="none"
-                stroke="#FF9F1C"
-                strokeWidth={0.5}
-                opacity={0.4}
-                strokeLinejoin="miter"
-                vectorEffect="non-scaling-stroke"
-                transform="scale(1.3)"
+            ) : null}
+            {rasterSrc != null ? (
+              <img
+                src={rasterSrc}
+                width={400}
+                height={256}
+                alt=""
+                draggable={false}
+                className={`relative z-[1] block h-full w-full max-h-full max-w-full object-contain object-center select-none [image-rendering:auto] ${outerGlow}`}
+                style={tierRasterStyle}
               />
-              <g
-                fill="#FF9F1C"
-                opacity={0.9}
-                stroke="#FF9F1C"
-                strokeWidth={0.22}
-                strokeLinejoin="round"
+            ) : (
+              <div className={outerGlow + ' relative z-[1] h-full w-full'}>
+                <WingedTierBadge tier={paint} uid={uid} />
+              </div>
+            )}
+            <span className="pointer-events-none absolute inset-0 z-[3] flex flex-col items-center justify-center gap-0.5">
+              {locked ? <Lock className="text-slate-500" size={13} strokeWidth={2.25} aria-hidden /> : null}
+              <span
+                className={`font-mono text-[19px] font-extrabold leading-none tracking-tight sm:text-[21px] ${locked ? 'text-slate-500' : 'text-white'}`}
+                style={{
+                  textShadow: locked ? 'none' : `0 0 1px rgba(0,0,0,0.95), 0 0 10px ${textGlow}`,
+                }}
               >
-                {/* 扁頂 vs 尖頂，hazard 指標位置略不同（扁頂放上下邊中央、尖頂放左右頂點內側） */}
-                {isBoss ? (
-                  <>
-                    <path d="M -8.4,-1.6 L -8.4,1.6 L -6.4,0 Z" />
-                    <path d="M 8.4,-1.6 L 8.4,1.6 L 6.4,0 Z" />
-                  </>
-                ) : (
-                  <>
-                    <path d="M -1.6,-8.4 L 1.6,-8.4 L 0,-6.4 Z" />
-                    <path d="M -1.6,8.4 L 1.6,8.4 L 0,6.4 Z" />
-                  </>
-                )}
-              </g>
-            </>
+                {stage}
+              </span>
+            </span>
+          </div>
+          {stateLabel ? (
+            <span
+              className={`pointer-events-none mt-1 whitespace-nowrap text-[10px] font-black uppercase tracking-[0.14em] drop-shadow-[0_0_8px_rgba(0,0,0,0.95)] sm:text-[11px] ${tone.labelClass}`}
+            >
+              {stateLabel}
+            </span>
           ) : null}
-          {/* 章末（Boss）：皇冠感複雜徽章 — 12 角 rosette + 冠齒 + 內部環印 + 中央小六角印信 */}
-          {isBoss && !locked ? <BossCrownEmblem /> : null}
-          {/* 四角 targeting bracket：當前挑戰/選中/hover 時顯示（章末固定顯） */}
-          {!locked && (inProgress || selected || hover || isBoss) ? (
-            <TargetingBrackets
-              color={tone.stroke}
-              opacity={inProgress || isBoss ? 1 : 0.75}
-            />
-          ) : null}
-        </svg>
-        <span className="pointer-events-none absolute inset-0 z-[2] flex flex-col items-center justify-center gap-0.5">
-          {locked ? (
-            <Lock className="text-slate-500" size={14} strokeWidth={2.25} aria-hidden />
-          ) : null}
-          <span
-            className={`font-mono text-[16px] font-extrabold leading-none tracking-tight sm:text-[18px] ${locked ? 'text-slate-500' : 'text-white'}`}
-            style={{ textShadow: locked ? 'none' : '0 0 1px rgba(0,0,0,0.95)' }}
-          >
-            {String(stage).padStart(2, '0')}
-          </span>
-        </span>
-        {!locked && bestMedal ? (
-          <span
-            className="pointer-events-none absolute right-[1px] top-[1px] z-[3]"
-            title={`最佳勳章：${bestMedalToLabel(bestMedal)}`}
-            aria-label={`最佳勳章：${bestMedalToLabel(bestMedal)}`}
-          >
-            <MedalShieldBadge medal={bestMedal} />
-          </span>
-        ) : null}
-        {stateLabel ? (
-          <span
-            className={`pointer-events-none absolute left-1/2 top-[calc(100%+4px)] -translate-x-1/2 whitespace-nowrap text-[10px] font-black uppercase tracking-[0.14em] drop-shadow-[0_0_8px_rgba(0,0,0,0.95)] sm:text-[11px] ${tone.labelClass}`}
-          >
-            {stateLabel}
-          </span>
-        ) : null}
+        </div>
       </div>
     </button>
   );
 });
-
-function bestMedalToLabel(medal: Medal): string {
-  if (medal === 'gold') return '金級勳章';
-  if (medal === 'silver') return '銀級勳章';
-  return '銅級勳章';
-}
-
-function MedalShieldBadge({ medal }: { medal: Medal }) {
-  const tone =
-    medal === 'gold'
-      ? {
-          frame: '#fcd34d',
-          fillA: '#fef3c7',
-          fillB: '#f59e0b',
-          mark: '#fef9c3',
-          glow: 'drop-shadow-[0_0_6px_rgba(252,211,77,0.7)]',
-        }
-      : medal === 'silver'
-        ? {
-            frame: '#cbd5e1',
-            fillA: '#f8fafc',
-            fillB: '#94a3b8',
-            mark: '#ffffff',
-            glow: 'drop-shadow-[0_0_6px_rgba(226,232,240,0.65)]',
-          }
-        : {
-            frame: '#f59e0b',
-            fillA: '#fde68a',
-            fillB: '#b45309',
-            mark: '#fef3c7',
-            glow: 'drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]',
-          };
-  return (
-    <svg
-      viewBox="0 0 20 22"
-      className={`h-[16px] w-[15px] ${tone.glow}`}
-      aria-hidden
-      focusable="false"
-    >
-      <defs>
-        <linearGradient id={`badgeFill-${medal}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={tone.fillA} />
-          <stop offset="100%" stopColor={tone.fillB} />
-        </linearGradient>
-      </defs>
-      <path
-        d="M10 1.2 L17.5 4.2 L17.5 11.2 C17.5 15.3 14.8 18.5 10 20.6 C5.2 18.5 2.5 15.3 2.5 11.2 L2.5 4.2 Z"
-        fill={`url(#badgeFill-${medal})`}
-        stroke={tone.frame}
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 3.2 L15.5 5.4 L15.5 10.7 C15.5 13.8 13.5 16.2 10 17.8 C6.5 16.2 4.5 13.8 4.5 10.7 L4.5 5.4 Z"
-        fill="none"
-        stroke={tone.mark}
-        strokeOpacity="0.55"
-        strokeWidth="0.8"
-        strokeLinejoin="round"
-      />
-      <path d="M10 6.2 L11.1 8.5 L13.6 8.9 L11.8 10.7 L12.2 13.2 L10 12 L7.8 13.2 L8.2 10.7 L6.4 8.9 L8.9 8.5 Z" fill={tone.mark} fillOpacity="0.9" />
-    </svg>
-  );
-}

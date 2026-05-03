@@ -4,7 +4,7 @@ import { stageInChapter } from './chapterStage';
 
 const CHAPTER_NAMES = [
   '',
-  '新兵訓練營',
+  '新兵訓練',
   '巷戰封鎖線',
   '乾谷據點',
   '三角高地',

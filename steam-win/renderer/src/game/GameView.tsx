@@ -15,12 +15,12 @@ import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
 import { mergeUnlockedOnChapterCleared } from './heroUnlockedStorage';
 import { getHeroCombatTheme } from './heroCombatTheme';
-import { stageInChapter } from './chapterStage';
+import { LEVELS_PER_CHAPTER, stageInChapter } from './chapterStage';
 import { AudioEngine } from '../audio/AudioEngine';
 import { useBgmChannel } from '../audio/useBgmChannel';
 
 export type BackToMissionContext = {
-  /** 在勝利狀態自章內第 10 關「返回」時，帶出剛完成的章，供上層顯示行動卷宗前對話 */
+  /** 在勝利狀態自章內第 8 關「返回」時，帶出剛完成的章，供上層顯示行動卷宗前對話 */
   dossierAfterClearedChapter?: number;
 };
 
@@ -28,11 +28,14 @@ export default function GameView({
   initialLevelIndex: initialLevelProp,
   onBack,
   highestClearedLevel,
+  unlockHighestClearedLevel,
   onHighestClearedLevelChange: _onHighestClearedLevelChange,
 }: {
   initialLevelIndex: number;
   onBack: (context?: BackToMissionContext) => void;
   highestClearedLevel: number;
+  /** 可選：僅用於 isLevelUnlocked／接關前進；存檔仍以 highestClearedLevel 為準（例：DEV 行動卷宗開放全部章節） */
+  unlockHighestClearedLevel?: number;
   onHighestClearedLevelChange: (next: number) => void;
 }) {
   useEffect(() => {
@@ -44,9 +47,10 @@ export default function GameView({
 
   useBgmChannel('combat');
 
+  const unlockBasis = unlockHighestClearedLevel ?? highestClearedLevel;
   const requestedLevelId = GAME_LEVELS[initialLevelProp]?.id ?? 1;
-  const isRequestedUnlocked = isLevelUnlocked(requestedLevelId, highestClearedLevel);
-  const safeInitialLevelId = isRequestedUnlocked ? requestedLevelId : Math.min(LEVEL_MAX, highestClearedLevel + 1);
+  const isRequestedUnlocked = isLevelUnlocked(requestedLevelId, unlockBasis);
+  const safeInitialLevelId = isRequestedUnlocked ? requestedLevelId : Math.min(LEVEL_MAX, unlockBasis + 1);
   const safeInitialLevelIndex = safeInitialLevelId - 1;
 
   const {
@@ -62,6 +66,9 @@ export default function GameView({
     handleCellClick,
     forceCompleteForTest,
     fillPercentage,
+    destructivePowerPercentage,
+    destructivePowerMineCount,
+    destructivePowerTotalCells,
     bonusFxKeys,
     medalThresholds,
     projectedMedal,
@@ -82,22 +89,22 @@ export default function GameView({
   }, [gameState?.gameId]);
 
   const lastRecordedWinGameId = useRef<number | null>(null);
-  /** 勝利在章內第 10 關且尚未進「下一關」時，返回作戰地圖帶出章碼，供上層顯示卷宗前對話。 */
-  const chapter10BossClearedForDossierRef = useRef<number | null>(null);
+  /** 勝利在章內第 8 關且尚未進「下一關」時，返回作戰地圖帶出章碼，供上層顯示卷宗前對話。 */
+  const chapterBossClearedForDossierRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (gameState?.status !== 'won') return;
     const ch = gameState.level.definition.chapter;
     if (typeof ch !== 'number' || !Number.isFinite(ch)) return;
-    if (stageInChapter(gameState.level.id, ch) !== 10) return;
-    chapter10BossClearedForDossierRef.current = ch;
+    if (stageInChapter(gameState.level.id, ch) !== LEVELS_PER_CHAPTER) return;
+    chapterBossClearedForDossierRef.current = ch;
   }, [gameState?.status, gameState?.level.id, gameState?.level.definition.chapter, gameState?.gameId]);
 
   const lastGameIdRef = useRef<number | null>(null);
   useEffect(() => {
     if (gameState == null) return;
     if (lastGameIdRef.current != null && lastGameIdRef.current !== gameState.gameId) {
-      chapter10BossClearedForDossierRef.current = null;
+      chapterBossClearedForDossierRef.current = null;
     }
     lastGameIdRef.current = gameState.gameId;
   }, [gameState?.gameId]);
@@ -105,22 +112,24 @@ export default function GameView({
   const handleNextLevel = useCallback(() => {
     if (!gameState) return;
     const ch = gameState.level.definition.chapter;
-    if (gameState.status === 'won' && typeof ch === 'number' && stageInChapter(gameState.level.id, ch) === 10) {
-      chapter10BossClearedForDossierRef.current = null;
+    if (gameState.status === 'won' && typeof ch === 'number' && stageInChapter(gameState.level.id, ch) === LEVELS_PER_CHAPTER) {
+      chapterBossClearedForDossierRef.current = null;
     }
     const nextIndex = currentLevelIndex + 1;
     const nextLevel = levelList[nextIndex];
     if (!nextLevel) return;
 
     const effectiveHighestCleared =
-      gameState.status === 'won' ? Math.max(highestClearedLevel, gameState.level.id) : highestClearedLevel;
+      gameState.status === 'won'
+        ? Math.max(highestClearedLevel, gameState.level.id)
+        : unlockBasis;
     if (!isLevelUnlocked(nextLevel.id, effectiveHighestCleared)) return;
     setCurrentLevelIndex(nextIndex);
-  }, [currentLevelIndex, levelList, gameState, highestClearedLevel]);
+  }, [currentLevelIndex, levelList, gameState, highestClearedLevel, unlockBasis]);
 
   const handleExitToMission = useCallback(() => {
-    const c = chapter10BossClearedForDossierRef.current;
-    chapter10BossClearedForDossierRef.current = null;
+    const c = chapterBossClearedForDossierRef.current;
+    chapterBossClearedForDossierRef.current = null;
     onBack(c != null ? { dossierAfterClearedChapter: c } : undefined);
   }, [onBack]);
 
@@ -131,7 +140,7 @@ export default function GameView({
 
     const clearedLevelId = gameState.level.id;
     const ch = gameState.level.definition.chapter;
-    if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(clearedLevelId, ch) === 10) {
+    if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(clearedLevelId, ch) === LEVELS_PER_CHAPTER) {
       mergeUnlockedOnChapterCleared(ch);
     }
     const nextHighestCleared = Math.max(highestClearedLevel, clearedLevelId);
@@ -164,11 +173,11 @@ export default function GameView({
   const winInlineActionsUnlocked =
     gameState.status === 'won' && dismissedWinCelebrationGameId === gameState.gameId;
 
-  const isChapterStage10 =
+  const isChapterFinalStage =
     gameState.status === 'won' &&
     typeof ch === 'number' &&
     Number.isFinite(ch) &&
-    stageInChapter(gameState.level.id, ch) === 10;
+    stageInChapter(gameState.level.id, ch) === LEVELS_PER_CHAPTER;
 
   const combatHeroId = getStoredHeroId();
   const combatTheme = getHeroCombatTheme(combatHeroId);
@@ -179,15 +188,18 @@ export default function GameView({
     >
       <GameHeader
         fillPercentage={fillPercentage}
+        destructivePowerPercentage={destructivePowerPercentage}
+        destructivePowerMineCount={destructivePowerMineCount}
+        destructivePowerTotalCells={destructivePowerTotalCells}
         medalThresholds={medalThresholds ?? { bronze: gameState.level.definition.coverageGoal, silver: gameState.level.definition.coverageGoal, gold: gameState.level.definition.coverageGoal }}
         projectedMedal={projectedMedal}
         showEarlySettleButton={canEarlySettle}
         onEarlySettle={requestEarlySettle}
         onBack={handleExitToMission}
         onRestart={() => initGame(currentLevelIndex, gameState.runSeed)}
-        showNextLevelButton={winInlineActionsUnlocked && !isLastLevel && !isChapterStage10}
+        showNextLevelButton={winInlineActionsUnlocked && !isLastLevel && !isChapterFinalStage}
         onNextLevel={handleNextLevel}
-        showChapterEndButton={winInlineActionsUnlocked && isChapterStage10 && !isLastLevel}
+        showChapterEndButton={winInlineActionsUnlocked && isChapterFinalStage && !isLastLevel}
         onChapterEnd={handleExitToMission}
         levelName={campaignLevelHeaderTitle(gameState.level)}
         secondsLeft={gameState.secondsLeft}
@@ -229,7 +241,7 @@ export default function GameView({
         showTrigger={false}
       />
 
-      <div className="flex w-full max-w-6xl flex-col items-center">
+      <div className="flex w-full max-w-7xl flex-col items-center">
         <GameStatusMessageBar
           gameState={gameState}
           boardRef={boardRef}
@@ -254,6 +266,7 @@ export default function GameView({
           currentLevelIndex={currentLevelIndex}
           levelCount={levelList.length}
           fillPercentage={fillPercentage}
+          destructivePowerPercentage={destructivePowerPercentage}
           showInlineWinActions={winInlineActionsUnlocked}
           onReturnToMission={handleExitToMission}
           onReplayFinalLevel={() => initGame(currentLevelIndex, gameState.runSeed)}

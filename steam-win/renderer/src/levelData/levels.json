@@ -1,7 +1,7 @@
 {
   "_企劃欄位說明": {
-    "讀我": "下方 levels 為 100 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。",
-    "levelId": "關卡編號 1～100；第 N 筆資料應對應關卡 N。",
+    "讀我": "下方 levels 為 80 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。",
+    "levelId": "關卡編號 1～80；第 N 筆資料應對應關卡 N。",
     "chapter": "章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。",
     "title": "關卡標題（介面顯示用）。",
     "gridSystem": "地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。",
@@ -40,15 +40,16 @@
     "digitOutposts": "可選；戰術據點座標 [[x,y],…]（須為可部署格）。每格必須有數字佈署（含開局 prePlaced）；覆蓋率達標仍有據點未填數字則失敗。據點若被邏輯揭示為紅雷或出現動態廢雷佔格亦立即失敗。廢雷生成會排除據點座標。",
     "neighborPlacedDigitBonus": "可選；本機制唯一開關：僅當設為 true 時啟用，程式不依 chapter／levelId 推斷。true 時實際放下數字 = 電報底數 + 與目標格「邏輯相鄰」且已佈數字之鄰格個數（含開局 prePlaced／提示格）。鄰接規則與盤面 solver 相同。",
     "rewards": "通關敘事／企劃標記；可含 narrativeFlag、todo 等。幹員解鎖：levelData/heroUnlockByChapter.json。",
-    "missionTacticalBriefingMap": "可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央三角→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。",
-    "missionTacticalBriefingMap.nodePositionPct": "可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章各有獨立十點幾何，見程式 missionChapterNodePositions）。",
-    "missionTacticalBriefingMap.mapPalette": "可選；底圖與路徑色票：aurora | ember | jade | steel | violet | monsoon；未填則依 levelId 在六種預設間輪替。"
+    "missionTacticalBriefingMap": "可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」八點佈局（左下起點→中央三角→右側哨所→上緣目標），色票仍依 levelId 輪替。",
+    "missionTacticalBriefingMap.nodePositionPct": "可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章各有獨立八點幾何，見程式 missionChapterNodePositions）。",
+    "missionTacticalBriefingMap.mapPalette": "可選；底圖與路徑色票：aurora | ember | jade | steel | violet | monsoon；未填則依 levelId 在六種預設間輪替。",
+    "missionTacticalTerrainAsset": "作戰地圖衛星／點陣「全畫面底圖」：（1）關卡專屬：renderer/src/assets/mission-tactical-level-{兩位數levelId}.png，有則優先。（2）章節預設：assets/mission-tactical-chapter-maps/mission-tactical-chapter-{NN}.png；第 1 章可為 mission-tactical-chapter-01-bootcamp.png；建置時 glob 收錄，缺檔章節用 mission-tactical-satellite-base.png。無須在本 JSON 填欄位。"
   },
   "levels": [
     {
       "levelId": 1,
       "chapter": 1,
-      "title": "基礎訓練場",
+      "title": "西濱河口哨",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.7,
       "timeLimit": 40,
@@ -70,7 +71,7 @@
     {
       "levelId": 2,
       "chapter": 1,
-      "title": "熟練訓練場",
+      "title": "西北林道線",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.706,
       "timeLimit": 50,
@@ -94,7 +95,7 @@
     {
       "levelId": 3,
       "chapter": 1,
-      "title": "加壓訓練場",
+      "title": "西廠外廓帶",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.711,
       "timeLimit": 62,
@@ -118,7 +119,7 @@
     {
       "levelId": 4,
       "chapter": 1,
-      "title": "強化訓練場",
+      "title": "主廠區廊道",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.717,
       "timeLimit": 72,
@@ -142,7 +143,7 @@
     {
       "levelId": 5,
       "chapter": 1,
-      "title": "極限訓練場",
+      "title": "丘腳轉運點",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.722,
       "timeLimit": 85,
@@ -166,7 +167,7 @@
     {
       "levelId": 6,
       "chapter": 1,
-      "title": "新兵訓練營 · 第 6 戰",
+      "title": "演訓封鎖環",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.728,
       "timeLimit": 60,
@@ -190,7 +191,7 @@
     {
       "levelId": 7,
       "chapter": 1,
-      "title": "新兵訓練營 · 第 7 戰",
+      "title": "北坡觀測所",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.733,
       "timeLimit": 90,
@@ -216,7 +217,7 @@
     {
       "levelId": 8,
       "chapter": 1,
-      "title": "新兵訓練營 · 第 8 戰",
+      "title": "核心指令台",
       "gridSystem": "SQUARE",
       "coverageGoal": 0.739,
       "timeLimit": 96,
@@ -241,58 +242,6 @@
     },
     {
       "levelId": 9,
-      "chapter": 1,
-      "title": "新兵訓練營 · 第 9 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.744,
-      "timeLimit": 104,
-      "initialSeed": "minefield-campaign-v1-L9-ch1",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "2": 12,
-          "3": 22,
-          "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "9",
-      "entryBriefingEnabled": false,
-      "levelEntryBriefingFallbackToChapterStart": false
-    },
-    {
-      "levelId": 10,
-      "chapter": 1,
-      "title": "新兵訓練營 · 第 10 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.75,
-      "timeLimit": 128,
-      "initialSeed": "minefield-campaign-v1-L10-ch1",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "2": 12,
-          "3": 22,
-          "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "10",
-      "entryBriefingEnabled": false,
-      "levelEntryBriefingFallbackToChapterStart": false
-    },
-    {
-      "levelId": 11,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 11 戰",
       "gridSystem": "SQUARE",
@@ -316,7 +265,7 @@
       "mapRef": "11"
     },
     {
-      "levelId": 12,
+      "levelId": 10,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 12 戰",
       "gridSystem": "SQUARE",
@@ -340,7 +289,7 @@
       "mapRef": "12"
     },
     {
-      "levelId": 13,
+      "levelId": 11,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 13 戰",
       "gridSystem": "SQUARE",
@@ -364,7 +313,7 @@
       "mapRef": "13"
     },
     {
-      "levelId": 14,
+      "levelId": 12,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 14 戰",
       "gridSystem": "SQUARE",
@@ -388,7 +337,7 @@
       "mapRef": "14"
     },
     {
-      "levelId": 15,
+      "levelId": 13,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 15 戰",
       "gridSystem": "SQUARE",
@@ -412,7 +361,7 @@
       "mapRef": "15"
     },
     {
-      "levelId": 16,
+      "levelId": 14,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 16 戰",
       "gridSystem": "SQUARE",
@@ -436,7 +385,7 @@
       "mapRef": "16"
     },
     {
-      "levelId": 17,
+      "levelId": 15,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 17 戰",
       "gridSystem": "SQUARE",
@@ -460,7 +409,7 @@
       "mapRef": "17"
     },
     {
-      "levelId": 18,
+      "levelId": 16,
       "chapter": 2,
       "title": "巷戰封鎖線 · 第 18 戰",
       "gridSystem": "SQUARE",
@@ -484,55 +433,7 @@
       "mapRef": "18"
     },
     {
-      "levelId": 19,
-      "chapter": 2,
-      "title": "巷戰封鎖線 · 第 19 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.7,
-      "timeLimit": 113,
-      "initialSeed": "minefield-campaign-v1-L19-ch2",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "2": 12,
-          "3": 22,
-          "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "19"
-    },
-    {
-      "levelId": 20,
-      "chapter": 2,
-      "title": "巷戰封鎖線 · 第 20 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.7,
-      "timeLimit": 138,
-      "initialSeed": "minefield-campaign-v1-L20-ch2",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "2": 12,
-          "3": 22,
-          "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "20"
-    },
-    {
-      "levelId": 21,
+      "levelId": 17,
       "chapter": 3,
       "title": "乾谷據點 · 第 21 戰",
       "gridSystem": "SQUARE",
@@ -568,7 +469,7 @@
       "mapRef": "21"
     },
     {
-      "levelId": 22,
+      "levelId": 18,
       "chapter": 3,
       "title": "乾谷據點 · 第 22 戰",
       "gridSystem": "SQUARE",
@@ -604,7 +505,7 @@
       "mapRef": "22"
     },
     {
-      "levelId": 23,
+      "levelId": 19,
       "chapter": 3,
       "title": "乾谷據點 · 第 23 戰",
       "gridSystem": "SQUARE",
@@ -644,7 +545,7 @@
       "mapRef": "23"
     },
     {
-      "levelId": 24,
+      "levelId": 20,
       "chapter": 3,
       "title": "乾谷據點 · 第 24 戰",
       "gridSystem": "SQUARE",
@@ -688,7 +589,7 @@
       "mapRef": "24"
     },
     {
-      "levelId": 25,
+      "levelId": 21,
       "chapter": 3,
       "title": "乾谷據點 · 第 25 戰",
       "gridSystem": "SQUARE",
@@ -728,7 +629,7 @@
       "mapRef": "25"
     },
     {
-      "levelId": 26,
+      "levelId": 22,
       "chapter": 3,
       "title": "乾谷據點 · 第 26 戰",
       "gridSystem": "SQUARE",
@@ -764,7 +665,7 @@
       "mapRef": "26"
     },
     {
-      "levelId": 27,
+      "levelId": 23,
       "chapter": 3,
       "title": "乾谷據點 · 第 27 戰",
       "gridSystem": "SQUARE",
@@ -804,7 +705,7 @@
       "mapRef": "27"
     },
     {
-      "levelId": 28,
+      "levelId": 24,
       "chapter": 3,
       "title": "乾谷據點 · 第 28 戰",
       "gridSystem": "SQUARE",
@@ -848,95 +749,7 @@
       "mapRef": "28"
     },
     {
-      "levelId": 29,
-      "chapter": 3,
-      "title": "乾谷據點 · 第 29 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.75,
-      "timeLimit": 132,
-      "initialSeed": "minefield-campaign-v1-L29-ch3",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 8,
-          "2": 14,
-          "3": 22,
-          "4": 22,
-          "5": 14,
-          "6": 10,
-          "7": 7,
-          "8": 3
-        }
-      },
-      "events": [],
-      "digitOutposts": [
-        [
-          1,
-          1
-        ],
-        [
-          5,
-          5
-        ],
-        [
-          9,
-          0
-        ]
-      ],
-      "rewards": {},
-      "mapRef": "29"
-    },
-    {
-      "levelId": 30,
-      "chapter": 3,
-      "title": "乾谷據點 · 第 30 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.75,
-      "timeLimit": 140,
-      "initialSeed": "minefield-campaign-v1-L30-ch3",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 8,
-          "2": 14,
-          "3": 22,
-          "4": 22,
-          "5": 14,
-          "6": 10,
-          "7": 7,
-          "8": 3
-        }
-      },
-      "events": [],
-      "digitOutposts": [
-        [
-          0,
-          0
-        ],
-        [
-          3,
-          3
-        ],
-        [
-          7,
-          7
-        ],
-        [
-          1,
-          8
-        ],
-        [
-          8,
-          2
-        ]
-      ],
-      "rewards": {},
-      "mapRef": "30"
-    },
-    {
-      "levelId": 31,
+      "levelId": 25,
       "chapter": 4,
       "title": "三角高地 · 第 31 戰",
       "gridSystem": "TRIANGLE",
@@ -957,7 +770,7 @@
       "mapRef": "31"
     },
     {
-      "levelId": 32,
+      "levelId": 26,
       "chapter": 4,
       "title": "三角高地 · 第 32 戰",
       "gridSystem": "TRIANGLE",
@@ -978,7 +791,7 @@
       "mapRef": "32"
     },
     {
-      "levelId": 33,
+      "levelId": 27,
       "chapter": 4,
       "title": "三角高地 · 第 33 戰",
       "gridSystem": "TRIANGLE",
@@ -999,7 +812,7 @@
       "mapRef": "33"
     },
     {
-      "levelId": 34,
+      "levelId": 28,
       "chapter": 4,
       "title": "三角高地 · 第 34 戰",
       "gridSystem": "TRIANGLE",
@@ -1020,7 +833,7 @@
       "mapRef": "34"
     },
     {
-      "levelId": 35,
+      "levelId": 29,
       "chapter": 4,
       "title": "三角高地 · 第 35 戰",
       "gridSystem": "TRIANGLE",
@@ -1041,7 +854,7 @@
       "mapRef": "35"
     },
     {
-      "levelId": 36,
+      "levelId": 30,
       "chapter": 4,
       "title": "三角高地 · 第 36 戰",
       "gridSystem": "TRIANGLE",
@@ -1062,7 +875,7 @@
       "mapRef": "36"
     },
     {
-      "levelId": 37,
+      "levelId": 31,
       "chapter": 4,
       "title": "三角高地 · 第 37 戰",
       "gridSystem": "TRIANGLE",
@@ -1083,7 +896,7 @@
       "mapRef": "37"
     },
     {
-      "levelId": 38,
+      "levelId": 32,
       "chapter": 4,
       "title": "三角高地 · 第 38 戰",
       "gridSystem": "TRIANGLE",
@@ -1104,49 +917,7 @@
       "mapRef": "38"
     },
     {
-      "levelId": 39,
-      "chapter": 4,
-      "title": "三角高地 · 第 39 戰",
-      "gridSystem": "TRIANGLE",
-      "coverageGoal": 0.75,
-      "timeLimit": 126,
-      "initialSeed": "minefield-campaign-v1-L39-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "39"
-    },
-    {
-      "levelId": 40,
-      "chapter": 4,
-      "title": "三角高地 · 第 40 戰",
-      "gridSystem": "TRIANGLE",
-      "coverageGoal": 0.75,
-      "timeLimit": 134,
-      "initialSeed": "minefield-campaign-v1-L40-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "40"
-    },
-    {
-      "levelId": 41,
+      "levelId": 33,
       "chapter": 5,
       "title": "蜂巢防線 · 第 41 戰",
       "gridSystem": "HEXAGON",
@@ -1174,7 +945,7 @@
       "mapRef": "41"
     },
     {
-      "levelId": 42,
+      "levelId": 34,
       "chapter": 5,
       "title": "蜂巢防線 · 第 42 戰",
       "gridSystem": "HEXAGON",
@@ -1202,7 +973,7 @@
       "mapRef": "42"
     },
     {
-      "levelId": 43,
+      "levelId": 35,
       "chapter": 5,
       "title": "蜂巢防線 · 第 43 戰",
       "gridSystem": "HEXAGON",
@@ -1230,7 +1001,7 @@
       "mapRef": "43"
     },
     {
-      "levelId": 44,
+      "levelId": 36,
       "chapter": 5,
       "title": "蜂巢防線 · 第 44 戰",
       "gridSystem": "HEXAGON",
@@ -1258,7 +1029,7 @@
       "mapRef": "44"
     },
     {
-      "levelId": 45,
+      "levelId": 37,
       "chapter": 5,
       "title": "蜂巢防線 · 第 45 戰",
       "gridSystem": "HEXAGON",
@@ -1286,7 +1057,7 @@
       "mapRef": "45"
     },
     {
-      "levelId": 46,
+      "levelId": 38,
       "chapter": 5,
       "title": "蜂巢防線 · 第 46 戰",
       "gridSystem": "HEXAGON",
@@ -1314,7 +1085,7 @@
       "mapRef": "46"
     },
     {
-      "levelId": 47,
+      "levelId": 39,
       "chapter": 5,
       "title": "蜂巢防線 · 第 47 戰",
       "gridSystem": "HEXAGON",
@@ -1342,7 +1113,7 @@
       "mapRef": "47"
     },
     {
-      "levelId": 48,
+      "levelId": 40,
       "chapter": 5,
       "title": "蜂巢防線 · 第 48 戰",
       "gridSystem": "HEXAGON",
@@ -1370,63 +1141,7 @@
       "mapRef": "48"
     },
     {
-      "levelId": 49,
-      "chapter": 5,
-      "title": "蜂巢防線 · 第 49 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.8,
-      "timeLimit": 76,
-      "initialSeed": "minefield-campaign-v1-L49-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "49"
-    },
-    {
-      "levelId": 50,
-      "chapter": 5,
-      "title": "蜂巢防線 · 第 50 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.8,
-      "timeLimit": 77,
-      "initialSeed": "minefield-campaign-v1-L50-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "50"
-    },
-    {
-      "levelId": 51,
+      "levelId": 41,
       "chapter": 6,
       "title": "深海要塞 · 第 51 戰",
       "gridSystem": "HEXAGON",
@@ -1455,7 +1170,7 @@
       "mapRef": "51"
     },
     {
-      "levelId": 52,
+      "levelId": 42,
       "chapter": 6,
       "title": "深海要塞 · 第 52 戰",
       "gridSystem": "TRIANGLE",
@@ -1481,7 +1196,7 @@
       "mapRef": "52"
     },
     {
-      "levelId": 53,
+      "levelId": 43,
       "chapter": 6,
       "title": "深海要塞 · 第 53 戰",
       "gridSystem": "SQUARE",
@@ -1512,7 +1227,7 @@
       "mapRef": "53"
     },
     {
-      "levelId": 54,
+      "levelId": 44,
       "chapter": 6,
       "title": "深海要塞 · 第 54 戰",
       "gridSystem": "TRIANGLE",
@@ -1538,7 +1253,7 @@
       "mapRef": "54"
     },
     {
-      "levelId": 55,
+      "levelId": 45,
       "chapter": 6,
       "title": "深海要塞 · 第 55 戰",
       "gridSystem": "HEXAGON",
@@ -1567,7 +1282,7 @@
       "mapRef": "55"
     },
     {
-      "levelId": 56,
+      "levelId": 46,
       "chapter": 6,
       "title": "深海要塞 · 第 56 戰",
       "gridSystem": "SQUARE",
@@ -1598,7 +1313,7 @@
       "mapRef": "56"
     },
     {
-      "levelId": 57,
+      "levelId": 47,
       "chapter": 6,
       "title": "深海要塞 · 第 57 戰",
       "gridSystem": "HEXAGON",
@@ -1627,7 +1342,7 @@
       "mapRef": "57"
     },
     {
-      "levelId": 58,
+      "levelId": 48,
       "chapter": 6,
       "title": "深海要塞 · 第 58 戰",
       "gridSystem": "SQUARE",
@@ -1658,62 +1373,7 @@
       "mapRef": "58"
     },
     {
-      "levelId": 59,
-      "chapter": 6,
-      "title": "深海要塞 · 第 59 戰",
-      "gridSystem": "TRIANGLE",
-      "coverageGoal": 0.8,
-      "timeLimit": 75,
-      "initialSeed": "minefield-campaign-v1-L59-ch5-9de16337",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
-        }
-      },
-      "dynamicMinePerMove": true,
-      "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "59"
-    },
-    {
-      "levelId": 60,
-      "chapter": 6,
-      "title": "深海要塞 · 第 60 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.8,
-      "timeLimit": 78,
-      "initialSeed": "minefield-campaign-v1-L60-ch5-5a7160e6",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 10
-        }
-      },
-      "dynamicMinePerMove": true,
-      "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "60"
-    },
-    {
-      "levelId": 61,
+      "levelId": 49,
       "chapter": 7,
       "title": "信號干擾區 · 第 61 戰",
       "gridSystem": "SQUARE",
@@ -1741,7 +1401,7 @@
       "mapRef": "61"
     },
     {
-      "levelId": 62,
+      "levelId": 50,
       "chapter": 7,
       "title": "信號干擾區 · 第 62 戰",
       "gridSystem": "TRIANGLE",
@@ -1764,7 +1424,7 @@
       "mapRef": "62"
     },
     {
-      "levelId": 63,
+      "levelId": 51,
       "chapter": 7,
       "title": "信號干擾區 · 第 63 戰",
       "gridSystem": "HEXAGON",
@@ -1790,7 +1450,7 @@
       "mapRef": "63"
     },
     {
-      "levelId": 64,
+      "levelId": 52,
       "chapter": 7,
       "title": "信號干擾區 · 第 64 戰",
       "gridSystem": "SQUARE",
@@ -1818,7 +1478,7 @@
       "mapRef": "64"
     },
     {
-      "levelId": 65,
+      "levelId": 53,
       "chapter": 7,
       "title": "信號干擾區 · 第 65 戰",
       "gridSystem": "TRIANGLE",
@@ -1841,7 +1501,7 @@
       "mapRef": "65"
     },
     {
-      "levelId": 66,
+      "levelId": 54,
       "chapter": 7,
       "title": "信號干擾區 · 第 66 戰",
       "gridSystem": "HEXAGON",
@@ -1867,7 +1527,7 @@
       "mapRef": "66"
     },
     {
-      "levelId": 67,
+      "levelId": 55,
       "chapter": 7,
       "title": "信號干擾區 · 第 67 戰",
       "gridSystem": "TRIANGLE",
@@ -1890,7 +1550,7 @@
       "mapRef": "67"
     },
     {
-      "levelId": 68,
+      "levelId": 56,
       "chapter": 7,
       "title": "信號干擾區 · 第 68 戰",
       "gridSystem": "SQUARE",
@@ -1918,61 +1578,7 @@
       "mapRef": "68"
     },
     {
-      "levelId": 69,
-      "chapter": 7,
-      "title": "信號干擾區 · 第 69 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.8,
-      "timeLimit": 75,
-      "initialSeed": "minefield-campaign-v1-L69-ch7-632085dd",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "RANDOM",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 10
-        }
-      },
-      "events": [],
-      "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 280,
-      "rewards": {},
-      "mapRef": "69"
-    },
-    {
-      "levelId": 70,
-      "chapter": 7,
-      "title": "信號干擾區 · 第 70 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.8,
-      "timeLimit": 78,
-      "initialSeed": "minefield-campaign-v1-L70-ch7-2251ab8d",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "RANDOM",
-        "weights": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 1,
-          "6": 1,
-          "7": 1,
-          "8": 1
-        }
-      },
-      "events": [],
-      "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 280,
-      "rewards": {},
-      "mapRef": "70"
-    },
-    {
-      "levelId": 71,
+      "levelId": 57,
       "chapter": 8,
       "title": "引爆危機 · 第 71 戰",
       "gridSystem": "SQUARE",
@@ -2013,7 +1619,7 @@
       "mapRef": "71"
     },
     {
-      "levelId": 72,
+      "levelId": 58,
       "chapter": 8,
       "title": "引爆危機 · 第 72 戰",
       "gridSystem": "TRIANGLE",
@@ -2056,7 +1662,7 @@
       "mapRef": "72"
     },
     {
-      "levelId": 73,
+      "levelId": 59,
       "chapter": 8,
       "title": "引爆危機 · 第 73 戰",
       "gridSystem": "HEXAGON",
@@ -2102,7 +1708,7 @@
       "mapRef": "73"
     },
     {
-      "levelId": 74,
+      "levelId": 60,
       "chapter": 8,
       "title": "引爆危機 · 第 74 戰",
       "gridSystem": "SQUARE",
@@ -2158,7 +1764,7 @@
       "mapRef": "74"
     },
     {
-      "levelId": 75,
+      "levelId": 61,
       "chapter": 8,
       "title": "引爆危機 · 第 75 戰",
       "gridSystem": "TRIANGLE",
@@ -2209,7 +1815,7 @@
       "mapRef": "75"
     },
     {
-      "levelId": 76,
+      "levelId": 62,
       "chapter": 8,
       "title": "引爆危機 · 第 76 戰",
       "gridSystem": "HEXAGON",
@@ -2263,7 +1869,7 @@
       "mapRef": "76"
     },
     {
-      "levelId": 77,
+      "levelId": 63,
       "chapter": 8,
       "title": "引爆危機 · 第 77 戰",
       "gridSystem": "TRIANGLE",
@@ -2314,7 +1920,7 @@
       "mapRef": "77"
     },
     {
-      "levelId": 78,
+      "levelId": 64,
       "chapter": 8,
       "title": "引爆危機 · 第 78 戰",
       "gridSystem": "SQUARE",
@@ -2370,119 +1976,7 @@
       "mapRef": "78"
     },
     {
-      "levelId": 79,
-      "chapter": 8,
-      "title": "引爆危機 · 第 79 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.85,
-      "timeLimit": 78,
-      "initialSeed": "minefield-campaign-v1-L79-ch8-0d094db3",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "blastPoints": [
-        {
-          "pos": [
-            10,
-            1
-          ],
-          "countdownSec": 22,
-          "defuseBonusSec": 5
-        },
-        {
-          "pos": [
-            2,
-            6
-          ],
-          "countdownSec": 20,
-          "defuseBonusSec": 5
-        },
-        {
-          "pos": [
-            1,
-            10
-          ],
-          "countdownSec": 20,
-          "defuseBonusSec": 5
-        }
-      ],
-      "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 三炸點最大難度登場，測試整體壓力曲線"
-        ]
-      },
-      "mapRef": "79"
-    },
-    {
-      "levelId": 80,
-      "chapter": 8,
-      "title": "引爆危機 · 第 80 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.85,
-      "timeLimit": 80,
-      "initialSeed": "minefield-campaign-v1-L80-ch8-5e527d3c",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 6,
-          "2": 10,
-          "3": 16,
-          "4": 18,
-          "5": 18,
-          "6": 14,
-          "7": 10,
-          "8": 6
-        }
-      },
-      "blastPoints": [
-        {
-          "pos": [
-            2,
-            2
-          ],
-          "countdownSec": 18,
-          "defuseBonusSec": 4
-        },
-        {
-          "pos": [
-            7,
-            6
-          ],
-          "countdownSec": 15,
-          "defuseBonusSec": 4
-        },
-        {
-          "pos": [
-            5,
-            10
-          ],
-          "countdownSec": 16,
-          "defuseBonusSec": 4
-        }
-      ],
-      "events": [],
-      "rewards": {
-        "narrativeFlag": "ch8_cleared",
-        "todo": [
-          "TODO: 第八章終戰，五炸點倒數最短至 15 秒",
-          "TODO: 通關時顯示章節結算動畫"
-        ]
-      },
-      "mapRef": "80"
-    },
-    {
-      "levelId": 81,
+      "levelId": 65,
       "chapter": 9,
       "title": "鄰焰共振 · 第 81 戰",
       "gridSystem": "SQUARE",
@@ -2509,7 +2003,7 @@
       "mapRef": "81"
     },
     {
-      "levelId": 82,
+      "levelId": 66,
       "chapter": 9,
       "title": "鄰焰共振 · 第 82 戰",
       "gridSystem": "TRIANGLE",
@@ -2531,7 +2025,7 @@
       "mapRef": "82"
     },
     {
-      "levelId": 83,
+      "levelId": 67,
       "chapter": 9,
       "title": "鄰焰共振 · 第 83 戰",
       "gridSystem": "HEXAGON",
@@ -2556,7 +2050,7 @@
       "mapRef": "83"
     },
     {
-      "levelId": 84,
+      "levelId": 68,
       "chapter": 9,
       "title": "鄰焰共振 · 第 84 戰",
       "gridSystem": "SQUARE",
@@ -2583,7 +2077,7 @@
       "mapRef": "84"
     },
     {
-      "levelId": 85,
+      "levelId": 69,
       "chapter": 9,
       "title": "鄰焰共振 · 第 85 戰",
       "gridSystem": "TRIANGLE",
@@ -2605,7 +2099,7 @@
       "mapRef": "85"
     },
     {
-      "levelId": 86,
+      "levelId": 70,
       "chapter": 9,
       "title": "鄰焰共振 · 第 86 戰",
       "gridSystem": "HEXAGON",
@@ -2630,7 +2124,7 @@
       "mapRef": "86"
     },
     {
-      "levelId": 87,
+      "levelId": 71,
       "chapter": 9,
       "title": "鄰焰共振 · 第 87 戰",
       "gridSystem": "SQUARE",
@@ -2657,7 +2151,7 @@
       "mapRef": "87"
     },
     {
-      "levelId": 88,
+      "levelId": 72,
       "chapter": 9,
       "title": "鄰焰共振 · 第 88 戰",
       "gridSystem": "TRIANGLE",
@@ -2679,59 +2173,7 @@
       "mapRef": "88"
     },
     {
-      "levelId": 89,
-      "chapter": 9,
-      "title": "鄰焰共振 · 第 89 戰",
-      "gridSystem": "HEXAGON",
-      "coverageGoal": 0.85,
-      "timeLimit": 75,
-      "initialSeed": "minefield-campaign-v1-L89-ch9-47a960aa",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "neighborPlacedDigitBonus": true,
-      "rewards": {},
-      "mapRef": "89"
-    },
-    {
-      "levelId": 90,
-      "chapter": 9,
-      "title": "鄰焰共振 · 第 90 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.85,
-      "timeLimit": 80,
-      "initialSeed": "minefield-campaign-v1-L90-ch9-2a6ed127",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
-        }
-      },
-      "neighborPlacedDigitBonus": true,
-      "rewards": {},
-      "events": [],
-      "mapRef": "90"
-    },
-    {
-      "levelId": 91,
+      "levelId": 73,
       "chapter": 10,
       "title": "終焉防線 · 第 91 戰",
       "gridSystem": "SQUARE",
@@ -2779,7 +2221,7 @@
       "mapRef": "91"
     },
     {
-      "levelId": 92,
+      "levelId": 74,
       "chapter": 10,
       "title": "終焉防線 · 第 92 戰",
       "gridSystem": "TRIANGLE",
@@ -2821,7 +2263,7 @@
       "mapRef": "92"
     },
     {
-      "levelId": 93,
+      "levelId": 75,
       "chapter": 10,
       "title": "終焉防線 · 第 93 戰",
       "gridSystem": "HEXAGON",
@@ -2868,7 +2310,7 @@
       "mapRef": "93"
     },
     {
-      "levelId": 94,
+      "levelId": 76,
       "chapter": 10,
       "title": "終焉防線 · 第 94 戰",
       "gridSystem": "SQUARE",
@@ -2917,7 +2359,7 @@
       "mapRef": "94"
     },
     {
-      "levelId": 95,
+      "levelId": 77,
       "chapter": 10,
       "title": "終焉防線 · 第 95 戰",
       "gridSystem": "SQUARE",
@@ -2966,7 +2408,7 @@
       "mapRef": "95"
     },
     {
-      "levelId": 96,
+      "levelId": 78,
       "chapter": 10,
       "title": "終焉防線 · 第 96 戰",
       "gridSystem": "SQUARE",
@@ -3019,7 +2461,7 @@
       "mapRef": "96"
     },
     {
-      "levelId": 97,
+      "levelId": 79,
       "chapter": 10,
       "title": "終焉防線 · 第 97 戰",
       "gridSystem": "SQUARE",
@@ -3075,7 +2517,7 @@
       "mapRef": "97"
     },
     {
-      "levelId": 98,
+      "levelId": 80,
       "chapter": 10,
       "title": "終焉防線 · 第 98 戰",
       "gridSystem": "SQUARE",
@@ -3122,154 +2564,6 @@
       "events": [],
       "rewards": {},
       "mapRef": "98"
-    },
-    {
-      "levelId": 99,
-      "chapter": 10,
-      "title": "終焉防線 · 第 99 戰",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 0.9,
-      "timeLimit": 168,
-      "initialSeed": "minefield-campaign-v1-L99-ch10-c9d0e1f2",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 12,
-          "2": 18,
-          "3": 22,
-          "4": 20,
-          "5": 14,
-          "6": 10,
-          "7": 4,
-          "8": 4
-        }
-      },
-      "neighborPlacedDigitBonus": true,
-      "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 230,
-      "dynamicMinePerMove": true,
-      "digitOutposts": [
-        [
-          3,
-          3
-        ],
-        [
-          10,
-          8
-        ],
-        [
-          5,
-          9
-        ],
-        [
-          8,
-          5
-        ]
-      ],
-      "blastPoints": [
-        {
-          "pos": [
-            6,
-            4
-          ],
-          "countdownSec": 22,
-          "defuseBonusSec": 8
-        },
-        {
-          "pos": [
-            10,
-            6
-          ],
-          "countdownSec": 24,
-          "defuseBonusSec": 8
-        }
-      ],
-      "events": [],
-      "rewards": {},
-      "mapRef": "99"
-    },
-    {
-      "levelId": 100,
-      "chapter": 10,
-      "title": "神之眼",
-      "gridSystem": "SQUARE",
-      "coverageGoal": 1,
-      "timeLimit": 280,
-      "initialSeed": "minefield-campaign-v1-L100-ch10-d0e1f2a3",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 12,
-          "2": 18,
-          "3": 22,
-          "4": 20,
-          "5": 14,
-          "6": 10,
-          "7": 4,
-          "8": 4
-        }
-      },
-      "neighborPlacedDigitBonus": true,
-      "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 210,
-      "dynamicMinePerMove": true,
-      "digitOutposts": [
-        [
-          4,
-          4
-        ],
-        [
-          10,
-          4
-        ],
-        [
-          4,
-          10
-        ],
-        [
-          10,
-          10
-        ]
-      ],
-      "blastPoints": [
-        {
-          "pos": [
-            7,
-            7
-          ],
-          "countdownSec": 36,
-          "defuseBonusSec": 12
-        },
-        {
-          "pos": [
-            2,
-            2
-          ],
-          "countdownSec": 32,
-          "defuseBonusSec": 10
-        }
-      ],
-      "mineBonusTargetCells": [
-        [
-          13,
-          6
-        ],
-        [
-          6,
-          13
-        ]
-      ],
-      "mineBonusSeconds": 5,
-      "events": [],
-      "rewards": {
-        "narrativeFlag": "CAMPAIGN_COMPLETE",
-        "todo": [
-          "TODO: 結局演出與結算"
-        ]
-      },
-      "mapRef": "100"
     }
   ]
 }

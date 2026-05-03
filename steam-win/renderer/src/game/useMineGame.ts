@@ -65,6 +65,14 @@ function pickDynamicMinePosition(
   return candidates[nextInt(candidates.length)];
 }
 
+/** 破壞力：已確定地雷格數（邏輯揭示 ∪ 動態廢雷）／總格數，不含已填入數字格。 */
+export function destructivePowerFromGameState(gs: GameState): { pct: number; mineCount: number; totalCells: number } {
+  const totalCells = gs.level.cells.length;
+  if (totalCells <= 0) return { pct: 0, mineCount: 0, totalCells: 0 };
+  const mineKeys = new Set<string>([...gs.revealedMines, ...gs.dynamicMines]);
+  return { pct: (mineKeys.size / totalCells) * 100, mineCount: mineKeys.size, totalCells };
+}
+
 function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
   const configuredBonusTargets = level.definition.mineBonusTargetCells;
   const effectiveBonusTargets =
@@ -838,6 +846,8 @@ export function useMineGame(initialLevelIndex: number) {
       100
     : 0;
 
+  const destructivePower = gameState ? destructivePowerFromGameState(gameState) : { pct: 0, mineCount: 0, totalCells: 0 };
+
   const medalThresholds = gameState
     ? resolveMedalThresholds(gameState.level.definition)
     : null;
@@ -913,6 +923,9 @@ export function useMineGame(initialLevelIndex: number) {
     handleCellClick,
     forceCompleteForTest,
     fillPercentage,
+    destructivePowerPercentage: destructivePower.pct,
+    destructivePowerMineCount: destructivePower.mineCount,
+    destructivePowerTotalCells: destructivePower.totalCells,
     bonusFxKeys,
     medalThresholds,
     projectedMedal,

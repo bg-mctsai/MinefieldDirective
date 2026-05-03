@@ -105,7 +105,7 @@ const SELINA: HeroCombatTheme = {
 /** 賽琳娜＝測繪（綠）；老張＝結構／加固（橙）—與職業綁定，非與 id 字面一致 */
 export function getHeroCombatTheme(heroId: string): HeroCombatTheme {
   if (heroId === 'laozhang') return SELINA;
-  if (heroId === 'ada') return ADA;
+  if (heroId === 'ada' || heroId === 'claire') return ADA;
   if (heroId === 'bobby') return BOBBY;
   if (heroId === 'selina') return LAOZHANG;
   return XIAOMING;

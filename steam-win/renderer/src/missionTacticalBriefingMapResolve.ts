@@ -74,7 +74,7 @@ export function missionTacticalPaletteRgb(
 }
 
 /**
- * 章內某關在戰術圖上的節點中心（%）；企劃可覆寫，否則依章別預設佈局（1～10 章各異）。
+ * 章內某關在戰術圖上的節點中心（%）；企劃可覆寫，否則依章別預設佈局（1～10 章各異、每章 8 關）。
  */
 export function resolveMissionTacticalNodePositionPct(args: {
   chapter: number;

@@ -61,12 +61,15 @@ const PROGRESS_THEME_BY_MEDAL: Record<
   },
 };
 
-/** 與任務進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
+/** 與破壞力／覆蓋進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
 export const GAME_HEADER_CARD_CLASS =
-  'flex flex-1 min-h-[3.75rem] min-w-0 flex-col justify-center rounded-2xl border-2 p-3 shadow-xl sm:flex-row sm:items-center sm:gap-3';
+  'flex flex-1 min-h-[4.5rem] min-w-0 flex-col justify-center rounded-2xl border-2 p-4 shadow-xl sm:flex-row sm:items-center sm:gap-4';
 
 export function GameHeader({
   fillPercentage,
+  destructivePowerPercentage,
+  destructivePowerMineCount,
+  destructivePowerTotalCells,
   medalThresholds,
   projectedMedal,
   showEarlySettleButton,
@@ -85,7 +88,12 @@ export function GameHeader({
   telegraphPanel,
   heroTheme: heroThemeProp,
 }: {
+  /** 覆蓋率 0～100：進度條與勳章刻度（與 levels 門檻對齊） */
   fillPercentage: number;
+  /** 破壞力 0～100：已確定地雷／總格（不含填入數字格） */
+  destructivePowerPercentage: number;
+  destructivePowerMineCount: number;
+  destructivePowerTotalCells: number;
   /** 三段勳章覆蓋率門檻（0～1） */
   medalThresholds: MedalThresholds;
   /** 對局中即時投影：此刻結算可拿到的勳章（未達銅為 null） */
@@ -95,10 +103,10 @@ export function GameHeader({
   onEarlySettle?: () => void;
   onBack: () => void;
   onRestart: () => void;
-  /** 過關並按慶祝「確定」後，非最終關且非章內第 10 關時顯示「下一關」 */
+  /** 過關並按慶祝「確定」後，非最終關且非章內第 8 關時顯示「下一關」 */
   showNextLevelButton?: boolean;
   onNextLevel?: () => void;
-  /** 章內第 10 關通關後顯示「完結」：回到行動卷宗 */
+  /** 章內第 8 關通關後顯示「完結」：回到行動卷宗 */
   showChapterEndButton?: boolean;
   onChapterEnd?: () => void;
   levelName: string;
@@ -110,7 +118,7 @@ export function GameHeader({
   guideButton?: ReactNode;
   /** 測試捷徑按鈕（例如：測試完成） */
   testCompleteButton?: ReactNode;
-  /** 第二行與任務進度並排：長官電報列 */
+  /** 第二行與破壞力卡並排：長官電報列 */
   telegraphPanel?: ReactNode;
   /** 依幹員切換的戰鬥主題色 */
   heroTheme?: HeroCombatTheme;
@@ -127,7 +135,7 @@ export function GameHeader({
         };
 
   return (
-    <div className="mb-4 flex w-full max-w-6xl flex-col gap-3">
+    <div className="mb-5 flex w-full max-w-7xl flex-col gap-4">
       <motion.div
         initial={{ x: -12, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -137,7 +145,7 @@ export function GameHeader({
           <button
             type="button"
             onClick={onBack}
-            className={`flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-3 py-2 text-sm font-bold text-slate-200 transition-colors ${heroTheme.headerBackHover}`}
+            className={`flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-4 py-2.5 text-base font-bold text-slate-200 transition-colors ${heroTheme.headerBackHover}`}
           >
             <ChevronLeft size={18} />
             返回
@@ -145,10 +153,10 @@ export function GameHeader({
           <div
             className={`shrink-0 rounded-2xl border-2 border-slate-800 bg-slate-900 p-2.5 shadow-lg ${heroTheme.headerMissionMarkWrap}`}
           >
-            <MissionDirectiveEmblem className={heroTheme.headerMissionMark} size={34} />
+            <MissionDirectiveEmblem className={heroTheme.headerMissionMark} size={40} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="mb-0 flex min-w-0 items-center gap-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
+            <h1 className="mb-0 flex min-w-0 items-center gap-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
               <span className="truncate">{levelName}</span>
             </h1>
           </div>
@@ -169,14 +177,13 @@ export function GameHeader({
         <div className={progressCardClass}>
           <div className="flex w-full min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="min-w-0 flex-1 px-1 sm:px-2">
-              <div className="mb-1.5 flex items-end justify-between gap-2">
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">任務進度</div>
-                  <div className="mt-0.5 hidden text-[9px] font-bold text-slate-600 sm:block">刻度＝勳章門檻</div>
-                </div>
-                <div className={`shrink-0 text-2xl font-black tabular-nums ${progressTheme.valueColor}`}>
-                  {fillPercentage.toFixed(1)}%
-                </div>
+              <div className="mb-1 flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-0">
+                <span className="shrink-0 text-xs font-black uppercase tracking-[0.08em] text-slate-300">
+                  破壞力
+                </span>
+                <span className={`shrink-0 text-2xl font-black tabular-nums sm:text-3xl ${progressTheme.valueColor}`}>
+                  {destructivePowerPercentage.toFixed(1)}%
+                </span>
               </div>
               <MedalThresholdProgressBar
                 fillPercentage={fillPercentage}
@@ -184,17 +191,22 @@ export function GameHeader({
                 projectedMedal={projectedMedal}
                 barFillClass={progressTheme.barFill}
                 barGlowClass={progressTheme.glow}
+                mineLine={
+                  destructivePowerTotalCells > 0
+                    ? `地雷 ${destructivePowerMineCount}/${destructivePowerTotalCells} 格`
+                    : null
+                }
               />
             </div>
             {secondsLeft !== null && (
               <>
                 <div className="hidden h-10 w-0.5 shrink-0 self-center bg-slate-800 sm:block" />
                 <div className="shrink-0 px-2 text-center sm:min-w-[4.5rem]">
-                  <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <div className="mb-1 text-xs font-black uppercase tracking-[0.08em] text-slate-300">
                     {countdownStarted ? '剩餘時間' : '任務時限'}
                   </div>
                   <div
-                    className={`text-2xl font-black tabular-nums ${
+                    className={`text-3xl font-black tabular-nums ${
                       !countdownStarted && secondsLeft > 0
                         ? 'text-slate-500'
                         : secondsLeft <= 0
@@ -207,7 +219,7 @@ export function GameHeader({
                     {secondsLeft}s
                   </div>
                   {!countdownStarted && secondsLeft > 0 && (
-                    <div className="mt-0.5 text-[9px] font-bold text-slate-600">選定電碼後倒數</div>
+                    <div className="mt-0.5 text-xs font-bold text-slate-400">選定電碼後倒數</div>
                   )}
                 </div>
               </>
@@ -276,17 +288,20 @@ function MedalThresholdProgressBar({
   projectedMedal,
   barFillClass,
   barGlowClass,
+  mineLine,
 }: {
   fillPercentage: number;
   medalThresholds: MedalThresholds;
   projectedMedal: Medal | null;
   barFillClass: string;
   barGlowClass?: string;
+  /** 長條下方左側（原刻度說明位置）；null 則不顯示 */
+  mineLine: string | null;
 }) {
   const fillW = Math.min(100, Math.max(0, fillPercentage));
   return (
     <div className="w-full min-w-0">
-      <div className="relative w-full overflow-visible pb-4">
+      <div className="relative w-full">
         <div className="relative h-2.5 w-full">
           <div className="h-full w-full overflow-hidden rounded-full bg-slate-800/90 ring-1 ring-slate-700/40">
             <div
@@ -302,7 +317,7 @@ function MedalThresholdProgressBar({
             const tone = MEDAL_TONE[key];
             return (
               <div
-                key={key}
+                key={`tick-${key}`}
                 className="pointer-events-none absolute top-1/2 w-0 -translate-x-1/2 -translate-y-1/2"
                 style={{ left: `${left}%` }}
                 aria-hidden
@@ -312,18 +327,38 @@ function MedalThresholdProgressBar({
                     passed ? tone.tickOn : tone.tickOff
                   } ${isActive && passed ? 'opacity-100 ring-1 ring-white/30' : ''}`}
                 />
-                <div
-                  className={`absolute left-1/2 top-[calc(100%+3px)] -translate-x-1/2 whitespace-nowrap text-[9px] font-black leading-none tabular-nums sm:text-[10px] ${
-                    passed ? `${tone.label} font-extrabold` : 'text-slate-600'
-                  } ${
-                    isActive
-                      ? 'underline decoration-dotted decoration-current underline-offset-2'
-                      : ''
-                  } ${passed ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]' : ''}`}
+              </div>
+            );
+          })}
+        </div>
+        <div className="relative mt-1 min-h-4 w-full">
+          {mineLine != null ? (
+            <span className="pointer-events-none absolute left-0 top-0 z-[1] max-w-[min(11rem,48%)] truncate text-[9px] font-bold leading-none text-slate-500 sm:max-w-[46%] sm:text-[10px]">
+              {mineLine}
+            </span>
+          ) : null}
+          {MEDAL_ORDER.map(({ key, pct: pctFn }) => {
+            const pct = pctFn(medalThresholds);
+            const left = Math.min(100, Math.max(0, pct));
+            const passed = fillPercentage + 1e-6 >= pct;
+            const isActive = projectedMedal === key;
+            const tone = MEDAL_TONE[key];
+            return (
+              <div
+                key={`pct-${key}`}
+                className="pointer-events-none absolute left-0 top-0 -translate-x-1/2"
+                style={{ left: `${left}%` }}
+                aria-hidden
+              >
+                <span
+                  className={`whitespace-nowrap text-[10px] font-black tabular-nums sm:text-[11px] ${
+                    passed ? tone.label : 'text-slate-600'
+                  } ${passed ? 'font-extrabold' : 'font-bold'} ${
+                    isActive ? 'underline decoration-dotted decoration-current underline-offset-2' : ''
+                  } ${passed ? 'drop-shadow-[0_0_5px_rgba(255,255,255,0.12)]' : ''}`}
                 >
-                  {MEDAL_LABEL[key]}
                   {Math.round(pct)}%
-                </div>
+                </span>
               </div>
             );
           })}

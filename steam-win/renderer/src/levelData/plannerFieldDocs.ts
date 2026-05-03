@@ -4,9 +4,9 @@
  */
 export const PLANNER_FIELD_DOCS: Record<string, string> = {
   讀我:
-    '下方 levels 為 100 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。',
+    '下方 levels 為 80 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。',
 
-  levelId: '關卡編號 1～100；第 N 筆資料應對應關卡 N。',
+  levelId: '關卡編號 1～80；第 N 筆資料應對應關卡 N。',
   chapter: '章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。',
   title: '關卡標題（介面顯示用）。',
   gridSystem: '地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。',
@@ -83,7 +83,7 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   missionTacticalBriefingMap:
     '可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央三角→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。',
   'missionTacticalBriefingMap.nodePositionPct':
-    '可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章各有獨立十點幾何，見程式 missionChapterNodePositions）。',
+    '可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章各有獨立八點幾何，見程式 missionChapterNodePositions）。',
   'missionTacticalBriefingMap.mapPalette':
     '可選；底圖與路徑色票：aurora | ember | jade | steel | violet | monsoon；未填則依 levelId 在六種預設間輪替。',
 };

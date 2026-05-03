@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { HEROES, telegraphHandSlotCount } from '../heroes';
+import { HEROES, getHeroCombatSkills } from '../heroes';
 import type { HeroDef } from '../heroes';
 import { loadUnlockedHeroIds } from '../game/heroUnlockedStorage';
 import { TeletypeInline } from '../teletype';
 import { HeroPortraitZoomButton } from './HeroPortraitZoomButton';
 
-const HOME_SPOTLIGHT_AVATAR_SIZE = 150;
+const HOME_SPOTLIGHT_AVATAR_SIZE = 210;
 
 export function HeroSpotlight({
   hero,
@@ -27,7 +27,7 @@ export function HeroSpotlight({
     const unlocked = HEROES.filter((h) => unlockedHeroIds.has(h.id));
     return unlocked.length > 0 ? unlocked : [HEROES[0]];
   }, []);
-  const telegraphSlots = telegraphHandSlotCount(hero.id);
+  const combatSkills = useMemo(() => getHeroCombatSkills(hero), [hero]);
   const currentIndex = Math.max(
     0,
     pickableHeroes.findIndex((h) => h.id === heroId),
@@ -46,7 +46,7 @@ export function HeroSpotlight({
       transition={{ delay: 0.18, duration: 0.45 }}
       className="relative lg:col-span-4"
     >
-      <div className="relative overflow-hidden rounded-3xl border-2 border-[#1e293b] bg-[#0f141c]/95 p-5 shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl border-2 border-[#1e293b] bg-[#0f141c]/95 p-7 shadow-xl xl:p-8">
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <div className="data-stream absolute left-[12%] top-0 h-full w-px animate-[stream_3.2s_linear_infinite] bg-gradient-to-b from-transparent via-emerald-500/50 to-transparent" />
           <div
@@ -69,8 +69,7 @@ export function HeroSpotlight({
             style={{ width: HOME_SPOTLIGHT_AVATAR_SIZE, height: HOME_SPOTLIGHT_AVATAR_SIZE }}
           />
           <div className="min-w-0 flex-1 text-center md:text-left">
-            <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Hero Spotlight</div>
-            <div className="mt-1 flex items-center justify-center gap-2 md:justify-start">
+            <div className="flex items-center justify-center gap-2 md:justify-start">
               <button
                 type="button"
                 onClick={() => pickRelativeHero(-1)}
@@ -80,7 +79,7 @@ export function HeroSpotlight({
               >
                 <ChevronLeft size={16} />
               </button>
-              <div className="min-w-20 text-center text-2xl font-black text-white">{hero.name}</div>
+              <div className="min-w-20 text-center text-3xl font-black text-white">{hero.name}</div>
               <button
                 type="button"
                 onClick={() => pickRelativeHero(1)}
@@ -91,9 +90,24 @@ export function HeroSpotlight({
                 <ChevronRight size={16} />
               </button>
             </div>
-            <div className="text-base font-bold text-[#F59E0B]/90">{hero.role}</div>
-            <div className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-              電報 {telegraphSlots} 選 2 · {currentIndex + 1}/{pickableHeroes.length} unlocked
+            <div className="mt-1 text-xl font-bold text-[#F59E0B]">{hero.role}</div>
+            <div
+              className="mt-1 space-y-0.5 text-sm font-bold leading-snug text-emerald-400 sm:text-base md:text-left"
+              aria-label={
+                combatSkills.length > 0
+                  ? `角色技能：${combatSkills.map((s) => s.name).join('、')}`
+                  : '角色技能：教學基礎'
+              }
+            >
+              {combatSkills.length > 0 ? (
+                combatSkills.map((s) => (
+                  <div key={s.name} className="break-words" title={s.detail.trim() ? s.detail : undefined}>
+                    （{s.name}）
+                  </div>
+                ))
+              ) : (
+                <div className="break-words">（教學基礎）</div>
+              )}
             </div>
           </div>
         </div>
@@ -105,7 +119,7 @@ export function HeroSpotlight({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.25 }}
-            className="relative mt-4 min-h-[3.5rem] overflow-hidden rounded-2xl border border-emerald-500/20 bg-slate-950/35 px-4 py-3 text-left text-base leading-relaxed text-slate-300"
+            className="relative mt-4 min-h-[4.6rem] overflow-hidden rounded-2xl border border-emerald-500/20 bg-slate-950/35 px-5 py-3.5 text-left text-xl leading-relaxed text-slate-100"
             style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
           >
             <TeletypeInline

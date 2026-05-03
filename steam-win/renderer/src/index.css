@@ -2,12 +2,36 @@
 
 :root {
   min-width: 360px;
+  /**
+   * 全站字級倍率（基於 rem）：
+   * - 不使用 transform scale，避免文字被貼圖放大而發糊
+   * - Tailwind 的 text-* 多數是 rem，會跟著這裡一起放大
+   */
+  --ui-font-scale: 1.26;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --ui-font-scale: 1.16;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --ui-font-scale: 1.1;
+  }
 }
 
 html,
 body,
 #root {
   min-width: 360px;
+}
+
+html {
+  font-size: calc(16px * var(--ui-font-scale));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -184,6 +208,23 @@ body {
 
 .ops-typing-caret {
   animation: opsTypingCaret 1.05s steps(2, end) infinite;
+}
+
+/* 首頁抬頭：置中主線條水平掃描 */
+@keyframes scanline {
+  0% {
+    transform: translateX(0);
+    opacity: 0.15;
+  }
+
+  20% {
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translateX(520%);
+    opacity: 0.1;
+  }
 }
 
 /* 警示脈動描邊（工兵動態台詞 alert） */
@@ -473,36 +514,36 @@ body {
   }
 }
 
-/* 六角節點：當前挑戰關 — 橘色呼吸外框（#FF9F1C）緩慢脈衝、強化戰術引導 */
+/* 六角節點：當前挑戰關 — 橘色呼吸外框（緊貼徽章尺寸，由 TSX 內層盒控制；光暈收斂） */
 @keyframes mission-hex-current-pulse {
 
   0%,
   100% {
     box-shadow:
-      0 0 0 2px rgba(255, 159, 28, 0.9),
-      0 0 14px rgba(255, 159, 28, 0.45);
+      0 0 0 1px rgba(255, 159, 28, 0.92),
+      0 0 8px rgba(255, 159, 28, 0.38);
     transform: scale(1);
     opacity: 1;
   }
 
   50% {
     box-shadow:
-      0 0 0 3px rgba(255, 159, 28, 0.55),
-      0 0 28px rgba(255, 159, 28, 0.75),
-      0 0 44px rgba(255, 159, 28, 0.3);
-    transform: scale(1.04);
-    opacity: 0.92;
+      0 0 0 2px rgba(255, 159, 28, 0.65),
+      0 0 16px rgba(255, 159, 28, 0.55),
+      0 0 26px rgba(255, 159, 28, 0.22);
+    transform: scale(1.018);
+    opacity: 0.94;
   }
 }
 
 .mission-hex-current-pulse {
-  border: 2px solid rgba(255, 159, 28, 0.9);
+  border: 1.5px solid rgba(255, 159, 28, 0.92);
   animation: mission-hex-current-pulse 1.8s ease-in-out infinite;
 }
 
 /* 舊別名保留：下一挑戰 — 指向同一動畫 */
 .mission-hex-next-challenge {
-  border: 2px solid rgba(255, 159, 28, 0.9);
+  border: 1.5px solid rgba(255, 159, 28, 0.92);
   animation: mission-hex-current-pulse 1.8s ease-in-out infinite;
 }
 
@@ -537,7 +578,7 @@ body {
   .mission-hex-current-pulse,
   .mission-hex-next-challenge {
     animation: none;
-    box-shadow: 0 0 0 2px rgba(255, 159, 28, 0.85);
+    box-shadow: 0 0 0 1px rgba(255, 159, 28, 0.88);
   }
 }
 
@@ -872,6 +913,79 @@ body {
   transform: rotate(-0.2deg);
 }
 
+.mission-global-log-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(52, 211, 153, 0.45) rgba(3, 12, 8, 0.7);
+}
+
+.mission-global-log-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mission-global-log-scroll::-webkit-scrollbar-track {
+  background: rgba(3, 12, 8, 0.7);
+}
+
+.mission-global-log-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(110, 231, 183, 0.72) 0%, rgba(16, 185, 129, 0.52) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 9999px;
+}
+
+/* 戰術地圖視窗：極輕 CRT 掃描帶（MissionMap mapViewportRef 內） */
+@keyframes mission-map-viewport-scanline {
+  0% {
+    transform: translateY(-140%);
+    opacity: 0;
+  }
+
+  14% {
+    opacity: 0.09;
+  }
+
+  100% {
+    transform: translateY(560%);
+    opacity: 0;
+  }
+}
+
+.mission-map-viewport-grain {
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 0.5px, transparent 0.6px 7px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 0.5px, transparent 0.6px 9px),
+    radial-gradient(circle at 20% 18%, rgba(148, 163, 184, 0.06), transparent 42%);
+}
+
+.mission-map-viewport-scanline {
+  animation: mission-map-viewport-scanline 6.8s linear infinite;
+}
+
+/* Mission map chrome：槍金屬外殼／側欄（淡化綠色框線） */
+.mission-metal-shell {
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  background:
+    radial-gradient(ellipse 130% 70% at 48% -25%, rgba(100, 116, 139, 0.18), transparent 52%),
+    #07080d;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.92),
+    0 0 0 2px rgba(100, 116, 139, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 88px rgba(0, 0, 0, 0.72);
+}
+
+.mission-metal-panel {
+  border: 1px solid rgba(82, 92, 108, 0.62);
+  background: linear-gradient(168deg, rgba(46, 52, 62, 0.94) 0%, rgba(18, 20, 26, 0.97) 48%, rgba(10, 11, 15, 0.99) 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.85),
+    0 0 0 2px rgba(113, 122, 138, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -3px 12px rgba(0, 0, 0, 0.52),
+    0 12px 32px rgba(0, 0, 0, 0.42);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dossier-fp-scan {
     animation: none;
@@ -885,6 +999,10 @@ body {
 
   .dossier-hazard-pulse,
   .dossier-hazard-btn {
+    animation: none;
+  }
+
+  .mission-map-viewport-scanline {
     animation: none;
   }
 }
