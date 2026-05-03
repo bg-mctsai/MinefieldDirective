@@ -61,15 +61,15 @@ const PROGRESS_THEME_BY_MEDAL: Record<
   },
 };
 
-/** 與破壞力／覆蓋進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
+/** 與火力進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
 export const GAME_HEADER_CARD_CLASS =
   'flex flex-1 min-h-[4.5rem] min-w-0 flex-col justify-center rounded-2xl border-2 p-4 shadow-xl sm:flex-row sm:items-center sm:gap-4';
 
 export function GameHeader({
-  fillPercentage,
   destructivePowerPercentage,
   destructivePowerMineCount,
   destructivePowerTotalCells,
+  destructivePowerOverlapExtra,
   medalThresholds,
   projectedMedal,
   showEarlySettleButton,
@@ -88,13 +88,13 @@ export function GameHeader({
   telegraphPanel,
   heroTheme: heroThemeProp,
 }: {
-  /** 覆蓋率 0～100：進度條與勳章刻度（與 levels 門檻對齊） */
-  fillPercentage: number;
-  /** 破壞力 0～100：已確定地雷／總格（不含填入數字格） */
+  /** 火力 0～100：加權分子／總格；進度條與勳章刻度與此對齊 */
   destructivePowerPercentage: number;
   destructivePowerMineCount: number;
   destructivePowerTotalCells: number;
-  /** 三段勳章覆蓋率門檻（0～1） */
+  /** 加權分子額外量：Σmax(1,鄰近數字數) − 雷格數 */
+  destructivePowerOverlapExtra: number;
+  /** 三段勳章火力門檻（0～1） */
   medalThresholds: MedalThresholds;
   /** 對局中即時投影：此刻結算可拿到的勳章（未達銅為 null） */
   projectedMedal: Medal | null;
@@ -118,7 +118,7 @@ export function GameHeader({
   guideButton?: ReactNode;
   /** 測試捷徑按鈕（例如：測試完成） */
   testCompleteButton?: ReactNode;
-  /** 第二行與破壞力卡並排：長官電報列 */
+  /** 第二行與火力卡並排：長官電報列 */
   telegraphPanel?: ReactNode;
   /** 依幹員切換的戰鬥主題色 */
   heroTheme?: HeroCombatTheme;
@@ -133,6 +133,13 @@ export function GameHeader({
           barFill: 'bg-gradient-to-r from-emerald-800 via-emerald-500 to-emerald-400',
           glow: '',
         };
+
+  const firepowerFractionLabel =
+    destructivePowerTotalCells > 0
+      ? destructivePowerOverlapExtra > 0
+        ? `地雷（${destructivePowerMineCount}+${destructivePowerOverlapExtra}）/${destructivePowerTotalCells} 格`
+        : `地雷 ${destructivePowerMineCount}/${destructivePowerTotalCells} 格`
+      : null;
 
   return (
     <div className="mb-5 flex w-full max-w-7xl flex-col gap-4">
@@ -177,25 +184,30 @@ export function GameHeader({
         <div className={progressCardClass}>
           <div className="flex w-full min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="min-w-0 flex-1 px-1 sm:px-2">
-              <div className="mb-1 flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-0">
-                <span className="shrink-0 text-xs font-black uppercase tracking-[0.08em] text-slate-300">
-                  破壞力
-                </span>
-                <span className={`shrink-0 text-2xl font-black tabular-nums sm:text-3xl ${progressTheme.valueColor}`}>
+              <div className="mb-1 flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 sm:gap-x-3">
+                  <span className="shrink-0 text-sm font-black uppercase tracking-[0.08em] text-slate-300 sm:text-base">
+                    火力
+                  </span>
+                  {firepowerFractionLabel != null ? (
+                    <span className="max-w-[min(100%,14rem)] truncate text-xs font-bold tabular-nums text-slate-400 sm:max-w-none sm:text-sm">
+                      {firepowerFractionLabel}
+                    </span>
+                  ) : null}
+                </div>
+                <span
+                  className={`shrink-0 text-xl font-black tabular-nums sm:text-2xl ${progressTheme.valueColor}`}
+                >
                   {destructivePowerPercentage.toFixed(1)}%
                 </span>
               </div>
               <MedalThresholdProgressBar
-                fillPercentage={fillPercentage}
+                valuePercentage={destructivePowerPercentage}
                 medalThresholds={medalThresholds}
                 projectedMedal={projectedMedal}
                 barFillClass={progressTheme.barFill}
                 barGlowClass={progressTheme.glow}
-                mineLine={
-                  destructivePowerTotalCells > 0
-                    ? `地雷 ${destructivePowerMineCount}/${destructivePowerTotalCells} 格`
-                    : null
-                }
+                mineLine={null}
               />
             </div>
             {secondsLeft !== null && (
@@ -282,15 +294,19 @@ const MEDAL_ORDER: { key: Medal; pct: (t: MedalThresholds) => number }[] = [
   { key: 'gold', pct: (t) => t.gold * 100 },
 ];
 
+/** 進度條下方：地雷格數與勳章刻度 % 同字級，易讀 */
+const BAR_FOOTER_TEXT = 'text-sm font-black tabular-nums leading-tight sm:text-base';
+
 function MedalThresholdProgressBar({
-  fillPercentage,
+  valuePercentage,
   medalThresholds,
   projectedMedal,
   barFillClass,
   barGlowClass,
   mineLine,
 }: {
-  fillPercentage: number;
+  /** 與上方大數字一致：火力 0～100 */
+  valuePercentage: number;
   medalThresholds: MedalThresholds;
   projectedMedal: Medal | null;
   barFillClass: string;
@@ -298,7 +314,7 @@ function MedalThresholdProgressBar({
   /** 長條下方左側（原刻度說明位置）；null 則不顯示 */
   mineLine: string | null;
 }) {
-  const fillW = Math.min(100, Math.max(0, fillPercentage));
+  const fillW = Math.min(100, Math.max(0, valuePercentage));
   return (
     <div className="w-full min-w-0">
       <div className="relative w-full">
@@ -312,7 +328,7 @@ function MedalThresholdProgressBar({
           {MEDAL_ORDER.map(({ key, pct: pctFn }) => {
             const pct = pctFn(medalThresholds);
             const left = Math.min(100, Math.max(0, pct));
-            const passed = fillPercentage + 1e-6 >= pct;
+            const passed = valuePercentage + 1e-6 >= pct;
             const isActive = projectedMedal === key;
             const tone = MEDAL_TONE[key];
             return (
@@ -331,16 +347,18 @@ function MedalThresholdProgressBar({
             );
           })}
         </div>
-        <div className="relative mt-1 min-h-4 w-full">
+        <div className="relative mt-1.5 min-h-6 w-full sm:min-h-7">
           {mineLine != null ? (
-            <span className="pointer-events-none absolute left-0 top-0 z-[1] max-w-[min(11rem,48%)] truncate text-[9px] font-bold leading-none text-slate-500 sm:max-w-[46%] sm:text-[10px]">
+            <span
+              className={`pointer-events-none absolute left-0 top-0 z-[1] max-w-[min(14rem,52%)] truncate ${BAR_FOOTER_TEXT} text-slate-400 sm:max-w-[48%]`}
+            >
               {mineLine}
             </span>
           ) : null}
           {MEDAL_ORDER.map(({ key, pct: pctFn }) => {
             const pct = pctFn(medalThresholds);
             const left = Math.min(100, Math.max(0, pct));
-            const passed = fillPercentage + 1e-6 >= pct;
+            const passed = valuePercentage + 1e-6 >= pct;
             const isActive = projectedMedal === key;
             const tone = MEDAL_TONE[key];
             return (
@@ -351,8 +369,8 @@ function MedalThresholdProgressBar({
                 aria-hidden
               >
                 <span
-                  className={`whitespace-nowrap text-[10px] font-black tabular-nums sm:text-[11px] ${
-                    passed ? tone.label : 'text-slate-600'
+                  className={`whitespace-nowrap ${BAR_FOOTER_TEXT} ${
+                    passed ? tone.label : 'text-slate-500'
                   } ${passed ? 'font-extrabold' : 'font-bold'} ${
                     isActive ? 'underline decoration-dotted decoration-current underline-offset-2' : ''
                   } ${passed ? 'drop-shadow-[0_0_5px_rgba(255,255,255,0.12)]' : ''}`}

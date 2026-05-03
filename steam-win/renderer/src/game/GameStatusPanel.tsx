@@ -336,10 +336,10 @@ export function GameStatusPanel({
                     </p>
                     <p className="text-sm font-black leading-tight text-white sm:text-base">恭喜破關！</p>
                     <p className="text-[11px] font-medium leading-tight text-slate-400 sm:text-xs">
-                      已完成 {levelCount} 關 · 破壞力{' '}
+                      已完成 {levelCount} 關 · 火力{' '}
                       <span className="font-bold text-emerald-400">{destructivePowerPercentage.toFixed(1)}%</span>
                       {' '}
-                      <span className="text-slate-500">（覆蓋 {fillPercentage.toFixed(1)}%）</span>
+                      <span className="text-slate-500">（版面覆蓋 {fillPercentage.toFixed(1)}%）</span>
                     </p>
                   </div>
                 </div>

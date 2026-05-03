@@ -83,9 +83,9 @@ export type LevelRewards = {
 };
 
 /**
- * 三段勳章覆蓋率門檻：銅／銀／金；皆為 0～1。
+ * 三段勳章火力門檻（HUD 加權火力／總格，上限 100%）：銅／銀／金；皆為 0～1。
  * 玩家達銅後可主動撤離結算；達金時自動結算；時間歸零一律判定失敗。
- * 未提供時，引擎使用全域固定門檻：銅 0.70、銀 0.84、金 0.98。
+ * 未提供時，引擎使用全域固定門檻：銅 0.60、銀 0.75、金 0.90。
  */
 export type MedalThresholds = {
   bronze: number;
@@ -146,9 +146,9 @@ export interface LevelDefinition {
   gridSystem: GridSystem;
   coverageGoal: number;
   /**
-   * 可選：銅／銀／金勳章覆蓋率門檻（皆 0～1）。
-   * 若省略，引擎使用固定預設：bronze = 0.70、silver = 0.84、gold = 0.98。
-   * 提供時須滿足 0 < bronze <= silver <= gold <= 1，且 bronze 通常等於或略低於 coverageGoal。
+   * 可選：銅／銀／金勳章火力門檻（皆 0～1，語意同 HUD「火力」）。
+   * 若省略，引擎使用固定預設：bronze = 0.60、silver = 0.75、gold = 0.90。
+   * 提供時須滿足 0 < bronze <= silver <= gold <= 1。coverageGoal 為企劃用覆蓋目標，與勳章門檻無強制對齊。
    */
   medalThresholds?: MedalThresholds;
   timeLimit: number;

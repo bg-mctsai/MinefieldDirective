@@ -284,17 +284,32 @@ export const HEROES: HeroDef[] = [
     id: 'selina',
     name: '賽琳娜',
     role: '戰地測繪師',
-    skillName: '地形直覺',
-    skillDetail: '全息投影在腕上鋪出三角／六角網格；先找「地形騙人」的邊界，再把隊友腳步從扭曲空間邊緣拉回來。',
+    skillName: '地形直覺 · 交會測繪',
+    skillDetail:
+      '腕上全息格網對齊三角／蜂巢盤面，先鎖扭曲帶與隘口邊界，再把人從空間錯覺邊緣拽回安全線。若多條已佈數字線索同時交會在同一顆已確認雷，她的讀法會讓本部「火力」結算把第三條以後的指向也計入加權——其他人員的戰報通常只登錄到兩條為止。',
+    combatSkills: [
+      {
+        name: '地形直覺',
+        hudIcon: 'activity',
+        detail:
+          '全息投影鋪出三角／六角格網：扭曲區、假脊線與隘口優先判讀；邊界鎖死再推中央，少賭「看起來對」。',
+      },
+      {
+        name: '交會測繪',
+        hudIcon: 'mails',
+        detail:
+          '本部火力讀數：三個（以上）已佈數字格若同指一顆已確認雷，分子持續加權；其餘幹員的戰報封頂在「兩條線索」等價權重。',
+      },
+    ],
     missionMapHook:
-      '頂尖地理學家出身——裂隙把地貌撕成錯覺時，她腦內的座標網比紙本地圖可靠。',
+      '頂尖地理學家出身——裂隙把地貌撕成錯覺時，她腦內的座標網比紙本地圖可靠；多條線索交會處，她寧可畫滿註記也不漏一格。',
     codename: '地圖師',
     serialNo: 'SN-MD-0002',
     background: [
       '學界報告上她的名字還在，人卻只在戰區出沒。全息投影儀在腕上旋出三角與蜂巢格，口袋塞滿不同地形的偵測標——她習慣用座標替隊友踩雷。',
-      '裂隙周邊的空間陷阱會拐人視線；她最恨「感覺對了」這種賭法。檔案註記：話少、筆尖快；誰踩進扭曲帶，她就用下一個標把誰拽回來。',
+      '裂隙周邊的空間陷阱會拐人視線；她最恨「感覺對了」這種賭法。參謀台把她的交會讀法寫進火力公式：同一雷格上每多一條已佈數字背書，戰報權重就跟著疊——別人封頂兩條，她的卷宗允許疊到真相收斂為止。檔案註記：話少、筆尖快；誰踩進扭曲帶，她就用下一個標把誰拽回來。',
     ],
-    specialties: ['全息格網', '隘口優先', '扭曲區判讀'],
+    specialties: ['全息格網', '線索交會', '扭曲區判讀'],
     personalItems: [
       { label: '腕掛全息投影儀', icon: 'compass' },
       { label: '戰術口袋用偵測標', icon: 'tag' },
@@ -542,6 +557,14 @@ const STORAGE_KEY = 'md:selectedHero';
 /** 長官電報同時待辦道數（每回合仍從中選 2 道執行）：一般幹員 3；艾達 4。 */
 export function telegraphHandSlotCount(heroId: string): number {
   return heroId === 'ada' ? 4 : 3;
+}
+
+/**
+ * 火力 HUD 分子：是否對「第三個以上已佈數字格同指一雷」額外加權。
+ * 預設封頂在兩格數字的權重；僅賽琳娜（交會測繪）啟用完整加權。
+ */
+export function heroUsesFullMultiDigitFirepower(heroId: string): boolean {
+  return heroId === 'selina';
 }
 
 function readRawMappedSelectedId(): string | null {

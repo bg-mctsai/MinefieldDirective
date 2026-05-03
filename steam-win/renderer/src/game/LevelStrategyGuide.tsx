@@ -4,6 +4,7 @@ import { BookOpen, X } from 'lucide-react';
 import type { Level } from '../gameLogic';
 import { getStoredHeroId, telegraphHandSlotCount } from '../heroes';
 import { buildLevelStrategyGuideModel } from './levelStrategyGuideModel';
+import { resolveMedalThresholds } from './medalThresholds';
 
 type Tab = 'logic' | 'flow' | 'briefing';
 
@@ -55,7 +56,7 @@ export function LevelStrategyGuide({
       }),
     [level.id, combatHeroId],
   );
-
+  const medalT = useMemo(() => resolveMedalThresholds(level.definition), [level.id, level.definition]);
   useEffect(() => {
     setTab('briefing');
   }, [level.id]);
@@ -154,6 +155,10 @@ export function LevelStrategyGuide({
                       <span className="font-bold text-red-400">連鎖雷與引爆：</span>
                       你佈下的是可連鎖觸發的雷具；全盤必須自洽吻合所有數字約束。若佈署造成邏輯矛盾，將觸發全線連鎖引爆，任務當場失敗。
                     </p>
+                    <p>
+                      <span className="font-bold text-emerald-400">火力與勳章：</span>
+                      「火力」＝(基本地雷+重疊地雷)／總格數，火力達到本關門檻 {Math.round(medalT.bronze * 100)}%(銅)／{Math.round(medalT.silver * 100)}%(銀)／{Math.round(medalT.gold * 100)}%(金)，獲得勳章。
+                    </p>
                     {level.definition.neighborPlacedDigitBonus && (
                       <p>
                         <span className="font-bold text-orange-400">鄰格加成（JSON 旗標）：</span>
@@ -208,9 +213,8 @@ function TabBtn({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-t-lg px-3 py-2 text-xs font-bold sm:text-sm ${
-        active ? 'bg-[#1a2332] text-[#F59E0B]' : 'text-slate-500 hover:text-slate-300'
-      }`}
+      className={`rounded-t-lg px-3 py-2 text-xs font-bold sm:text-sm ${active ? 'bg-[#1a2332] text-[#F59E0B]' : 'text-slate-500 hover:text-slate-300'
+        }`}
     >
       {children}
     </button>

@@ -39,6 +39,7 @@
     "dynamicJunkMine": "廢雷：會佔格，但不計入任何鄰格雷數",
     "bonusTargetMine": "目標地雷：確認可獲得 +{seconds} 秒",
     "mineCounts": "地雷：會計入周圍數字雷數",
+    "mineCountsHigh": "地雷（火力 2）：兩個或以上已佈署數字格共同指向此雷",
     "emptyPlaceable": "空格：可放置數字",
     "digitOutpost": "戰術據點：必須在此格佈署數字；若邏輯上此格為雷亦視同失敗。達覆蓋率仍未填仍引爆。"
   }

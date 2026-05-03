@@ -104,7 +104,7 @@ export function VictoryCelebrationOverlay({
                   </h2>
                   <p className="mb-1 text-sm font-bold text-slate-400">長官部門回電：戰果確認。</p>
                   <p className="mb-1 text-lg font-bold text-emerald-400 tabular-nums">
-                    覆蓋率 {fillPercentage.toFixed(1)}%
+                    火力 {fillPercentage.toFixed(1)}%
                     {secondsLeft != null && timeLimit && timeLimit > 0
                       ? ` ・ 剩餘 ${secondsLeft}s / ${timeLimit}s`
                       : ''}
@@ -125,7 +125,7 @@ export function VictoryCelebrationOverlay({
                   <h2 className="mb-2 text-3xl font-black text-white sm:text-4xl">任務成功！</h2>
                   <p className="mb-1 text-sm font-bold text-slate-400">長官部門回電：戰果確認。</p>
                   <p className="mb-8 text-lg font-bold text-emerald-500 sm:text-xl">
-                    覆蓋率達 {fillPercentage.toFixed(1)}%
+                    火力達 {fillPercentage.toFixed(1)}%
                   </p>
                 </>
               )}
@@ -164,10 +164,10 @@ export function VictoryCelebrationOverlay({
               </p>
               {medal && tone ? (
                 <p className={`mb-8 text-lg font-bold tabular-nums ${tone.text}`}>
-                  本關 {MEDAL_LABEL[medal]} ・ 覆蓋率 {fillPercentage.toFixed(1)}%
+                  本關 {MEDAL_LABEL[medal]} ・ 火力 {fillPercentage.toFixed(1)}%
                 </p>
               ) : (
-                <p className="mb-8 text-lg font-bold text-emerald-400">本關覆蓋率 {fillPercentage.toFixed(1)}%</p>
+                <p className="mb-8 text-lg font-bold text-emerald-400">本關火力 {fillPercentage.toFixed(1)}%</p>
               )}
               <button
                 type="button"

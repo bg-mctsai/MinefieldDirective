@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Bomb, MapPin } from 'lucide-react';
 import type { LossChainPhase } from './lossExplosionChain';
 import { boardCellTooltipText } from './boardCellTooltipText';
-import { MineRuins } from './MineRuins';
+import { cyanJunkMineBombIconClass, redMineBombIconClass } from './mineCombatVisual';
 
 export interface GameCellProps {
   x: number;
@@ -13,7 +13,6 @@ export interface GameCellProps {
   placed?: { value: number };
   isMine: boolean;
   isConflict: boolean;
-  isExploding: boolean;
   /** 邏輯敗北：放錯前八鄰已強制的雷，畫 X 標出引爆關聯 */
   showExplosionX?: boolean;
   /** 這格是可觸發加秒的戰術目標 */
@@ -30,9 +29,11 @@ export interface GameCellProps {
   isDigitOutpost?: boolean;
   /** 深海要塞：動態新增的地雷（與 forcedMine 邏輯相同，視覺以青色區分） */
   isDynamicMine?: boolean;
+  /** 火力 1／2：兩個或以上數字格共同指向此雷時為 2（更紅／更亮） */
+  mineCombatTier?: 1 | 2;
   /** 敗北連鎖：違規地雷逐一爆；`none` 表示不在連鎖序列 */
   lossChainPhase?: LossChainPhase;
-  /** 連鎖進度鍵，僅 `popping` 時用於重播 MineRuins 動畫 */
+  /** 連鎖進度鍵，僅 `popping` 時用於重播動畫 key */
   lossChainPopKey?: number;
   status: string;
   onClick: (x: number, y: number) => void;
@@ -45,7 +46,6 @@ const GameCellComponent = ({
   placed,
   isMine,
   isConflict,
-  isExploding,
   showExplosionX = false,
   isBonusTarget = false,
   isBonusTargetRewarded = false,
@@ -54,6 +54,7 @@ const GameCellComponent = ({
   blastPointCountdown,
   isDigitOutpost = false,
   isDynamicMine = false,
+  mineCombatTier: mineCombatTierProp = 1,
   lossChainPhase = 'none',
   lossChainPopKey = 0,
   status,
@@ -62,10 +63,16 @@ const GameCellComponent = ({
   const postBlast = status === 'exploding' || status === 'lost';
   const numFont = Math.max(13, Math.round(cellSizePx * 0.48));
   const iconSize = Math.max(14, Math.round(cellSizePx * 0.45));
-  /** 加秒目標格：邏輯上可已揭示為雷，但畫面維持中性，不套用紅色「已確認雷」 */
+  /** 加秒目標格（未佈數字、無衝突）：空白目標格可疊白炸彈預覽；已揭示雷仍走紅雷樣式 */
   const neutralBonusTarget = Boolean(isBonusTarget && !placed && !isConflict);
+  const hoverLift =
+    status === 'playing' && !isDynamicMine && blastPointCountdown === undefined;
+  /** 勿用 motion 的 backgroundColor hover：格狀態從「空」變「已揭示雷」時，inline 背景可能殘留、看起來像色偏／深紅 */
+  const hoverTintClass =
+    hoverLift && !isMine && !isConflict ? 'hover:bg-[#1e293b]' : '';
   const chainLive = lossChainPhase === 'live' && status === 'exploding';
   const chainDeadStone = (lossChainPhase === 'dead' && postBlast) || false;
+  const combatTier = mineCombatTierProp;
   const tooltipText = boardCellTooltipText({
     isConflict,
     placedValue: placed?.value,
@@ -76,39 +83,40 @@ const GameCellComponent = ({
     lossChainPhase,
     bonusSeconds,
     isDigitOutpost: Boolean(isDigitOutpost && !placed && blastPointCountdown === undefined),
+    mineCombatTier: combatTier,
   });
   return (
     <motion.div
-      whileHover={
-        status === 'playing' && !isDynamicMine && blastPointCountdown === undefined
-          ? { scale: 1.05, backgroundColor: '#1e293b' }
-          : {}
-      }
+      whileHover={hoverLift ? { scale: 1.05 } : {}}
       onClick={() => onClick(x, y)}
       title={tooltipText}
       aria-label={tooltipText}
       style={{ width: cellSizePx, height: cellSizePx, minWidth: cellSizePx, minHeight: cellSizePx }}
-      className={`relative flex cursor-pointer items-center justify-center rounded-xl border transition-all
+      className={`relative flex cursor-pointer items-center justify-center rounded-xl border transition-all ${hoverTintClass}
       ${isConflict
           ? 'z-10 animate-pulse border-2 border-white bg-red-600 shadow-lg ring-4 ring-red-500/50'
           : placed
             ? 'border-2 border-amber-500 bg-amber-900/40'
             : isDynamicMine
-              ? 'border border-cyan-700 bg-cyan-950/50'
+              ? combatTier >= 2
+                ? 'border-2 border-cyan-400/75 bg-cyan-950/60 shadow-[0_0_14px_rgba(34,211,238,0.28)]'
+                : 'border border-cyan-700 bg-cyan-950/50'
               : chainDeadStone || (postBlast && isMine && lossChainPhase === 'none')
                 ? 'border border-stone-600/70 bg-stone-950/55'
                 : chainLive
-                  ? 'border border-red-900 bg-red-950/40'
+                  ? 'border border-red-400/65 bg-red-500/10'
                   : blastPointCountdown !== undefined && !postBlast
                     ? blastPointCountdown <= 5
-                      ? 'z-10 animate-pulse border-2 border-red-500 bg-red-950/60 shadow-lg ring-2 ring-red-500/50'
+                      ? 'z-10 animate-pulse border-2 border-red-400 bg-red-500/35 shadow-lg ring-2 ring-red-400/60'
                       : blastPointCountdown <= 10
                         ? 'border-2 border-orange-400 bg-orange-950/50'
                         : 'border-2 border-yellow-500 bg-yellow-950/40'
-                    : neutralBonusTarget
-                      ? 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
-                      : isMine
-                        ? 'border border-red-900 bg-red-950/40'
+                    : isMine
+                        ? combatTier >= 2
+                          ? 'border-2 border-red-300/90 bg-red-400/18 shadow-[0_0_18px_rgba(248,113,113,0.55)] ring-1 ring-red-300/35'
+                          : 'border border-red-400/65 bg-red-500/10'
+                      : neutralBonusTarget
+                        ? 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
                         : isDigitOutpost && !placed
                           ? 'border border-teal-600/55 bg-slate-800 hover:border-teal-400/50'
                           : 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
@@ -140,32 +148,29 @@ const GameCellComponent = ({
           transition={{ type: 'spring', stiffness: 260, damping: 18 }}
           className="pointer-events-none flex items-center justify-center"
         >
-          <Bomb size={iconSize} className="text-cyan-400 opacity-75 drop-shadow-[0_0_4px_rgba(34,211,238,0.5)]" />
+          <Bomb size={iconSize} className={cyanJunkMineBombIconClass(combatTier)} />
         </motion.div>
       )}
       {!placed && !isDynamicMine && lossChainPhase !== 'none' && (
         <div className="pointer-events-none flex items-center justify-center">
           {lossChainPhase === 'live' && status === 'exploding' && (
-            <Bomb size={iconSize} className="text-red-400 opacity-60" />
+            <Bomb size={iconSize} className={redMineBombIconClass(combatTier)} />
           )}
           {lossChainPhase === 'popping' && status === 'exploding' && (
-            <MineRuins key={`lc-${lossChainPopKey}`} x={x} y={y} exploding />
+            <Bomb key={`lc-${lossChainPopKey}`} size={iconSize} className={redMineBombIconClass(combatTier)} />
           )}
-          {lossChainPhase === 'dead' && postBlast && <MineRuins x={x} y={y} exploding={false} />}
+          {lossChainPhase === 'dead' && postBlast && (
+            <Bomb size={iconSize} className={redMineBombIconClass(combatTier)} />
+          )}
         </div>
       )}
       {isMine &&
         !placed &&
-        !neutralBonusTarget &&
         !isDynamicMine &&
         lossChainPhase === 'none' &&
         blastPointCountdown === undefined && (
         <div className="pointer-events-none flex items-center justify-center">
-          {postBlast ? (
-            <MineRuins x={x} y={y} exploding={isExploding} />
-          ) : (
-            <Bomb size={iconSize} className="text-red-400 opacity-60" />
-          )}
+          <Bomb size={iconSize} className={redMineBombIconClass(combatTier)} />
         </div>
       )}
       {showExplosionX && postBlast && (
@@ -183,7 +188,7 @@ const GameCellComponent = ({
           </svg>
         </div>
       )}
-      {neutralBonusTarget && !postBlast && (
+      {neutralBonusTarget && !postBlast && !isMine && (
         <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center">
           <Bomb
             size={Math.max(16, Math.round(cellSizePx * 0.44))}
@@ -193,11 +198,6 @@ const GameCellComponent = ({
                 : 'text-white/80 drop-shadow-[0_0_3px_rgba(0,0,0,0.8)]'
             }
           />
-        </div>
-      )}
-      {postBlast && isMine && neutralBonusTarget && (
-        <div className="pointer-events-none flex items-center justify-center">
-          <MineRuins x={x} y={y} exploding={isExploding} />
         </div>
       )}
       {blastPointCountdown !== undefined && !postBlast && (

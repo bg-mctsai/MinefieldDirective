@@ -19,6 +19,8 @@ export default function App() {
   const [highestClearedLevel, setHighestClearedLevel] = useState(() => loadGameProgress().highestClearedLevel);
   /** DEV：行動卷宗一鍵開放全部章節；再按還原真實進度 */
   const [devMissionUnlockAllChapters, setDevMissionUnlockAllChapters] = useState(false);
+  /** DEV：幹員個人檔案一鍵視同全部解鎖 */
+  const [devUnlockAllHeroes, setDevUnlockAllHeroes] = useState(false);
   /** 開發重讀 levels.json／maps 後遞增，強制作戰地圖／對局重掛載 */
   const [levelsReloadToken, setLevelsReloadToken] = useState(0);
   /** 作戰地圖長列表：離開時記住 window 捲動，返回時還原（避免從對局回來要重滑） */
@@ -96,7 +98,19 @@ export default function App() {
             }
           />
         )}
-        {screen === 'hero' && <HeroSelect onBack={() => setScreen('home')} />}
+        {screen === 'hero' && (
+          <HeroSelect
+            onBack={() => setScreen('home')}
+            devHeroUnlockToggle={
+              import.meta.env.DEV
+                ? {
+                    unlockAllActive: devUnlockAllHeroes,
+                    onToggleUnlockAll: () => setDevUnlockAllHeroes((v) => !v),
+                  }
+                : undefined
+            }
+          />
+        )}
         {screen === 'game' && (
           <GameView
             key={`${gameLevelIndex}-${levelsReloadToken}`}

@@ -5,7 +5,7 @@
     "chapter": "章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。",
     "title": "關卡標題（介面顯示用）。",
     "gridSystem": "地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。",
-    "coverageGoal": "過關覆蓋率目標，0～1（例：0.7 = 70%；1 = 100%）。",
+    "coverageGoal": "過關覆蓋率目標（企劃／平衡用），0～1。與 HUD「火力」、勳章門檻無強制連動；未填 medalThresholds 時門檻為銅 0.60、銀 0.75、金 0.90。",
     "timeLimit": "時間限制（秒）；須為正整數，全戰役關卡皆計時。",
     "initialSeed": "盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。",
     "mapRef": "可選；地圖幾何外置時填此字串（通常等於 levelId 之字串），對應檔案 levelData/maps/{mapRef}.json，內容為 { \"mapLayout\": …, \"mapTheme\"?: 關卡選擇畫面主題文案 }。與關卡內嵌 mapLayout 二擇一；兩者併存時以內嵌 mapLayout 為準。",

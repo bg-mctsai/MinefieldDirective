@@ -13,6 +13,8 @@ export function boardCellTooltipText(opts: {
   bonusSeconds: number;
   /** 乾谷據點：必須佈數字 */
   isDigitOutpost?: boolean;
+  /** 僅地雷／廢雷：兩個或以上數字指向此雷時為 2 */
+  mineCombatTier?: 1 | 2;
 }): string {
   const T = GAME_FIXED.cellTooltip;
   const {
@@ -25,13 +27,18 @@ export function boardCellTooltipText(opts: {
     lossChainPhase,
     bonusSeconds,
     isDigitOutpost,
+    mineCombatTier,
   } = opts;
   if (isConflict) return T.conflict;
   if (placedValue !== undefined) return sub(T.placedDigit, { value: placedValue });
   if (blastPointCountdown !== undefined) return T.blastPoint;
   if (isDigitOutpost) return T.digitOutpost;
-  if (isDynamicMine) return T.dynamicJunkMine;
+  if (isDynamicMine) {
+    return mineCombatTier === 2 ? `${T.dynamicJunkMine}（火力 2）` : T.dynamicJunkMine;
+  }
   if (neutralBonusTarget) return sub(T.bonusTargetMine, { seconds: bonusSeconds });
-  if (isMine || lossChainPhase !== 'none') return T.mineCounts;
+  if (isMine || lossChainPhase !== 'none') {
+    return mineCombatTier === 2 && isMine ? T.mineCountsHigh : T.mineCounts;
+  }
   return T.emptyPlaceable;
 }

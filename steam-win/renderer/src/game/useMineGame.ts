@@ -28,12 +28,13 @@ import {
 } from './constants';
 import { sortLossExplosionCells, timeoutLossExplosionKeys } from './lossExplosionChain';
 import { judgeMedal, resolveMedalThresholds, type Medal } from './medalThresholds';
+import { weightedFirepowerSumAndPct } from './mineCombatVisual';
 import { emit } from '../audio/AudioEngine';
 import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
 import { signalJammingDisplayedDigit } from './signalJamming';
 import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
-import { getStoredHeroId, telegraphHandSlotCount } from '../heroes';
+import { getStoredHeroId, heroUsesFullMultiDigitFirepower, telegraphHandSlotCount } from '../heroes';
 import type { GameState, MovingSoldierState } from './types';
 
 /**
@@ -65,12 +66,37 @@ function pickDynamicMinePosition(
   return candidates[nextInt(candidates.length)];
 }
 
-/** 破壞力：已確定地雷格數（邏輯揭示 ∪ 動態廢雷）／總格數，不含已填入數字格。 */
-export function destructivePowerFromGameState(gs: GameState): { pct: number; mineCount: number; totalCells: number } {
+/**
+ * 火力：加權計分／總格（上限 100%）。每顆已確定雷至少貢獻 1；與已佈數字相鄰的額外權重預設封頂在 2（第三個以上數字不加），賽琳娜為完整計入。
+ * mineCount 仍為雷格數（副標「地雷 x/y」）。
+ */
+export function destructivePowerFromGameState(
+  gs: GameState,
+  heroId: string = getStoredHeroId(),
+): {
+  pct: number;
+  mineCount: number;
+  totalCells: number;
+  weightedSum: number;
+  overlapExtra: number;
+} {
   const totalCells = gs.level.cells.length;
-  if (totalCells <= 0) return { pct: 0, mineCount: 0, totalCells: 0 };
+  if (totalCells <= 0)
+    return { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0 };
   const mineKeys = new Set<string>([...gs.revealedMines, ...gs.dynamicMines]);
-  return { pct: (mineKeys.size / totalCells) * 100, mineCount: mineKeys.size, totalCells };
+  const digitMode = heroUsesFullMultiDigitFirepower(heroId) ? 'fullCount' : 'capTwo';
+  const { pct, weightedSum } = weightedFirepowerSumAndPct(
+    mineKeys,
+    gs.placedNumbers,
+    gs.level.cells,
+    gs.level.definition.gridSystem,
+    gs.level.width,
+    gs.level.height,
+    digitMode,
+  );
+  const mineCount = mineKeys.size;
+  const overlapExtra = Math.max(0, weightedSum - mineCount);
+  return { pct, mineCount, totalCells, weightedSum, overlapExtra };
 }
 
 function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
@@ -659,8 +685,17 @@ export function useMineGame(initialLevelIndex: number) {
       finalPlacedInTurn = 0;
     }
 
-    const totalKnown = newPlacedNumbers.length + newRevealedMines.size + newRevealedClear.size + newDynamicMines.size;
-    const fillPercentage = (totalKnown / gameState.level.cells.length) * 100;
+    const nextMineKeys = new Set<string>([...newRevealedMines, ...newDynamicMines]);
+    const firepowerDigitMode = heroUsesFullMultiDigitFirepower(getStoredHeroId()) ? 'fullCount' : 'capTwo';
+    const firepowerPct = weightedFirepowerSumAndPct(
+      nextMineKeys,
+      newPlacedNumbers,
+      gameState.level.cells,
+      gameState.level.definition.gridSystem,
+      gameState.level.width,
+      gameState.level.height,
+      firepowerDigitMode,
+    ).pct;
     const bonusSecondsPerMine = gameState.level.definition.mineBonusSeconds ?? 5;
     const newlyRewardedTargets = newlyConfirmedMines.filter(
       (k) => bonusTargetKeys.has(k) && !gameState.rewardedMineTargets.has(k)
@@ -737,7 +772,7 @@ export function useMineGame(initialLevelIndex: number) {
       outposts.length > 0 &&
       outposts.some(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
 
-    if (fillPercentage >= goldPct) {
+    if (firepowerPct >= goldPct) {
       if (outpostsIncomplete) {
         const lossTopo = lossUiTopologyFromLevel(gameState.level);
         const missing = outposts.filter(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
@@ -799,7 +834,7 @@ export function useMineGame(initialLevelIndex: number) {
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
               settledMedal: 'gold' as Medal,
-              settledFillPercentage: fillPercentage,
+              settledFillPercentage: firepowerPct,
               settledSecondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
             }
@@ -846,7 +881,9 @@ export function useMineGame(initialLevelIndex: number) {
       100
     : 0;
 
-  const destructivePower = gameState ? destructivePowerFromGameState(gameState) : { pct: 0, mineCount: 0, totalCells: 0 };
+  const destructivePower = gameState
+    ? destructivePowerFromGameState(gameState)
+    : { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0 };
 
   const medalThresholds = gameState
     ? resolveMedalThresholds(gameState.level.definition)
@@ -854,7 +891,7 @@ export function useMineGame(initialLevelIndex: number) {
 
   /** 對局中即時投影：若此刻結算可拿到的勳章（未達銅為 null） */
   const projectedMedal: Medal | null =
-    gameState && medalThresholds ? judgeMedal(fillPercentage, medalThresholds) : null;
+    gameState && medalThresholds ? judgeMedal(destructivePower.pct, medalThresholds) : null;
 
   const canEarlySettle =
     gameState != null && gameState.status === 'playing' && projectedMedal != null;
@@ -863,21 +900,16 @@ export function useMineGame(initialLevelIndex: number) {
   const requestEarlySettle = useCallback(() => {
     setGameState((prev) => {
       if (!prev || prev.status !== 'playing') return prev;
-      const totalKnown =
-        prev.placedNumbers.length +
-        prev.revealedMines.size +
-        prev.revealedClear.size +
-        prev.dynamicMines.size;
-      const fillPct = (totalKnown / prev.level.cells.length) * 100;
+      const firepowerPct = destructivePowerFromGameState(prev).pct;
       const t = resolveMedalThresholds(prev.level.definition);
-      const m = judgeMedal(fillPct, t);
+      const m = judgeMedal(firepowerPct, t);
       if (!m) return prev;
       return {
         ...prev,
         status: 'won',
         message: GAME_FIXED.victoryStatus.plain,
         settledMedal: m,
-        settledFillPercentage: fillPct,
+        settledFillPercentage: firepowerPct,
         settledSecondsLeft: prev.secondsLeft,
       };
     });
@@ -889,20 +921,15 @@ export function useMineGame(initialLevelIndex: number) {
   const forceCompleteForTest = useCallback(() => {
     setGameState((prev) => {
       if (!prev || prev.status === 'won') return prev;
-      const totalKnown =
-        prev.placedNumbers.length +
-        prev.revealedMines.size +
-        prev.revealedClear.size +
-        prev.dynamicMines.size;
-      const fillPct = (totalKnown / prev.level.cells.length) * 100;
+      const firepowerPct = destructivePowerFromGameState(prev).pct;
       const t = resolveMedalThresholds(prev.level.definition);
-      const m = judgeMedal(fillPct, t) ?? 'bronze';
+      const m = judgeMedal(firepowerPct, t) ?? 'bronze';
       return {
         ...prev,
         status: 'won',
         message: GAME_FIXED.victoryStatus.plain,
         settledMedal: m,
-        settledFillPercentage: fillPct,
+        settledFillPercentage: firepowerPct,
         settledSecondsLeft: prev.secondsLeft,
       };
     });
@@ -926,6 +953,7 @@ export function useMineGame(initialLevelIndex: number) {
     destructivePowerPercentage: destructivePower.pct,
     destructivePowerMineCount: destructivePower.mineCount,
     destructivePowerTotalCells: destructivePower.totalCells,
+    destructivePowerOverlapExtra: destructivePower.overlapExtra,
     bonusFxKeys,
     medalThresholds,
     projectedMedal,

@@ -9,6 +9,8 @@ import { lossChainPhaseForKey } from './lossExplosionChain';
 import { triangleSidePxForLevel, triangleValidCellsSvgLayout } from './triangleBoardLayout';
 import { hexBoardContentSizePxForCells, hexRadiusPxForLevel } from './hexBoardLayout';
 import type { GameState, MovingSoldierState } from './types';
+import { neighborModeForGridSystem } from '../levelData/gridTopology';
+import { adjacentPlacedDigitCount, mineCombatTier } from './mineCombatVisual';
 import { NeighborBonusPlusOneFlight } from './NeighborBonusPlusOneFlight';
 import { NeighborResonancePlaceOverlay } from './NeighborResonancePlaceOverlay';
 
@@ -207,6 +209,7 @@ export function GameBoard({
   const placedByKey = new Map(gameState.placedNumbers.map((p) => [`${p.x},${p.y}`, p]));
   const conflictKeySet = new Set(gameState.conflictCells.map((c) => `${c.x},${c.y}`));
   const explosionMarkKeySet = new Set(gameState.explosionMarkCells.map((c) => `${c.x},${c.y}`));
+  const squareNeighborMode = neighborModeForGridSystem(gameState.level.definition.gridSystem);
 
   return (
     <div className="w-full max-w-full overflow-x-auto">
@@ -249,12 +252,13 @@ export function GameBoard({
             gameState.lossSequentialExplosionKeys,
             gameState.lossExplosionWaveIndex,
           );
-          const isExploding = gameState.status === 'exploding' && isMine && lossChainPhase === 'none';
           const showExplosionX = explosionMarkKeySet.has(key);
           const isBonusTarget = bonusTargetKeys.has(key);
           const isBonusTargetRewarded = rewardedTargetKeys.has(key);
           const showBonusFx = bonusFxKeySet.has(key);
           const blastPointCountdown = blastPointsCountdown.get(key);
+          const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, squareNeighborMode, w, h);
+          const mCombat = mineCombatTier(adjDigits);
 
           return (
             <GameCell
@@ -265,7 +269,6 @@ export function GameBoard({
               placed={placed}
               isMine={isMine}
               isConflict={isConflict}
-              isExploding={isExploding}
               showExplosionX={showExplosionX}
               isBonusTarget={isBonusTarget}
               isBonusTargetRewarded={isBonusTargetRewarded}
@@ -274,6 +277,7 @@ export function GameBoard({
               blastPointCountdown={blastPointCountdown}
               isDigitOutpost={digitOutpostKeys.has(key)}
               isDynamicMine={isDynMine}
+              mineCombatTier={isMine || isDynMine ? mCombat : 1}
               lossChainPhase={lossChainPhase}
               lossChainPopKey={gameState.lossExplosionWaveIndex}
               status={gameState.status}

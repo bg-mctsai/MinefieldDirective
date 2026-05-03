@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LEVELS as GAME_LEVELS } from '../gameLogic';
 import { useMineGame } from './useMineGame';
+import { resolveMedalThresholds } from './medalThresholds';
 import { GameHeader } from './GameHeader';
 import { GameBoard } from './GameBoard';
 import { GameStatusMessageBar, GameStatusPanel } from './GameStatusPanel';
@@ -69,6 +70,7 @@ export default function GameView({
     destructivePowerPercentage,
     destructivePowerMineCount,
     destructivePowerTotalCells,
+    destructivePowerOverlapExtra,
     bonusFxKeys,
     medalThresholds,
     projectedMedal,
@@ -187,11 +189,11 @@ export default function GameView({
       className={`relative flex min-h-screen flex-col items-center p-3 font-sans text-slate-300 md:p-5 ${combatTheme.root}`}
     >
       <GameHeader
-        fillPercentage={fillPercentage}
         destructivePowerPercentage={destructivePowerPercentage}
         destructivePowerMineCount={destructivePowerMineCount}
         destructivePowerTotalCells={destructivePowerTotalCells}
-        medalThresholds={medalThresholds ?? { bronze: gameState.level.definition.coverageGoal, silver: gameState.level.definition.coverageGoal, gold: gameState.level.definition.coverageGoal }}
+        destructivePowerOverlapExtra={destructivePowerOverlapExtra}
+        medalThresholds={medalThresholds ?? resolveMedalThresholds(gameState.level.definition)}
         projectedMedal={projectedMedal}
         showEarlySettleButton={canEarlySettle}
         onEarlySettle={requestEarlySettle}

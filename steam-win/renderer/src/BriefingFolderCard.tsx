@@ -3,7 +3,7 @@
  * - 牛皮紙紋背景 + 內網格 + 釘裝邊
  * - 「展開卷宗」僅切換內文顯示；「進入作戰地圖」才開戰術選關
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Map as MapIcon } from 'lucide-react';
 import { emit } from './audio/AudioEngine';
@@ -36,7 +36,10 @@ export function BriefingFolderCard({
   onEnterMap: () => void;
   delaySec: number;
 }) {
-  const [storyOpen, setStoryOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(() => isHint);
+  useEffect(() => {
+    if (isHint) setStoryOpen(true);
+  }, [isHint]);
   const compact = collapsed && !storyOpen;
 
   return (
@@ -84,11 +87,11 @@ export function BriefingFolderCard({
             </div>
           ) : null}
 
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-              第 {String(chapter).padStart(2, '0')} 章
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span className="shrink-0 text-[11px] font-black tabular-nums tracking-tight text-[#F59E0B]/90 sm:text-xs">
+              卷 {String(chapter).padStart(2, '0')}
             </span>
-            <span className="truncate text-base font-black tracking-tight text-white sm:text-lg" title={headline}>
+            <span className="min-w-0 truncate text-base font-black tracking-tight text-white sm:text-lg" title={headline}>
               {headline}
             </span>
           </div>
@@ -164,13 +167,13 @@ export function BriefingFolderLocked({
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="text-[10px] font-bold tracking-wide text-slate-600">
-            第 {String(chapter).padStart(2, '0')} 章 · 封存
+            卷 {String(chapter).padStart(2, '0')} · 封存
           </span>
           <span className="truncate text-base font-black text-slate-500 sm:text-lg" title={headline}>
             {headline}
           </span>
           <p className="whitespace-pre-line text-xs leading-relaxed text-slate-600 sm:text-sm">{blurb}</p>
-          <div className="text-[11px] text-slate-600 sm:text-xs">第 {chapter} 章 · 尚未列入行動表</div>
+          <div className="text-[11px] text-slate-600 sm:text-xs">卷 {String(chapter).padStart(2, '0')} · 尚未列入行動表</div>
         </div>
       </div>
     </motion.li>

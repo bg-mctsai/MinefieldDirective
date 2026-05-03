@@ -1,12 +1,18 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Bomb } from 'lucide-react';
-import { MineRuins } from './MineRuins';
 import { hexCenterScreenPx, hexPolygonPoints } from './hexBoardLayout';
 import { lossChainPhaseForKey } from './lossExplosionChain';
 import type { GameState } from './types';
 import { boardCellTooltipText } from './boardCellTooltipText';
 import { useSvgBoardTooltip } from './useSvgBoardTooltip';
+import { neighborModeForGridSystem } from '../levelData/gridTopology';
+import {
+  adjacentPlacedDigitCount,
+  cyanJunkMineBombIconClass,
+  mineCombatTier,
+  redMineBombIconClass,
+} from './mineCombatVisual';
 
 export function HexGameBoardLayer({
   gameState,
@@ -47,6 +53,7 @@ export function HexGameBoardLayer({
   const placedByKey = new Map(gameState.placedNumbers.map((p) => [`${p.x},${p.y}`, p]));
   const conflictKeySet = new Set(gameState.conflictCells.map((c) => `${c.x},${c.y}`));
   const explosionMarkKeySet = new Set(gameState.explosionMarkCells.map((c) => `${c.x},${c.y}`));
+  const neighborMode = neighborModeForGridSystem(gameState.level.definition.gridSystem);
 
   const terrainPolys: ReactNode[] = [];
   for (let y = 0; y < h; y++) {
@@ -87,13 +94,14 @@ export function HexGameBoardLayer({
           gameState.lossSequentialExplosionKeys,
           gameState.lossExplosionWaveIndex,
         );
-        const isExploding = gameState.status === 'exploding' && isMine && lossChainPhase === 'none';
         const showExplosionX = explosionMarkKeySet.has(key);
         const isBonusTarget = bonusTargetKeys.has(key);
         const isBonusTargetRewarded = rewardedTargetKeys.has(key);
         const showBonusFx = bonusFxKeys.has(key);
         const neutralBonusTarget = isBonusTarget && !placed && !isConflict;
         const isDynamicMine = gameState.dynamicMines.has(key);
+        const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, neighborMode, w, h);
+        const mCombat = mineCombatTier(adjDigits);
 
         const numFont = Math.max(11, Math.round(r * 0.38));
         const iconSize = Math.max(12, Math.round(r * 0.36));
@@ -107,18 +115,18 @@ export function HexGameBoardLayer({
           fillClass = 'fill-amber-950/90';
           strokeClass = 'stroke-amber-500';
         } else if (isDynamicMine) {
-          fillClass = 'fill-cyan-950/55';
-          strokeClass = 'stroke-cyan-700';
+          fillClass = mCombat >= 2 ? 'fill-cyan-950/65' : 'fill-cyan-950/55';
+          strokeClass = mCombat >= 2 ? 'stroke-cyan-400' : 'stroke-cyan-700';
         } else if ((postBlast && isMine && lossChainPhase === 'none') || (lossChainPhase === 'dead' && postBlast)) {
           fillClass = 'fill-stone-950/80';
           strokeClass = 'stroke-stone-600';
         } else if (lossChainPhase === 'live' && gameState.status === 'exploding') {
-          fillClass = 'fill-red-950/50';
-          strokeClass = 'stroke-red-900';
+          fillClass = 'fill-red-500/10';
+          strokeClass = 'stroke-red-400/75';
         } else if (blastPointCountdown !== undefined && !postBlast) {
           if (blastPointCountdown <= 5) {
-            fillClass = 'fill-red-950/60';
-            strokeClass = 'stroke-red-500';
+            fillClass = 'fill-red-500/35';
+            strokeClass = 'stroke-red-400';
           } else if (blastPointCountdown <= 10) {
             fillClass = 'fill-orange-950/55';
             strokeClass = 'stroke-orange-400';
@@ -126,12 +134,12 @@ export function HexGameBoardLayer({
             fillClass = 'fill-yellow-950/50';
             strokeClass = 'stroke-yellow-500';
           }
+        } else if (isMine) {
+          fillClass = mCombat >= 2 ? 'fill-red-400/22' : 'fill-red-500/10';
+          strokeClass = mCombat >= 2 ? 'stroke-red-300/90' : 'stroke-red-400/75';
         } else if (neutralBonusTarget) {
           fillClass = 'fill-slate-800';
           strokeClass = 'stroke-slate-600';
-        } else if (isMine) {
-          fillClass = 'fill-red-950/50';
-          strokeClass = 'stroke-red-900';
         }
         const tooltipText = boardCellTooltipText({
           isConflict,
@@ -142,6 +150,7 @@ export function HexGameBoardLayer({
           isMine,
           lossChainPhase,
           bonusSeconds,
+          mineCombatTier: isMine || isDynamicMine ? mCombat : 1,
         });
 
         return (
@@ -203,7 +212,7 @@ export function HexGameBoardLayer({
                 </div>
               </foreignObject>
             )}
-            {!placed && !neutralBonusTarget && lossChainPhase !== 'none' && (
+            {!placed && lossChainPhase !== 'none' && (
               <foreignObject
                 x={cx - iconSize / 2}
                 y={cy - iconSize / 2}
@@ -213,18 +222,22 @@ export function HexGameBoardLayer({
               >
                 <div className="flex h-full w-full items-center justify-center">
                   {lossChainPhase === 'live' && gameState.status === 'exploding' && (
-                    <Bomb size={iconSize} className="text-red-400 opacity-60" />
+                    <Bomb size={iconSize} className={redMineBombIconClass(mCombat)} />
                   )}
                   {lossChainPhase === 'popping' && gameState.status === 'exploding' && (
-                    <MineRuins key={`lc-${gameState.lossExplosionWaveIndex}`} x={x} y={y} exploding />
+                    <Bomb
+                      key={`lc-${gameState.lossExplosionWaveIndex}`}
+                      size={iconSize}
+                      className={redMineBombIconClass(mCombat)}
+                    />
                   )}
                   {lossChainPhase === 'dead' && postBlast && (
-                    <MineRuins x={x} y={y} exploding={false} />
+                    <Bomb size={iconSize} className={redMineBombIconClass(mCombat)} />
                   )}
                 </div>
               </foreignObject>
             )}
-            {isMine && !placed && !neutralBonusTarget && lossChainPhase === 'none' && (
+            {isMine && !placed && lossChainPhase === 'none' && (
               <foreignObject
                 x={cx - iconSize / 2}
                 y={cy - iconSize / 2}
@@ -234,11 +247,9 @@ export function HexGameBoardLayer({
               >
                 <div className="flex h-full w-full items-center justify-center">
                   {isDynamicMine ? (
-                    <Bomb size={iconSize} className="text-cyan-400 opacity-75 drop-shadow-[0_0_4px_rgba(34,211,238,0.5)]" />
-                  ) : postBlast ? (
-                    <MineRuins x={x} y={y} exploding={isExploding} />
+                    <Bomb size={iconSize} className={cyanJunkMineBombIconClass(mCombat)} />
                   ) : (
-                    <Bomb size={iconSize} className="text-red-400 opacity-60" />
+                    <Bomb size={iconSize} className={redMineBombIconClass(mCombat)} />
                   )}
                 </div>
               </foreignObject>
@@ -265,7 +276,7 @@ export function HexGameBoardLayer({
                 />
               </g>
             )}
-            {neutralBonusTarget && !postBlast && (
+            {neutralBonusTarget && !postBlast && !isMine && (
               <foreignObject
                 x={cx - iconSize / 2}
                 y={cy - iconSize / 2}
@@ -282,19 +293,6 @@ export function HexGameBoardLayer({
                         : 'text-white/80 drop-shadow-[0_0_3px_rgba(0,0,0,0.8)]'
                     }
                   />
-                </div>
-              </foreignObject>
-            )}
-            {postBlast && isMine && neutralBonusTarget && (
-              <foreignObject
-                x={cx - iconSize / 2}
-                y={cy - iconSize / 2}
-                width={iconSize}
-                height={iconSize}
-                className="pointer-events-none overflow-visible"
-              >
-                <div className="flex h-full w-full items-center justify-center">
-                  <MineRuins x={x} y={y} exploding={isExploding} />
                 </div>
               </foreignObject>
             )}

@@ -1,5 +1,5 @@
 /**
- * 關卡勳章評等：銅／銀／金；以「過關當下覆蓋率」落在哪一段門檻判定。
+ * 關卡勳章評等：銅／銀／金；以「過關當下火力」（已確定地雷／總格）落在哪一段門檻判定。
  *
  * 規則：
  * - 達銅以下：未過關。
@@ -8,7 +8,7 @@
  * - 達金以上：金（並觸發自動結算）。
  *
  * 設定優先序：levels.json 之 medalThresholds > 全域固定預設值。
- * 預設規則：bronze = 0.70、silver = 0.84、gold = 0.98。
+ * 預設規則：bronze = 0.60、silver = 0.75、gold = 0.90。
  */
 
 import type { LevelDefinition, MedalThresholds } from '../levelData/types';
@@ -17,9 +17,9 @@ export type Medal = 'bronze' | 'silver' | 'gold';
 
 export const MEDAL_RANK: Record<Medal, number> = { bronze: 1, silver: 2, gold: 3 };
 
-const DEFAULT_BRONZE = 0.7;
-const DEFAULT_SILVER = 0.84;
-const DEFAULT_GOLD = 0.98;
+const DEFAULT_BRONZE = 0.6;
+const DEFAULT_SILVER = 0.75;
+const DEFAULT_GOLD = 0.9;
 
 function clamp01Strict(v: number): number {
   if (!Number.isFinite(v)) return 0;
@@ -29,7 +29,7 @@ function clamp01Strict(v: number): number {
 }
 
 /**
- * 解出門檻（0～1）。若 levels.json 缺欄或欄位不合法，自動由 coverageGoal 推導。
+ * 解出門檻（0～1）。若 levels.json 缺欄或欄位不合法，使用上方全域預設（與 coverageGoal 無關）。
  * 後置條件：0 < bronze <= silver <= gold <= 1。
  */
 export function resolveMedalThresholds(def: Pick<LevelDefinition, 'coverageGoal' | 'medalThresholds'>): MedalThresholds {
@@ -52,7 +52,7 @@ export function resolveMedalThresholds(def: Pick<LevelDefinition, 'coverageGoal'
 }
 
 /**
- * 依當下覆蓋率（0～1 或 0～100，二者皆吃）判牌；不過關回 null。
+ * 依當下火力比例（0～1 或 0～100，二者皆吃）判牌；不過關回 null。
  */
 export function judgeMedal(fillRatioOrPct: number, t: MedalThresholds): Medal | null {
   if (!Number.isFinite(fillRatioOrPct)) return null;

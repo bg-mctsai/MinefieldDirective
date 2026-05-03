@@ -382,9 +382,23 @@ function HeroDossierPanel({ hero, locked }: { hero: HeroDef; locked: boolean }) 
   );
 }
 
-export default function HeroSelect({ onBack }: { onBack: () => void }) {
+export default function HeroSelect({
+  onBack,
+  devHeroUnlockToggle,
+}: {
+  onBack: () => void;
+  /** DEV：一鍵視同全部幹員已解鎖，便於驗證檔案 UI */
+  devHeroUnlockToggle?: {
+    unlockAllActive: boolean;
+    onToggleUnlockAll: () => void;
+  };
+}) {
   const [selected, setSelected] = useState(() => getStoredHeroId());
-  const unlocked = useMemo(() => new Set(loadUnlockedHeroIds()), []);
+  const devUnlockAllHeroes = devHeroUnlockToggle?.unlockAllActive ?? false;
+  const unlocked = useMemo(() => {
+    if (devUnlockAllHeroes) return new Set(HEROES.map((h) => h.id));
+    return new Set(loadUnlockedHeroIds());
+  }, [devUnlockAllHeroes]);
   const hero = useMemo(() => HEROES.find((h) => h.id === selected) ?? HEROES[0], [selected]);
   const heroUnlocked = unlocked.has(hero.id);
   const deployedHeroId = getStoredHeroId();
@@ -405,7 +419,30 @@ export default function HeroSelect({ onBack }: { onBack: () => void }) {
             <ChevronLeft size={18} />
             返回首頁
           </button>
-          <h1 className="text-2xl font-black text-white md:text-3xl">幹員個人檔案 · Dossier</h1>
+          <div className="flex flex-wrap items-center gap-3 text-white">
+            <h1 className="text-2xl font-black md:text-3xl">幹員個人檔案 · Dossier</h1>
+            {devHeroUnlockToggle != null && (
+              <button
+                type="button"
+                onClick={devHeroUnlockToggle.onToggleUnlockAll}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${
+                  devHeroUnlockToggle.unlockAllActive
+                    ? 'border-rose-400/70 bg-rose-950/40 text-rose-100 hover:bg-rose-900/50'
+                    : 'border-emerald-400/60 bg-emerald-950/35 text-emerald-100 hover:bg-emerald-900/45'
+                }`}
+                aria-pressed={devHeroUnlockToggle.unlockAllActive}
+                aria-label={
+                  devHeroUnlockToggle.unlockAllActive
+                    ? '測試：還原幹員檔案鎖定'
+                    : '測試：開放全部幹員檔案'
+                }
+              >
+                {devHeroUnlockToggle.unlockAllActive
+                  ? '測試 · 還原鎖定'
+                  : '測試 · 開放全部幹員'}
+              </button>
+            )}
+          </div>
         </motion.header>
 
         <div className="grid gap-7 lg:grid-cols-12">
