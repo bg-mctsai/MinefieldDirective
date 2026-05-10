@@ -17,7 +17,7 @@ const CHAPTER_1: MissionBackdropGeographyLabel[] = [
   { x: 8, y: 44, text: '西北原始林', align: 'start' },
   { x: 28, y: 34, text: '主工業廓', align: 'middle' },
   { x: 66, y: 38, text: '東麓丘陵帶', align: 'end' },
-  { x: 7, y: 70, text: '西濱三角洲', align: 'start' },
+  { x: 7, y: 70, text: '西濱河洲', align: 'start' },
   { x: 20, y: 70, text: '西岸河網區', align: 'start' },
   { x: 62, y: 46, text: '演訓外環帶', align: 'end' },
   { x: 46, y: 84, text: '南方旱原區', align: 'middle' },
@@ -57,11 +57,11 @@ const CHAPTER_3: MissionBackdropGeographyLabel[] = [
   { x: 50, y: 30, text: '中央淺溝', align: 'middle' },
 ];
 
-/** 第 4 章 三角高地 */
+/** 第 4 章 蜂格前哨（蜂巢地形前導） */
 const CHAPTER_4: MissionBackdropGeographyLabel[] = [
   { x: 48, y: 10, text: '北稜觀測所', align: 'middle' },
   { x: 82, y: 28, text: '東脊防火線', align: 'end' },
-  { x: 50, y: 52, text: '三角匯流點', align: 'middle' },
+  { x: 50, y: 52, text: '稜線匯流點', align: 'middle' },
   { x: 10, y: 48, text: '西坡掩體帶', align: 'start' },
   { x: 36, y: 62, text: '鞍部通道', align: 'middle' },
   { x: 68, y: 66, text: '南山斷崖', align: 'end' },
@@ -96,12 +96,12 @@ const CHAPTER_6: MissionBackdropGeographyLabel[] = [
   { x: 72, y: 44, text: '聲納盲區', align: 'end' },
   { x: 28, y: 68, text: '維修港池', align: 'start' },
   { x: 86, y: 58, text: '魚雷整備帶', align: 'end' },
-  { x: 40, y: 36, text: '指揮隔艙', align: 'middle' },
+  { x: 30, y: 28, text: '指揮隔艙', align: 'start' },
   { x: 8, y: 72, text: '外殼聽音站', align: 'start' },
   { x: 62, y: 70, text: '深海閘門', align: 'end' },
   { x: 22, y: 28, text: '應急氣閘', align: 'start' },
   { x: 78, y: 28, text: '底艙管線', align: 'end' },
-  { x: 48, y: 58, text: '潛望塔座', align: 'middle' },
+  { x: 42, y: 52, text: '潛望塔座', align: 'middle' },
   { x: 54, y: 82, text: '核心反應外殼', align: 'middle' },
 ];
 
@@ -117,14 +117,14 @@ const CHAPTER_7: MissionBackdropGeographyLabel[] = [
   { x: 18, y: 68, text: '噪訊農場', align: 'start' },
   { x: 88, y: 72, text: '備援天線陣', align: 'end' },
   { x: 36, y: 76, text: '校準靶區', align: 'start' },
-  { x: 58, y: 46, text: '指揮鏈斷帶', align: 'middle' },
+  { x: 52, y: 44, text: '指揮鏈斷帶', align: 'middle' },
   { x: 50, y: 30, text: '主干擾源', align: 'middle' },
 ];
 
 /** 第 8 章 引爆危機 */
 const CHAPTER_8: MissionBackdropGeographyLabel[] = [
   { x: 10, y: 58, text: '炸點 A 外圍', align: 'start' },
-  { x: 32, y: 48, text: '安全導線管', align: 'middle' },
+  { x: 28, y: 42, text: '安全導線管', align: 'middle' },
   { x: 58, y: 42, text: '計時面板背面', align: 'middle' },
   { x: 78, y: 52, text: '次炸點走廊', align: 'end' },
   { x: 22, y: 70, text: '平民疏散巷', align: 'start' },

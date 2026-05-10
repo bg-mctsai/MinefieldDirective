@@ -6,7 +6,7 @@ import MissionMap from './MissionMap';
 import HeroSelect from './HeroSelect';
 import GameView from './game/GameView';
 import { isLevelUnlocked, loadGameProgress } from './game/gameProgressStorage';
-import { effectiveMissionHighestCleared } from './missionMapDevUnlock';
+import { effectiveMissionClearedLevelKeys } from './missionMapDevUnlock';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './game/chapterStage';
 import DossierPostChapter10Gate from './DossierPostChapter10Gate';
 import { HeroPortraitLightboxProvider } from './home/HeroPortraitLightbox';
@@ -16,7 +16,7 @@ type Screen = 'home' | 'mission' | 'game' | 'hero' | 'dossierGate';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameLevelIndex, setGameLevelIndex] = useState(0);
-  const [highestClearedLevel, setHighestClearedLevel] = useState(() => loadGameProgress().highestClearedLevel);
+  const [clearedLevelKeys, setClearedLevelKeys] = useState(() => loadGameProgress().clearedLevelKeys);
   /** DEV：行動卷宗一鍵開放全部章節；再按還原真實進度 */
   const [devMissionUnlockAllChapters, setDevMissionUnlockAllChapters] = useState(false);
   /** DEV：幹員個人檔案一鍵視同全部解鎖 */
@@ -30,9 +30,10 @@ export default function App() {
   /** 從章內第 8 關勝利返回前，攔截一層行動卷宗前對話 */
   const [dossierGateChapter, setDossierGateChapter] = useState<number | null>(null);
 
-  const missionHighestClearedLevel = effectiveMissionHighestCleared(
-    highestClearedLevel,
+  const missionClearedLevelKeys = effectiveMissionClearedLevelKeys(
+    clearedLevelKeys,
     import.meta.env.DEV && devMissionUnlockAllChapters,
+    LEVELS.map((l) => l.levelKey),
   );
 
   return (
@@ -82,12 +83,12 @@ export default function App() {
             onStart={(idx) => {
               const level = LEVELS[idx];
               if (!level) return;
-              if (!isLevelUnlocked(level.id, missionHighestClearedLevel)) return;
+              if (!isLevelUnlocked(level.levelKey, missionClearedLevelKeys, LEVELS.map((l) => l.levelKey))) return;
               missionMapScrollYRef.current = window.scrollY;
               setGameLevelIndex(idx);
               setScreen('game');
             }}
-            highestClearedLevel={missionHighestClearedLevel}
+            clearedLevelKeys={missionClearedLevelKeys}
             devMissionChapterUnlockToggle={
               import.meta.env.DEV
                 ? {
@@ -115,11 +116,11 @@ export default function App() {
           <GameView
             key={`${gameLevelIndex}-${levelsReloadToken}`}
             initialLevelIndex={gameLevelIndex}
-            highestClearedLevel={highestClearedLevel}
-            unlockHighestClearedLevel={
-              import.meta.env.DEV && devMissionUnlockAllChapters ? missionHighestClearedLevel : undefined
+            clearedLevelKeys={clearedLevelKeys}
+            unlockClearedLevelKeys={
+              import.meta.env.DEV && devMissionUnlockAllChapters ? missionClearedLevelKeys : undefined
             }
-            onHighestClearedLevelChange={setHighestClearedLevel}
+            onClearedLevelKeysChange={setClearedLevelKeys}
             onBack={(context) => {
               if (context?.dossierAfterClearedChapter != null) {
                 setDossierGateChapter(context.dossierAfterClearedChapter);
@@ -130,11 +131,11 @@ export default function App() {
               const ch = lv?.definition.chapter;
               const stageBoss =
                 lv != null && typeof ch === 'number' && Number.isFinite(ch)
-                  ? stageInChapter(lv.id, ch) === LEVELS_PER_CHAPTER
+                  ? stageInChapter(lv.stage) === LEVELS_PER_CHAPTER
                   : false;
               /** 章內第 8 關已通關：回到行動卷宗，不再自動展開該章戰術地圖 */
               const backToDossier =
-                stageBoss && highestClearedLevel >= (lv?.id ?? 0);
+                stageBoss && lv != null && clearedLevelKeys.includes(lv.levelKey);
               setMissionInitialChapter(
                 backToDossier ? null : typeof ch === 'number' && Number.isFinite(ch) ? ch : null
               );

@@ -204,5 +204,10 @@
       ]
     ]
   },
-  "mapTheme": "深海錨點"
+  "mapTheme": "深海錨點",
+  "gridStats": {
+    "totalCells": 132,
+    "forbiddenCellCount": 49,
+    "playableCells": 83
+  }
 }

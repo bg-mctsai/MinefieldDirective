@@ -26,7 +26,20 @@ import {
   NEIGHBOR_PLACED_BONUS_HOLD_BASE_MS,
   SOLDIER_MOVE_MS,
 } from './constants';
-import { sortLossExplosionCells, timeoutLossExplosionKeys } from './lossExplosionChain';
+import {
+  fallbackLossExplosionCellsFromRevealedKeys,
+  sortLossExplosionCells,
+  timeoutLossExplosionKeys,
+} from './lossExplosionChain';
+
+function mergeExplosionMarkCells(
+  markCells: { x: number; y: number }[],
+  revealedMines: ReadonlySet<string>,
+  anchor: { x: number; y: number },
+): { x: number; y: number }[] {
+  if (markCells.length > 0) return markCells;
+  return fallbackLossExplosionCellsFromRevealedKeys(revealedMines, anchor);
+}
 import { judgeMedal, resolveMedalThresholds, type Medal } from './medalThresholds';
 import { weightedFirepowerSumAndPct } from './mineCombatVisual';
 import { emit } from '../audio/AudioEngine';
@@ -34,7 +47,7 @@ import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
 import { signalJammingDisplayedDigit } from './signalJamming';
 import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
-import { getStoredHeroId, heroUsesFullMultiDigitFirepower, telegraphHandSlotCount } from '../heroes';
+import { getStoredHeroId, heroFirepowerDigitWeightMode, telegraphHandSlotCount } from '../heroes';
 import type { GameState, MovingSoldierState } from './types';
 
 /**
@@ -67,7 +80,7 @@ function pickDynamicMinePosition(
 }
 
 /**
- * 火力：加權計分／總格（上限 100%）。每顆已確定雷至少貢獻 1；與已佈數字相鄰的額外權重預設封頂在 2（第三個以上數字不加），賽琳娜為完整計入。
+ * 火力：加權計分／總格（上限 100%）。每顆已確定雷依「與幾格已佈數字邏輯相鄰」加權：capTwo 封頂 2；賽琳娜格網倍乘為 min(2^(n−1),16)（n≥2）。
  * mineCount 仍為雷格數（副標「地雷 x/y」）。
  */
 export function destructivePowerFromGameState(
@@ -84,7 +97,7 @@ export function destructivePowerFromGameState(
   if (totalCells <= 0)
     return { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0 };
   const mineKeys = new Set<string>([...gs.revealedMines, ...gs.dynamicMines]);
-  const digitMode = heroUsesFullMultiDigitFirepower(heroId) ? 'fullCount' : 'capTwo';
+  const digitMode = heroFirepowerDigitWeightMode(heroId);
   const { pct, weightedSum } = weightedFirepowerSumAndPct(
     mineKeys,
     gs.placedNumbers,
@@ -186,6 +199,16 @@ export function useMineGame(initialLevelIndex: number) {
     initGame(currentLevelIndex);
   }, [currentLevelIndex, initGame]);
 
+  useEffect(
+    () => () => {
+      for (const t of bonusFxTimeoutsRef.current.values()) {
+        window.clearTimeout(t);
+      }
+      bonusFxTimeoutsRef.current.clear();
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!gameState || gameState.status !== 'playing' || gameState.secondsLeft === null) return;
     if (!gameState.timerStarted) return;
@@ -286,12 +309,13 @@ export function useMineGame(initialLevelIndex: number) {
         if (outpostMineViol) {
           const { anchor, conflictCells: ocpCells } = outpostMineViol;
           const lossTopo = lossUiTopologyFromLevel(prev.level);
-          const explosionMarkCells = lossExplosionMarkCells(
+          let explosionMarkCells = lossExplosionMarkCells(
             prev.level.cells,
             prev.placedNumbers,
             anchor,
             lossTopo,
           );
+          explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, newRevealedMines, anchor);
           const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, anchor);
           queueMicrotask(() => emit('game.time.up'));
           return {
@@ -530,12 +554,13 @@ export function useMineGame(initialLevelIndex: number) {
 
       const lossTopo = lossUiTopologyFromLevel(gameState.level);
       const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
-      const explosionMarkCells = lossExplosionMarkCells(
+      let explosionMarkCells = lossExplosionMarkCells(
         gameState.level.cells,
         gameState.placedNumbers,
         { x, y },
         lossTopo
       );
+      explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, gameState.revealedMines, { x, y });
       const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
       const message = formatLossExplanation(conflictDetails, { x, y, value: newValue }, lossTopo);
       setGameState((prev) =>
@@ -686,7 +711,7 @@ export function useMineGame(initialLevelIndex: number) {
     }
 
     const nextMineKeys = new Set<string>([...newRevealedMines, ...newDynamicMines]);
-    const firepowerDigitMode = heroUsesFullMultiDigitFirepower(getStoredHeroId()) ? 'fullCount' : 'capTwo';
+    const firepowerDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
     const firepowerPct = weightedFirepowerSumAndPct(
       nextMineKeys,
       newPlacedNumbers,
@@ -727,12 +752,13 @@ export function useMineGame(initialLevelIndex: number) {
     if (outpostMineViolAfterPlace) {
       const { anchor, conflictCells: ocpCells } = outpostMineViolAfterPlace;
       const lossTopo = lossUiTopologyFromLevel(gameState.level);
-      const explosionMarkCells = lossExplosionMarkCells(
+      let explosionMarkCells = lossExplosionMarkCells(
         gameState.level.cells,
         gameState.placedNumbers,
         { x, y },
         lossTopo,
       );
+      explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, newRevealedMines, { x, y });
       const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
       setGameState((prev) =>
         prev
@@ -776,12 +802,13 @@ export function useMineGame(initialLevelIndex: number) {
       if (outpostsIncomplete) {
         const lossTopo = lossUiTopologyFromLevel(gameState.level);
         const missing = outposts.filter(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
-        const explosionMarkCells = lossExplosionMarkCells(
+        let explosionMarkCells = lossExplosionMarkCells(
           gameState.level.cells,
           gameState.placedNumbers,
           { x, y },
           lossTopo,
         );
+        explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, newRevealedMines, { x, y });
         const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
         setGameState((prev) =>
           prev

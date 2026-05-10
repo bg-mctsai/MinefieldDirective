@@ -1,0 +1,35 @@
+{
+  "mapLayout": {
+    "type": "SQUARE",
+    "width": 10,
+    "height": 10,
+    "forbiddenCells": [
+      [
+        9,
+        0
+      ],
+      [
+        9,
+        8
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        9
+      ]
+    ]
+  },
+  "mapTheme": "折線谷",
+  "gridStats": {
+    "totalCells": 100,
+    "forbiddenCellCount": 5,
+    "playableCells": 95
+  }
+}

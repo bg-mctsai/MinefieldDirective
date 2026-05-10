@@ -248,5 +248,10 @@
       ]
     ]
   },
-  "mapTheme": "衛星碟"
+  "mapTheme": "衛星碟",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 60,
+    "playableCells": 84
+  }
 }

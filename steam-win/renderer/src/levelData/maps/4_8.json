@@ -1,0 +1,16 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 10,
+      "height": 10
+    },
+    "forbiddenCells": []
+  },
+  "mapTheme": "雙堤蜂線",
+  "gridStats": {
+    "totalCells": 100,
+    "forbiddenCellCount": 0,
+    "playableCells": 100
+  }
+}

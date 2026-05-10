@@ -39,8 +39,8 @@ export function loadUnlockedHeroIds(): string[] {
   try {
     const raw = localStorage.getItem(LS);
     if (raw == null) {
-      const h = loadGameProgress().highestClearedLevel;
-      const list = h > 0 ? normalizeList([...ALL_OFFICER_IDS]) : [DEFAULT_START];
+      const clearedCount = loadGameProgress().clearedLevelKeys.length;
+      const list = clearedCount > 0 ? normalizeList([...ALL_OFFICER_IDS]) : [DEFAULT_START];
       try {
         localStorage.setItem(LS, JSON.stringify(list));
       } catch {

@@ -63,7 +63,7 @@ const PROGRESS_THEME_BY_MEDAL: Record<
 
 /** 與火力進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
 export const GAME_HEADER_CARD_CLASS =
-  'flex flex-1 min-h-[4.5rem] min-w-0 flex-col justify-center rounded-2xl border-2 p-4 shadow-xl sm:flex-row sm:items-center sm:gap-4';
+  'flex flex-1 min-h-[2.65rem] min-w-0 flex-col justify-center rounded-lg border-2 p-2 shadow-md sm:min-h-[2.85rem] sm:flex-row sm:items-center sm:gap-2 sm:rounded-xl sm:p-2.5 sm:shadow-lg md:rounded-2xl md:shadow-xl';
 
 export function GameHeader({
   destructivePowerPercentage,
@@ -142,28 +142,28 @@ export function GameHeader({
       : null;
 
   return (
-    <div className="mb-5 flex w-full max-w-7xl flex-col gap-4">
+    <div className="mb-1 flex w-full max-w-7xl shrink-0 flex-col gap-1 sm:mb-1.5 sm:gap-1.5">
       <motion.div
         initial={{ x: -12, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex w-full min-w-0 items-center justify-between gap-3"
+        className="flex w-full min-w-0 items-center justify-between gap-1.5 sm:gap-2"
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2 md:gap-3">
           <button
             type="button"
             onClick={onBack}
-            className={`flex shrink-0 items-center gap-2 rounded-xl border-2 border-slate-700 bg-slate-900 px-4 py-2.5 text-base font-bold text-slate-200 transition-colors ${heroTheme.headerBackHover}`}
+            className={`flex shrink-0 items-center gap-1 rounded-md border-2 border-slate-700 bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-200 transition-colors sm:gap-1.5 sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-xs md:rounded-xl md:px-3 md:py-2 md:text-sm ${heroTheme.headerBackHover}`}
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={14} className="sm:h-4 sm:w-4 md:h-[18px] md:w-[18px]" />
             返回
           </button>
           <div
-            className={`shrink-0 rounded-2xl border-2 border-slate-800 bg-slate-900 p-2.5 shadow-lg ${heroTheme.headerMissionMarkWrap}`}
+            className={`shrink-0 rounded-lg border-2 border-slate-800 bg-slate-900 p-1 shadow-sm sm:rounded-xl sm:p-1.5 md:rounded-2xl md:p-2 ${heroTheme.headerMissionMarkWrap}`}
           >
-            <MissionDirectiveEmblem className={heroTheme.headerMissionMark} size={40} />
+            <MissionDirectiveEmblem className={heroTheme.headerMissionMark} size={26} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="mb-0 flex min-w-0 items-center gap-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+            <h1 className="mb-0 flex min-w-0 items-center gap-1 text-base font-black tracking-tight text-white sm:gap-1.5 sm:text-lg md:text-xl">
               <span className="truncate">{levelName}</span>
             </h1>
           </div>
@@ -179,24 +179,24 @@ export function GameHeader({
       <motion.div
         initial={{ x: 12, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch"
+        className="flex w-full min-w-0 flex-col gap-1 sm:flex-row sm:items-stretch sm:gap-2"
       >
         <div className={progressCardClass}>
-          <div className="flex w-full min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <div className="min-w-0 flex-1 px-1 sm:px-2">
-              <div className="mb-1 flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 sm:gap-x-3">
-                  <span className="shrink-0 text-sm font-black uppercase tracking-[0.08em] text-slate-300 sm:text-base">
+          <div className="flex w-full min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 md:gap-2.5">
+            <div className="min-w-0 flex-1 px-0 sm:px-1 md:px-1.5">
+              <div className="mb-0 flex min-w-0 flex-wrap items-baseline justify-between gap-x-1.5 gap-y-0 sm:mb-0.5">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-1 gap-y-0 sm:gap-x-1.5 md:gap-x-2">
+                  <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.08em] text-slate-300 sm:text-xs md:text-sm">
                     火力
                   </span>
                   {firepowerFractionLabel != null ? (
-                    <span className="max-w-[min(100%,14rem)] truncate text-xs font-bold tabular-nums text-slate-400 sm:max-w-none sm:text-sm">
+                    <span className="max-w-[min(100%,14rem)] truncate text-[9px] font-bold tabular-nums text-slate-400 sm:max-w-none sm:text-[10px] md:text-xs">
                       {firepowerFractionLabel}
                     </span>
                   ) : null}
                 </div>
                 <span
-                  className={`shrink-0 text-xl font-black tabular-nums sm:text-2xl ${progressTheme.valueColor}`}
+                  className={`shrink-0 text-base font-black tabular-nums sm:text-lg md:text-xl ${progressTheme.valueColor}`}
                 >
                   {destructivePowerPercentage.toFixed(1)}%
                 </span>
@@ -212,13 +212,13 @@ export function GameHeader({
             </div>
             {secondsLeft !== null && (
               <>
-                <div className="hidden h-10 w-0.5 shrink-0 self-center bg-slate-800 sm:block" />
-                <div className="shrink-0 px-2 text-center sm:min-w-[4.5rem]">
-                  <div className="mb-1 text-xs font-black uppercase tracking-[0.08em] text-slate-300">
+                <div className="hidden h-7 w-0.5 shrink-0 self-center bg-slate-800 sm:block" />
+                <div className="shrink-0 px-0.5 text-center sm:min-w-[3.75rem] sm:px-1.5 md:min-w-[4rem] md:px-2">
+                  <div className="mb-0 text-[8px] font-black uppercase tracking-[0.08em] text-slate-300 sm:text-[9px] md:text-[10px]">
                     {countdownStarted ? '剩餘時間' : '任務時限'}
                   </div>
                   <div
-                    className={`text-3xl font-black tabular-nums ${
+                    className={`text-lg font-black tabular-nums sm:text-xl md:text-2xl ${
                       !countdownStarted && secondsLeft > 0
                         ? 'text-slate-500'
                         : secondsLeft <= 0
@@ -231,21 +231,21 @@ export function GameHeader({
                     {secondsLeft}s
                   </div>
                   {!countdownStarted && secondsLeft > 0 && (
-                    <div className="mt-0.5 text-xs font-bold text-slate-400">選定電碼後倒數</div>
+                    <div className="mt-0 text-[9px] font-bold text-slate-400 sm:text-[10px]">選定電碼後倒數</div>
                   )}
                 </div>
               </>
             )}
           </div>
-          <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 self-center sm:mt-0 sm:ml-auto sm:justify-end sm:self-auto">
+          <div className="mt-1 flex shrink-0 flex-wrap items-center justify-center gap-0.5 self-center sm:mt-0 sm:ml-auto sm:justify-end sm:gap-1 sm:self-auto">
             {showEarlySettleButton && onEarlySettle != null && projectedMedal != null && (
               <button
                 type="button"
                 onClick={onEarlySettle}
-                className={`inline-flex items-center gap-1.5 rounded-2xl border-2 px-3.5 py-2 text-xs font-black tracking-wide transition-all active:scale-95 ring-1 ${MEDAL_TONE[projectedMedal].text} ${MEDAL_TONE[projectedMedal].ring} ${MEDAL_TONE[projectedMedal].glow} border-current bg-slate-900/70 hover:bg-slate-900`}
+                className={`inline-flex items-center gap-0.5 rounded-lg border-2 px-2 py-1 text-[9px] font-black tracking-wide transition-all active:scale-95 ring-1 sm:rounded-xl sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-[10px] md:rounded-2xl md:px-3.5 md:py-2 md:text-xs ${MEDAL_TONE[projectedMedal].text} ${MEDAL_TONE[projectedMedal].ring} ${MEDAL_TONE[projectedMedal].glow} border-current bg-slate-900/70 hover:bg-slate-900`}
                 title={`現在撤離可獲：${MEDAL_LABEL[projectedMedal]}級勳章`}
               >
-                <Flag size={14} strokeWidth={2.5} />
+                <Flag size={12} strokeWidth={2.5} className="sm:h-3.5 sm:w-3.5" />
                 撤離
               </button>
             )}
@@ -253,9 +253,9 @@ export function GameHeader({
               <button
                 type="button"
                 onClick={onChapterEnd}
-                className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-sm font-black text-white shadow-lg transition-all active:scale-95 ${heroTheme.headerNextLevel}`}
+                className={`inline-flex items-center gap-0.5 rounded-lg px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm transition-all active:scale-95 sm:gap-1 sm:rounded-xl sm:px-3 sm:py-2 sm:text-xs md:rounded-2xl md:px-4 md:py-2.5 md:text-sm md:shadow-md ${heroTheme.headerNextLevel}`}
               >
-                <Check size={18} strokeWidth={2.5} />
+                <Check size={14} strokeWidth={2.5} className="sm:h-4 sm:w-4 md:h-[18px] md:w-[18px]" />
                 完結
               </button>
             )}
@@ -263,25 +263,25 @@ export function GameHeader({
               <button
                 type="button"
                 onClick={onNextLevel}
-                className={`inline-flex items-center gap-0.5 rounded-2xl px-4 py-2.5 text-sm font-black text-white shadow-lg transition-all active:scale-95 ${heroTheme.headerNextLevel}`}
+                className={`inline-flex items-center gap-0.5 rounded-lg px-2.5 py-1.5 text-[10px] font-black text-white shadow-sm transition-all active:scale-95 sm:rounded-xl sm:px-3 sm:py-2 sm:text-xs md:rounded-2xl md:px-4 md:py-2.5 md:text-sm md:shadow-md ${heroTheme.headerNextLevel}`}
               >
                 下一關
-                <ChevronRight size={18} strokeWidth={2.5} />
+                <ChevronRight size={14} strokeWidth={2.5} className="sm:h-4 sm:w-4 md:h-[18px] md:w-[18px]" />
               </button>
             )}
             <button
               type="button"
               onClick={onRestart}
-              className="rounded-2xl bg-slate-800 p-3 text-slate-300 transition-all hover:bg-slate-700 active:scale-95"
+              className="rounded-lg bg-slate-800 p-1.5 text-slate-300 transition-all hover:bg-slate-700 active:scale-95 sm:rounded-xl sm:p-2 md:rounded-2xl md:p-2.5"
               title="重新開始"
             >
-              <RefreshCw size={20} />
+              <RefreshCw size={16} className="sm:h-[18px] sm:w-[18px] md:h-5 md:w-5" />
             </button>
           </div>
         </div>
 
         {telegraphPanel != null && (
-          <div className="flex min-h-[3.75rem] min-w-0 flex-1 flex-col">{telegraphPanel}</div>
+          <div className="flex min-h-[2.4rem] min-w-0 flex-1 flex-col sm:min-h-[2.55rem] md:min-h-[2.75rem]">{telegraphPanel}</div>
         )}
       </motion.div>
     </div>
@@ -295,7 +295,7 @@ const MEDAL_ORDER: { key: Medal; pct: (t: MedalThresholds) => number }[] = [
 ];
 
 /** 進度條下方：地雷格數與勳章刻度 % 同字級，易讀 */
-const BAR_FOOTER_TEXT = 'text-sm font-black tabular-nums leading-tight sm:text-base';
+const BAR_FOOTER_TEXT = 'text-[10px] font-black tabular-nums leading-tight sm:text-xs md:text-sm';
 
 function MedalThresholdProgressBar({
   valuePercentage,
@@ -318,7 +318,7 @@ function MedalThresholdProgressBar({
   return (
     <div className="w-full min-w-0">
       <div className="relative w-full">
-        <div className="relative h-2.5 w-full">
+        <div className="relative h-1.5 w-full sm:h-2">
           <div className="h-full w-full overflow-hidden rounded-full bg-slate-800/90 ring-1 ring-slate-700/40">
             <div
               className={`h-full max-w-full rounded-full transition-[width] duration-300 ease-out ${barFillClass} ${barGlowClass ?? ''}`}
@@ -339,7 +339,7 @@ function MedalThresholdProgressBar({
                 aria-hidden
               >
                 <div
-                  className={`h-3.5 w-px rounded-full shadow-sm transition-colors ${
+                  className={`h-2.5 w-px rounded-full shadow-sm transition-colors sm:h-3 ${
                     passed ? tone.tickOn : tone.tickOff
                   } ${isActive && passed ? 'opacity-100 ring-1 ring-white/30' : ''}`}
                 />
@@ -347,7 +347,7 @@ function MedalThresholdProgressBar({
             );
           })}
         </div>
-        <div className="relative mt-1.5 min-h-6 w-full sm:min-h-7">
+        <div className="relative mt-0.5 min-h-[1.05rem] w-full sm:mt-1 sm:min-h-5 md:min-h-6">
           {mineLine != null ? (
             <span
               className={`pointer-events-none absolute left-0 top-0 z-[1] max-w-[min(14rem,52%)] truncate ${BAR_FOOTER_TEXT} text-slate-400 sm:max-w-[48%]`}

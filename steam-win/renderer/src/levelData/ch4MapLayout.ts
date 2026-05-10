@@ -34,17 +34,19 @@ function seededForbiddenCells(seed: string, width: number, height: number, count
   return cells.slice(0, Math.min(count, cells.length));
 }
 
-/** 第四章三角／蜂巢占位：每關總格數 70～100（寬×高），每 10 關循環 */
-const CH4_TRIANGLE_LAYOUTS: { width: number; height: number }[] = [
-  { width: 8, height: 9 },
-  { width: 9, height: 9 },
-  { width: 10, height: 8 },
-  { width: 8, height: 10 },
-  { width: 9, height: 10 },
-  { width: 10, height: 9 },
-  { width: 7, height: 10 },
+/**
+ * 第四章蜂巢占位矩形（與外置 maps/4_1～4_8 的 placeholder 一致；實際可玩格見各檔 forbidden）。
+ */
+const CH4_HEX_PLACEHOLDER_LAYOUTS: { width: number; height: number }[] = [
   { width: 10, height: 5 },
-  { width: 9, height: 8 },
+  { width: 9, height: 7 },
+  { width: 10, height: 7 },
+  { width: 11, height: 7 },
+  { width: 10, height: 8 },
+  { width: 10, height: 9 },
+  { width: 11, height: 9 },
+  { width: 10, height: 10 },
+  { width: 10, height: 10 },
   { width: 10, height: 10 },
 ];
 
@@ -54,7 +56,7 @@ const CH4_TRIANGLE_LAYOUTS: { width: number; height: number }[] = [
  */
 export function buildCh4HexMapLayout(levelId: number, seed: string): MapLayout {
   const phase = levelId - 41;
-  const { width, height } = CH4_TRIANGLE_LAYOUTS[phase]!;
+  const { width, height } = CH4_HEX_PLACEHOLDER_LAYOUTS[phase]!;
   if (levelId <= 42) {
     return { type: 'HEXAGON', placeholder: { width, height } };
   }
@@ -67,32 +69,6 @@ export function buildCh4HexMapLayout(levelId: number, seed: string): MapLayout {
   const forbiddenCells = seededForbiddenCells(`${seed}-hex-terrain-cells`, width, height, nForbidden);
   return {
     type: 'HEXAGON',
-    placeholder: { width, height },
-    forbiddenCells,
-  };
-}
-
-/**
- * 31～32：完整三角鑲嵌（教學手感）。
- * 33 起：同尺寸邊界內以種子隨機挖 `forbiddenCells` 形成碎裂地形（可部署格數變少、拓撲變化）。
- *
- * 戰役 31～40 若以企劃剪影＋ `mapTheme` 外置於 `maps/{id}.json`，執行時以該檔為準；本函式仍供 `patch-ch4-triangle-levels.ts` 種子同步用。
- */
-export function buildCh4TriangleMapLayout(levelId: number, seed: string): MapLayout {
-  const phase = ((levelId - 31) % 10 + 10) % 10;
-  const { width, height } = CH4_TRIANGLE_LAYOUTS[phase]!;
-  if (levelId <= 32) {
-    return { type: 'TRIANGLE', placeholder: { width, height } };
-  }
-  const area = width * height;
-  const roll = mulberry32(hashSeed(`${seed}-terrain-n`))();
-  const frac = 0.12 + roll * 0.14;
-  let nForbidden = Math.floor(area * frac);
-  const maxF = Math.max(6, Math.floor(area * 0.32));
-  nForbidden = Math.min(Math.max(nForbidden, 6), maxF);
-  const forbiddenCells = seededForbiddenCells(`${seed}-terrain-cells`, width, height, nForbidden);
-  return {
-    type: 'TRIANGLE',
     placeholder: { width, height },
     forbiddenCells,
   };

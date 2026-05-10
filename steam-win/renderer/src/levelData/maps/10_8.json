@@ -1,0 +1,27 @@
+{
+  "mapLayout": {
+    "type": "SQUARE",
+    "width": 12,
+    "height": 10,
+    "forbiddenCells": [
+      [
+        5,
+        4
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        5,
+        6
+      ]
+    ]
+  },
+  "mapTheme": "鑽石邊",
+  "gridStats": {
+    "totalCells": 120,
+    "forbiddenCellCount": 3,
+    "playableCells": 117
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "mapLayout": {
+    "type": "SQUARE",
+    "width": 7,
+    "height": 7
+  },
+  "mapTheme": "中級訓練場",
+  "gridStats": {
+    "totalCells": 49,
+    "forbiddenCellCount": 0,
+    "playableCells": 49
+  }
+}

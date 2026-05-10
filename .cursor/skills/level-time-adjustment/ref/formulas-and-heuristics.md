@@ -1,5 +1,26 @@
 # TimeLimit 公式與估算
 
+## 第 1～2 章：依可玩格的固定偏移（專案約定）
+
+「格子數」指外置地圖 `steam-win/renderer/src/levelData/maps/{mapRef}.json` 內 `gridStats.playableCells`（與 `totalCells − forbiddenCellCount` 一致）。改 `mapLayout`／`forbiddenCells` 後若需重算摘要，可執行 repo 內 `node scripts/patch-map-grid-stats.mjs`。
+
+| 範圍 | `mapRef` | `levelId` | `timeLimit` |
+|------|----------|-----------|-------------|
+| 第一章（節選） | `1_3`～`1_8` | 3～8 | **`playableCells + 5`** |
+| 第二章 | `2_1`～`2_8` | 9～16 | **`playableCells + 2`** |
+
+**未套用本表者**：`1_1`、`1_2`（levelId 1、2）維持 `levels.json` 手調秒數，不強制符合上式。
+
+套用時同步編輯 `steam-win/renderer/src/levelData/levels.json` 對應筆的 `timeLimit`（正整數）。
+
+## 第 3～10 章：格子數即秒數（專案約定）
+
+| 範圍 | `mapRef` | `levelId`（現行戰役） | `timeLimit` |
+|------|----------|----------------------|-------------|
+| 第三～十章 | `3_1`～`10_8` | 17～80 | **`playableCells`**（與可玩格 1:1） |
+
+改動地圖後請以 `maps/{mapRef}.json` 的 `gridStats.playableCells` 為準更新 `levels.json`；亦可對 `chapter >= 3` 的關卡批次讀圖重算 `timeLimit`。
+
 ## 核心公式
 
 ```text

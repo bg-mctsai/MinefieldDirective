@@ -590,5 +590,10 @@
       ]
     ]
   },
-  "mapTheme": "寬軌三叉口"
+  "mapTheme": "寬軌三叉口",
+  "gridStats": {
+    "totalCells": 225,
+    "forbiddenCellCount": 146,
+    "playableCells": 79
+  }
 }

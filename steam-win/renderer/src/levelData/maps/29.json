@@ -146,5 +146,10 @@
       ]
     ]
   },
-  "mapTheme": "折閃曼幹線"
+  "mapTheme": "折閃曼幹線",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 35,
+    "playableCells": 109
+  }
 }

@@ -1,6 +1,6 @@
 {
   "mapLayout": {
-    "type": "TRIANGLE",
+    "type": "HEXAGON",
     "placeholder": {
       "width": 11,
       "height": 12
@@ -212,5 +212,10 @@
       ]
     ]
   },
-  "mapTheme": "珊瑚枝"
+  "mapTheme": "珊瑚枝",
+  "gridStats": {
+    "totalCells": 132,
+    "forbiddenCellCount": 51,
+    "playableCells": 81
+  }
 }

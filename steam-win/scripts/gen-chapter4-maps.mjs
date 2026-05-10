@@ -1,6 +1,6 @@
 /**
- * 第四章 maps/31～40.json：TRIANGLE + placeholder + forbiddenCells + mapTheme。
- * 尺寸階梯與 `ch4MapLayout.ts` 的 CH4_TRIANGLE_LAYOUTS 一致。
+ * 第四章 maps/31～40.json：HEXAGON + placeholder + forbiddenCells + mapTheme。
+ * 尺寸階梯與 `ch4MapLayout.ts` 的 CH4_HEX_PLACEHOLDER_LAYOUTS 對照用（本檔內建教學關專用較小矩形）。
  * 執行：node scripts/gen-chapter4-maps.mjs（cwd = steam-win）
  */
 import fs from 'node:fs';
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MAPS_DIR = path.resolve(__dirname, '../renderer/src/levelData/maps');
 
-const CH4_TRIANGLE_LAYOUTS = [
+const CH4_HEX_PLACEHOLDER_LAYOUTS = [
   { width: 8, height: 9 },
   { width: 9, height: 9 },
   { width: 10, height: 8 },
@@ -204,7 +204,7 @@ const LEVELS = [
 for (let i = 0; i < LEVELS.length; i++) {
   const L = LEVELS[i];
   const id = L.id;
-  const { width: W, height: H } = CH4_TRIANGLE_LAYOUTS[i];
+  const { width: W, height: H } = CH4_HEX_PLACEHOLDER_LAYOUTS[i];
   const playable = L.playable({ W, H });
   const forbidden = forbiddenFromPlayable(W, H, playable);
   const n = playable.size;
@@ -212,11 +212,11 @@ for (let i = 0; i < LEVELS.length; i++) {
   const k = 1.12;
   const time = Math.max(58 + (id - 31) * 8, Math.round(n * cov * k), 55);
   const mapLayout = {
-    type: 'TRIANGLE',
+    type: 'HEXAGON',
     placeholder: { width: W, height: H },
     forbiddenCells: forbidden,
   };
   const outPath = path.join(MAPS_DIR, `${id}.json`);
   fs.writeFileSync(outPath, `${JSON.stringify({ mapLayout, mapTheme: L.theme }, null, 2)}\n`, 'utf8');
-  console.log(`L${id} TRIANGLE ${W}×${H} playable=${n} forbidden=${forbidden.length} time~${time} ${L.theme}`);
+  console.log(`L${id} HEXAGON ${W}×${H} playable=${n} forbidden=${forbidden.length} time~${time} ${L.theme}`);
 }

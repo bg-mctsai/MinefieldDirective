@@ -222,5 +222,10 @@
       ]
     ]
   },
-  "mapTheme": "章末鑽邊"
+  "mapTheme": "章末鑽邊",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 54,
+    "playableCells": 90
+  }
 }

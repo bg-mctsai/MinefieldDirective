@@ -144,5 +144,10 @@
       ]
     ]
   },
-  "mapTheme": "蜂巢王冠"
+  "mapTheme": "蜂巢王冠",
+  "gridStats": {
+    "totalCells": 120,
+    "forbiddenCellCount": 34,
+    "playableCells": 86
+  }
 }

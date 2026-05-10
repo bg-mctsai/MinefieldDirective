@@ -266,5 +266,10 @@
       ]
     ]
   },
-  "mapTheme": "終章盤炸"
+  "mapTheme": "終章盤炸",
+  "gridStats": {
+    "totalCells": 165,
+    "forbiddenCellCount": 65,
+    "playableCells": 100
+  }
 }

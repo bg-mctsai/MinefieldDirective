@@ -1,6 +1,22 @@
 /** 邏輯敗北時「違規連鎖」地雷：逐一引爆的序列與畫面階段 */
 
-export type LossChainPhase = 'none' | 'live' | 'popping' | 'dead';
+export type LossChainPhase = 'none' | 'popping' | 'dead';
+
+/** 當 findForced 鄰域標記為空時，用盤上已揭示雷做逐一引爆序列（蜂巢／高禁佈時較常觸發） */
+export function fallbackLossExplosionCellsFromRevealedKeys(
+  revealedMineKeys: ReadonlySet<string>,
+  origin: { x: number; y: number },
+): { x: number; y: number }[] {
+  const coords: { x: number; y: number }[] = [];
+  for (const k of revealedMineKeys) {
+    const comma = k.indexOf(',');
+    const nx = Number(k.slice(0, comma));
+    const ny = Number(k.slice(comma + 1));
+    if (!Number.isFinite(nx) || !Number.isFinite(ny)) continue;
+    coords.push({ x: nx, y: ny });
+  }
+  return coords;
+}
 
 export function sortLossExplosionCells(
   cells: { x: number; y: number }[],
@@ -43,8 +59,9 @@ export function lossChainPhaseForKey(
 ): LossChainPhase {
   const i = seq.indexOf(cellKey);
   if (i < 0) return 'none';
-  if (waveIndex < 0) return 'live';
+  // 未開播／尚未輪到：維持一般紅雷外觀（勿整排一起變淡紅，蜂巢特別明顯）
+  if (waveIndex < 0) return 'none';
   if (i < waveIndex) return 'dead';
   if (i === waveIndex) return 'popping';
-  return 'live';
+  return 'none';
 }

@@ -2,7 +2,6 @@ import type { GridSystem } from '../levelData/types';
 
 /** gridSystem → 指令數字上限 */
 export function maxDigitForGrid(gs: GridSystem): number {
-  if (gs === 'TRIANGLE') return 3;
   if (gs === 'HEXAGON') return 6;
   return 8;
 }

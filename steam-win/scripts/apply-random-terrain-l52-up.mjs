@@ -116,21 +116,16 @@ for (const L of j.levels) {
       ...(ml.prePlaced ? { prePlaced: ml.prePlaced } : {}),
       forbiddenCells: fc,
     });
-  } else if (ml.type === 'TRIANGLE' || ml.type === 'HEXAGON') {
+  } else if (ml.type === 'HEXAGON') {
     const { width: w, height: h } = ml.placeholder;
     const area = w * h;
-    const tag = ml.type === 'HEXAGON' ? 'hex' : 'tri';
-    const rollN = mulberry32(hashSeed(`${seed}-${tag}-terrain-n`))();
+    const rollN = mulberry32(hashSeed(`${seed}-hex-terrain-n`))();
     const frac = 0.12 + rollN * 0.14;
     let n = Math.floor(area * frac);
     const maxF = Math.max(6, Math.floor(area * 0.32));
     n = Math.min(Math.max(n, 6), maxF);
-    const fc = shufflePickCoords(`${seed}-${tag}-terrain-cells`, w, h, n, prot);
-    if (ml.type === 'TRIANGLE') {
-      setMapLayout(L, { type: 'TRIANGLE', placeholder: { width: w, height: h }, forbiddenCells: fc });
-    } else {
-      setMapLayout(L, { type: 'HEXAGON', placeholder: { width: w, height: h }, forbiddenCells: fc });
-    }
+    const fc = shufflePickCoords(`${seed}-hex-terrain-cells`, w, h, n, prot);
+    setMapLayout(L, { type: 'HEXAGON', placeholder: { width: w, height: h }, forbiddenCells: fc });
   }
 }
 

@@ -1,0 +1,35 @@
+{
+  "mapLayout": {
+    "type": "SQUARE",
+    "width": 12,
+    "height": 12,
+    "forbiddenCells": [
+      [
+        6,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        6
+      ],
+      [
+        7,
+        6
+      ],
+      [
+        6,
+        7
+      ]
+    ]
+  },
+  "mapTheme": "乾谷五穴",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 5,
+    "playableCells": 139
+  }
+}

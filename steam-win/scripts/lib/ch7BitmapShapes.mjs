@@ -16,7 +16,7 @@ export const CH7_SHAPES = {
     '.########.',
     '..######..',
   ]},
-  62: { W: 12, H: 10, grid: 'TRIANGLE', theme: '雷達碟', rows: [
+  62: { W: 12, H: 10, grid: 'HEXAGON', theme: '雷達碟', rows: [
     '..########..',
     '.##########.',
     '############',
@@ -53,7 +53,7 @@ export const CH7_SHAPES = {
     '.####..####.',
     '.####..####.',
   ]},
-  65: { W: 11, H: 12, grid: 'TRIANGLE', theme: '干擾錐', rows: [
+  65: { W: 11, H: 12, grid: 'HEXAGON', theme: '干擾錐', rows: [
     '.....#.....',
     '....###....',
     '...#####...',
@@ -80,7 +80,7 @@ export const CH7_SHAPES = {
     '.#########.',
     '..#######..',
   ]},
-  67: { W: 12, H: 10, grid: 'TRIANGLE', theme: '折射稜鏡', rows: [
+  67: { W: 12, H: 10, grid: 'HEXAGON', theme: '折射稜鏡', rows: [
     '....####....',
     '...######...',
     '..########..',

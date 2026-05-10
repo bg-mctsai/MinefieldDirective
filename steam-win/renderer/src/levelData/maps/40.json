@@ -1,6 +1,6 @@
 {
   "mapLayout": {
-    "type": "TRIANGLE",
+    "type": "HEXAGON",
     "placeholder": {
       "width": 10,
       "height": 10
@@ -120,5 +120,10 @@
       ]
     ]
   },
-  "mapTheme": "章末方環"
+  "mapTheme": "章末方環",
+  "gridStats": {
+    "totalCells": 100,
+    "forbiddenCellCount": 28,
+    "playableCells": 72
+  }
 }

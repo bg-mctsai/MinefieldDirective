@@ -1,0 +1,30 @@
+{
+  "mapLayout": {
+    "type": "SQUARE",
+    "width": 11,
+    "height": 11,
+    "forbiddenCells": [
+      [0, 3],
+      [0, 4],
+      [0, 5],
+      [0, 6],
+      [0, 7],
+      [10, 3],
+      [10, 4],
+      [10, 5],
+      [10, 6],
+      [10, 7],
+      [3, 5],
+      [4, 5],
+      [5, 5],
+      [6, 5],
+      [7, 5]
+    ]
+  },
+  "mapTheme": "雙峰",
+  "gridStats": {
+    "totalCells": 121,
+    "forbiddenCellCount": 15,
+    "playableCells": 106
+  }
+}

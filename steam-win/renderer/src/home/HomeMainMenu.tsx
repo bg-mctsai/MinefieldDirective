@@ -26,7 +26,7 @@ export function HomeMainMenu({
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.12, duration: 0.45 }}
-      className="flex flex-col gap-5 lg:col-span-3"
+      className="order-1 flex flex-col gap-5 lg:order-none lg:col-span-3"
       aria-label="主選單"
     >
       <motion.button

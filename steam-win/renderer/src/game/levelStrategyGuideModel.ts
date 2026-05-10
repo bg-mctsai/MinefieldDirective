@@ -7,7 +7,7 @@ const CHAPTER_NAMES = [
   '新兵訓練',
   '巷戰封鎖線',
   '乾谷據點',
-  '三角高地',
+  '蜂格前哨',
   '蜂巢防線',
   '深海要塞',
   '信號干擾區',
@@ -25,8 +25,6 @@ function neighborLogicLine(grid: GridSystem): string {
   switch (grid) {
     case 'HEXAGON':
       return '蜂巢戰區：數字＝六邊形邊相接之鄰格內地雷數（邊界或空格區旁有效鄰格少於 6）。';
-    case 'TRIANGLE':
-      return '三角鑲嵌：數字＝共用邊的鄰格內地雷數；內格最多 3 鄰、邊界 1～2 鄰，故線索與電報數字皆不超過 3。';
     case 'MIXED':
       return '複合戰區由多區併成；每格數字仍表示其周圍有效鄰格內的地雷總數（依目前 solver 為 8 鄰接）。';
     default:
@@ -36,7 +34,6 @@ function neighborLogicLine(grid: GridSystem): string {
 
 function forbiddenCount(layout: MapLayout): number | null {
   if (layout.type === 'SQUARE' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
-  if (layout.type === 'TRIANGLE' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
   if (layout.type === 'HEXAGON' && layout.forbiddenCells?.length) return layout.forbiddenCells.length;
   return null;
 }
@@ -89,10 +86,8 @@ export function buildLevelStrategyGuideModel(
     briefingSummaryLines,
     eventsLines: ['無'],
     logicNeighborLine:
-      d.chapter === 4 && d.levelId >= 33 && d.mapLayout.type === 'TRIANGLE' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
-        ? `${neighborLogicLine(d.gridSystem)} 本關起含種子隨機地形格（不可佈署），邊界形狀會影響可走的三角拓撲。`
-        : d.mapLayout.type === 'HEXAGON' && (d.mapLayout.forbiddenCells?.length ?? 0) > 0
-          ? `${neighborLogicLine(d.gridSystem)} 本關含種子隨機空格區域（不可佈署）。`
-          : neighborLogicLine(d.gridSystem),
+      (d.mapLayout.type === 'HEXAGON' || d.mapLayout.type === 'SQUARE') && (forbidden ?? 0) > 0
+        ? `${neighborLogicLine(d.gridSystem)} 本關含種子隨機空格區域（不可佈署）。`
+        : neighborLogicLine(d.gridSystem),
   };
 }

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Home, Map as MapIcon } from 'lucide-react';
 import { LEVELS, type Level } from './gameLogic';
 import { TerminalBackdrop } from './ui/TerminalBackdrop';
-import { getAllBestMedals, isLevelUnlocked, LEVEL_MAX } from './game/gameProgressStorage';
+import { getAllBestMedals, isLevelUnlocked, nextPlayableLevelKey } from './game/gameProgressStorage';
 import { chapterCampaignTagline } from './game/levelStrategyGuideModel';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './game/chapterStage';
 import missionChapterBlurbs from './missionMapChapterBlurbs.json';
@@ -121,30 +121,31 @@ function chapterSelectBlurb(chapter: number): string {
   return normalizeChapterBlurb(CHAPTER_BLURBS[String(chapter)]);
 }
 
-function nextPlayableChapter(highestClearedLevel: number): number | undefined {
-  const nextId = Math.min(LEVEL_MAX, Math.max(1, highestClearedLevel + 1));
-  return LEVELS.find((l) => l.id === nextId)?.definition.chapter;
+function nextPlayableChapter(clearedLevelKeys: string[]): number | undefined {
+  const nextKey = nextPlayableLevelKey(clearedLevelKeys, LEVELS.map((l) => l.levelKey));
+  return LEVELS.find((l) => l.levelKey === nextKey)?.definition.chapter;
 }
 
 /** 該章最後一關已通關（整章完成）→ 卷宗列表縮略顯示 */
-function isChapterFullyCleared(rows: { levelId: number }[], highestClearedLevel: number): boolean {
+function isChapterFullyCleared(rows: { levelKey: string }[], clearedLevelKeys: Set<string>): boolean {
   if (rows.length === 0) return false;
-  return rows[rows.length - 1]!.levelId <= highestClearedLevel;
+  return rows.every((r) => clearedLevelKeys.has(r.levelKey));
 }
 
 /**
  * 進入本章作戰地圖時預選關卡：優先主線「下一關」落在本章；否則本章首個未通關；已全通則本章最後一關。
  */
 function initialProgressLevelIdInChapter(
-  rows: { levelId: number }[],
-  highestClearedLevel: number,
-): number | null {
+  rows: { levelKey: string }[],
+  clearedLevelKeys: Set<string>,
+  orderedLevelKeys: string[],
+): string | null {
   if (rows.length === 0) return null;
-  const nextPlayableId = Math.min(LEVEL_MAX, Math.max(1, highestClearedLevel + 1));
-  if (rows.some((r) => r.levelId === nextPlayableId)) return nextPlayableId;
-  const firstUncleared = rows.find((r) => r.levelId > highestClearedLevel);
-  if (firstUncleared) return firstUncleared.levelId;
-  return rows[rows.length - 1]!.levelId;
+  const nextPlayable = nextPlayableLevelKey([...clearedLevelKeys], orderedLevelKeys);
+  if (nextPlayable && rows.some((r) => r.levelKey === nextPlayable)) return nextPlayable;
+  const firstUncleared = rows.find((r) => !clearedLevelKeys.has(r.levelKey));
+  if (firstUncleared) return firstUncleared.levelKey;
+  return rows[rows.length - 1]!.levelKey;
 }
 
 type Phase = 'pickChapter' | 'pickLevel';
@@ -230,14 +231,14 @@ function missionMapHudTelemetry(chapter: number) {
 export default function MissionMap({
   onBack,
   onStart,
-  highestClearedLevel,
+  clearedLevelKeys,
   scrollRestoreYRef,
   initialOpenChapter = null,
   devMissionChapterUnlockToggle,
 }: {
   onBack: () => void;
   onStart: (levelIndex: number) => void;
-  highestClearedLevel: number;
+  clearedLevelKeys: string[];
   scrollRestoreYRef: MutableRefObject<number>;
   /** 非 null 時一進作戰地圖即顯示該章關卡列表（例如從對局返回） */
   initialOpenChapter?: number | null;
@@ -249,24 +250,26 @@ export default function MissionMap({
 }) {
   useBgmChannel('mission');
   const chapters = useMemo(() => {
-    const byChapter = new Map<number, { idx: number; levelId: number }[]>();
+    const byChapter = new Map<number, { idx: number; levelId: number; levelKey: string; stage: number }[]>();
     for (let idx = 0; idx < LEVELS.length; idx += 1) {
       const lv = LEVELS[idx];
       const ch = lv.definition.chapter;
       if (!Number.isFinite(ch)) continue;
       const list = byChapter.get(ch) ?? [];
-      list.push({ idx, levelId: lv.id });
+      list.push({ idx, levelId: lv.id, levelKey: lv.levelKey, stage: lv.stage });
       byChapter.set(ch, list);
     }
     for (const list of byChapter.values()) {
-      list.sort((a, b) => a.levelId - b.levelId);
+      list.sort((a, b) => a.stage - b.stage);
     }
     return [...byChapter.entries()].sort((a, b) => a[0] - b[0]);
   }, []);
 
   const bestMedalByLevel = useMemo(() => getAllBestMedals(), []);
 
-  const hintChapter = useMemo(() => nextPlayableChapter(highestClearedLevel), [highestClearedLevel]);
+  const clearedLevelKeySet = useMemo(() => new Set(clearedLevelKeys), [clearedLevelKeys]);
+  const orderedLevelKeys = useMemo(() => LEVELS.map((l) => l.levelKey), []);
+  const hintChapter = useMemo(() => nextPlayableChapter(clearedLevelKeys), [clearedLevelKeys]);
 
   const resolvedInitialChapter = useMemo(() => {
     if (initialOpenChapter == null || !Number.isFinite(initialOpenChapter)) return null;
@@ -281,7 +284,7 @@ export default function MissionMap({
   const [pendingChapter, setPendingChapter] = useState<number | null>(null);
   const pendingTimerRef = useRef<number | null>(null);
   /** 點選六角後於地圖下方顯示戰情摘要 */
-  const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+  const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
   /** 雙擊進場前短閃回饋（僅 1 個節點） */
   const [confirmFlashLevelId, setConfirmFlashLevelId] = useState<number | null>(null);
   const enterStartTimerRef = useRef<number | null>(null);
@@ -389,7 +392,7 @@ export default function MissionMap({
   /** 底圖色票／地形相位：跟隨目前選中關卡，確保每關視覺不同 */
   const chapterBackdropLevelId = useMemo(() => {
     if (openedChapter == null) return 1;
-    if (selectedLevelId != null) return selectedLevelId;
+    if (selectedLevelId != null) return LEVELS.find((l) => l.levelKey === selectedLevelId)?.id ?? 1;
     return activeLevels[0]?.levelId ?? 1;
   }, [openedChapter, activeLevels, selectedLevelId]);
 
@@ -403,7 +406,7 @@ export default function MissionMap({
     }
     const routePoints = activeLevels.map((row) => {
       const lv = LEVELS[row.idx]!;
-      const stage = stageInChapter(lv.id, openedChapter);
+      const stage = stageInChapter(lv.stage);
       return missionMapTacticalNodePct(openedChapter, stage, lv);
     });
     const focalLv = LEVELS.find((l) => l.id === chapterBackdropLevelId) ?? LEVELS[activeLevels[0]!.idx]!;
@@ -446,8 +449,8 @@ export default function MissionMap({
       return;
     }
     const rows = chapters.find(([c]) => c === openedChapter)?.[1] ?? [];
-    setSelectedLevelId(initialProgressLevelIdInChapter(rows, highestClearedLevel));
-  }, [openedChapter, chapters, highestClearedLevel]);
+    setSelectedLevelId(initialProgressLevelIdInChapter(rows, clearedLevelKeySet, orderedLevelKeys));
+  }, [openedChapter, chapters, clearedLevelKeySet, orderedLevelKeys]);
   useEffect(() => {
     setIsMapDragging(false);
     mapDragRef.current = null;
@@ -573,6 +576,10 @@ export default function MissionMap({
 
   useEffect(
     () => () => {
+      if (pendingTimerRef.current != null) {
+        window.clearTimeout(pendingTimerRef.current);
+        pendingTimerRef.current = null;
+      }
       if (enterStartTimerRef.current != null) window.clearTimeout(enterStartTimerRef.current);
       if (confirmFlashClearTimerRef.current != null) {
         window.clearTimeout(confirmFlashClearTimerRef.current);
@@ -601,17 +608,17 @@ export default function MissionMap({
 
   const dockedBriefProps = useMemo(() => {
     if (selectedLevelId == null || openedChapter == null) return null;
-    const row = activeLevels.find((r) => r.levelId === selectedLevelId);
+    const row = activeLevels.find((r) => r.levelKey === selectedLevelId);
     if (!row) return null;
     const lv = LEVELS[row.idx]!;
     const chapter = openedChapter;
-    const stage = stageInChapter(lv.id, chapter);
-    const unlocked = isLevelUnlocked(lv.id, highestClearedLevel);
-    const cleared = lv.id <= highestClearedLevel;
+    const stage = stageInChapter(lv.stage);
+    const unlocked = isLevelUnlocked(lv.levelKey, clearedLevelKeys, orderedLevelKeys);
+    const cleared = clearedLevelKeySet.has(lv.levelKey);
     const inProgress =
       !cleared &&
       hintChapter === chapter &&
-      lv.id === Math.min(LEVEL_MAX, highestClearedLevel + 1);
+      nextPlayableLevelKey(clearedLevelKeys, orderedLevelKeys) === lv.levelKey;
     const tone: LevelProgressTone = cleared ? 'cleared' : inProgress ? 'inProgress' : 'new';
     return {
       chapterView: chapter,
@@ -625,13 +632,13 @@ export default function MissionMap({
       heading: missionBriefDockHeading(lv),
       onStart: () => onStart(row.idx),
     };
-  }, [selectedLevelId, openedChapter, activeLevels, highestClearedLevel, hintChapter, onStart]);
+  }, [selectedLevelId, openedChapter, activeLevels, clearedLevelKeys, orderedLevelKeys, clearedLevelKeySet, hintChapter, onStart]);
   const selectedLevelMapPos = useMemo(() => {
     if (selectedLevelId == null || openedChapter == null) return null;
-    const row = activeLevels.find((r) => r.levelId === selectedLevelId);
+    const row = activeLevels.find((r) => r.levelKey === selectedLevelId);
     if (!row) return null;
     const lv = LEVELS[row.idx]!;
-    const stage = stageInChapter(lv.id, openedChapter);
+    const stage = stageInChapter(lv.stage);
     return missionMapTacticalNodePct(openedChapter, stage, lv);
   }, [selectedLevelId, openedChapter, activeLevels]);
 
@@ -670,9 +677,9 @@ export default function MissionMap({
 
   const startSelectedLevelFromMap = () => {
     if (selectedLevelId == null) return;
-    const row = activeLevels.find((item) => item.levelId === selectedLevelId);
+    const row = activeLevels.find((item) => item.levelKey === selectedLevelId);
     if (!row) return;
-    if (!isLevelUnlocked(row.levelId, highestClearedLevel)) return;
+    if (!isLevelUnlocked(row.levelKey, clearedLevelKeys, orderedLevelKeys)) return;
     triggerEnterFeedbackAndStart(row.idx, row.levelId);
   };
   const onMapPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -781,14 +788,14 @@ export default function MissionMap({
                     const hasData = rows != null && rows.length > 0;
                     const chapterUnlocked =
                       hasData && rows.length > 0
-                        ? isLevelUnlocked(rows[0]!.levelId, highestClearedLevel)
+                        ? isLevelUnlocked(rows[0]!.levelKey, clearedLevelKeys, orderedLevelKeys)
                         : false;
 
                     if (!hasData || !chapterUnlocked) {
                       return null;
                     }
 
-                    const collapsed = isChapterFullyCleared(rows, highestClearedLevel);
+                    const collapsed = isChapterFullyCleared(rows, clearedLevelKeySet);
 
                     return (
                       <BriefingFolderCard
@@ -1065,14 +1072,14 @@ export default function MissionMap({
                             {activeLevels.map((row) => {
                               const lv = LEVELS[row.idx]!;
                               const chapter = openedChapter;
-                              const stage = stageInChapter(lv.id, chapter);
+                              const stage = stageInChapter(lv.stage);
                               const pos = missionMapTacticalNodePct(chapter, stage, lv);
-                              const unlocked = isLevelUnlocked(lv.id, highestClearedLevel);
-                              const cleared = lv.id <= highestClearedLevel;
+                              const unlocked = isLevelUnlocked(lv.levelKey, clearedLevelKeys, orderedLevelKeys);
+                              const cleared = clearedLevelKeySet.has(lv.levelKey);
                               const inProgress =
                                 !cleared &&
                                 hintChapter === chapter &&
-                                lv.id === Math.min(LEVEL_MAX, highestClearedLevel + 1);
+                                nextPlayableLevelKey(clearedLevelKeys, orderedLevelKeys) === lv.levelKey;
                               const inProgressVisual = inProgress && stage !== 1;
                               return (
                                 <MissionChapterHexNode
@@ -1081,25 +1088,25 @@ export default function MissionMap({
                                   stage={stage}
                                   xPct={pos.x}
                                   yPct={pos.y}
-                                  selected={selectedLevelId === lv.id}
+                                  selected={selectedLevelId === lv.levelKey}
                                   cleared={cleared}
                                   inProgress={inProgressVisual}
                                   locked={!unlocked}
                                   isBoss={stage === LEVELS_PER_CHAPTER}
                                   onSelect={() =>
                                     setSelectedLevelId((cur) => {
-                                      const next = cur === lv.id ? null : lv.id;
+                                      const next = cur === lv.levelKey ? null : lv.levelKey;
                                       if (next !== cur) emit('ui.select.change');
                                       return next;
                                     })
                                   }
                                   onDoubleClick={() => {
                                     if (!unlocked) return;
-                                    setSelectedLevelId(lv.id);
+                                    setSelectedLevelId(lv.levelKey);
                                     triggerEnterFeedbackAndStart(row.idx, lv.id);
                                   }}
                                   confirmFlash={confirmFlashLevelId === lv.id}
-                                  bestMedal={bestMedalByLevel[lv.id] ?? null}
+                                  bestMedal={bestMedalByLevel[lv.levelKey] ?? null}
                                 />
                               );
                             })}

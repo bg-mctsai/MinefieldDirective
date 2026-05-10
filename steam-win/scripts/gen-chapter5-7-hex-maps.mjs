@@ -1,13 +1,13 @@
 /**
  * 第 5～7 章 maps/41～70.json：HEXAGON + placeholder + forbiddenCells + mapTheme。
- * 尺寸階梯同 ch4MapLayout CH4_TRIANGLE_LAYOUTS；第 6、7 章 layout 相位與第 5 章錯開。
+ * 尺寸階梯同 ch4MapLayout CH4_HEX_PLACEHOLDER_LAYOUTS；第 6、7 章 layout 相位與第 5 章錯開。
  * 執行（cwd = steam-win）：node scripts/gen-chapter5-7-hex-maps.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  CH4_TRIANGLE_LAYOUTS,
+  CH4_HEX_PLACEHOLDER_LAYOUTS,
   forbiddenFromPlayable,
   fullBoard,
   key,
@@ -217,7 +217,7 @@ for (let id = 41; id <= 70; id++) {
     grid = shape.grid ?? 'HEXAGON';
   } else {
     const { li, full, sil } = layoutIndexAndSil(id);
-    ({ width: W, height: H } = CH4_TRIANGLE_LAYOUTS[li]);
+    ({ width: W, height: H } = CH4_HEX_PLACEHOLDER_LAYOUTS[li]);
     playable = full ? fullBoard(W, H) : silhouettePlayable(sil, W, H);
     grid = 'HEXAGON';
   }
@@ -234,11 +234,8 @@ for (let id = 41; id <= 70; id++) {
   const outPath = path.join(MAPS_DIR, `${id}.json`);
   fs.writeFileSync(outPath, `${JSON.stringify({ mapLayout, mapTheme: themeFor(id) }, null, 2)}\n`, 'utf8');
 
-  const lv = levelsDoc.levels.find((l) => l.levelId === id);
-  if (lv && lv.gridSystem !== grid) lv.gridSystem = grid;
-
   console.log(`L${id} ${grid} ${W}×${H} playable=${n} forbidden=${forbidden.length} time~${time} ${themeFor(id)}`);
 }
 
 fs.writeFileSync(LEVELS_PATH, `${JSON.stringify(levelsDoc, null, 2)}\n`, 'utf8');
-console.log('\ngridSystem synced → levels.json');
+console.log('\nlevels.json maps updated（gridSystem 由 map 推導）');

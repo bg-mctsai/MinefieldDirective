@@ -3,9 +3,9 @@
  * 調整 coverageGoal、timeLimit、weights 等即可改難度與體驗。
  */
 
-export type GridSystem = 'SQUARE' | 'HEXAGON' | 'TRIANGLE' | 'MIXED';
+export type GridSystem = 'SQUARE' | 'HEXAGON' | 'MIXED';
 
-export type MapLayoutType = 'SQUARE' | 'MIXED' | 'CROSS' | 'DIAMOND' | 'TRIANGLE' | 'HEXAGON';
+export type MapLayoutType = 'SQUARE' | 'MIXED' | 'CROSS' | 'DIAMOND' | 'HEXAGON';
 
 export type SquareMapLayout = {
   type: 'SQUARE';
@@ -17,7 +17,7 @@ export type SquareMapLayout = {
 
 export type MixedSector = {
   id: string;
-  shape: 'SQUARE' | 'HEXAGON' | 'TRIANGLE';
+  shape: 'SQUARE' | 'HEXAGON';
   offset: { x: number; y: number };
   size: [number, number];
 };
@@ -41,13 +41,6 @@ export type DiamondMapLayout = {
   radius: number;
 };
 
-/** 三角鑲嵌：索引 (x,y) 見 `triangleGrid.ts`；可選 forbidden 從矩形範圍內剔除 */
-export type TriangleMapLayout = {
-  type: 'TRIANGLE';
-  placeholder: { width: number; height: number };
-  forbiddenCells?: [number, number][];
-};
-
 export type HexagonMapLayout = {
   type: 'HEXAGON';
   /** 暫用方格替代（TODO: 六角鄰接） */
@@ -61,7 +54,6 @@ export type MapLayout =
   | MixedMapLayout
   | CrossMapLayout
   | DiamondMapLayout
-  | TriangleMapLayout
   | HexagonMapLayout;
 
 export type CommandPoolType = 'RANDOM' | 'WEIGHTED';
@@ -142,7 +134,12 @@ export type MissionTacticalBriefingMap = {
 export interface LevelDefinition {
   levelId: number;
   chapter: number;
-  title: string;
+  /** 章內序位（1-based）。未提供時由載入順序自動推導。 */
+  stage: number;
+  /** 穩定主鍵：`chapter_stage`（例：`1_8`）。 */
+  levelKey: string;
+  /** 可選；關卡名。未填時由執行時回退為 mapTheme 或「關卡 N」。 */
+  title?: string;
   gridSystem: GridSystem;
   coverageGoal: number;
   /**
@@ -204,7 +201,7 @@ export interface LevelDefinition {
   /**
    * 僅由 levels.json 此旗標控制；程式不依 chapter／levelId 推斷。
    * true 時：實際放下格子的數字 = 手牌（或干擾鎖定）底數 +「邏輯相鄰」且已有數字的鄰格數。
-   * 鄰接與 solver 一致（方格八鄰、三角／蜂巢依 gridTopology）。
+   * 鄰接與 solver 一致（方格八鄰、蜂巢六邊鄰依 gridTopology）。
    */
   neighborPlacedDigitBonus?: boolean;
   rewards: LevelRewards;
@@ -213,11 +210,17 @@ export interface LevelDefinition {
 }
 
 /**
- * 存檔用：mapLayout 可外置於 `levelData/maps/{mapRef}.json`（與內嵌 mapLayout 二擇一；併存時以內嵌為準）。
+ * 存檔用：mapLayout 可外置於 `levelData/maps/{章節}_{關卡}.json`（mapRef 與 levelKey 一致；與內嵌 mapLayout 二擇一；併存時以內嵌為準）。
  */
-export type LevelDefinitionStored = Omit<LevelDefinition, 'mapLayout' | 'mapTheme'> & {
+export type LevelDefinitionStored = Omit<
+  LevelDefinition,
+  'mapLayout' | 'mapTheme' | 'stage' | 'levelKey' | 'gridSystem'
+> & {
+  /** 可選；省略時由 mapLayout.type 推導（與外置 maps 一致） */
+  gridSystem?: GridSystem;
   mapLayout?: MapLayout;
   mapRef?: string;
+  stage?: number;
   /** 可選；僅內嵌 mapLayout 且未用 mapRef 時可寫在 levels.json（多數主題請寫入 maps 檔） */
   mapTheme?: string;
 };

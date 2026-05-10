@@ -62,7 +62,7 @@ function themeForPaint(tier: HexPaintTier): Theme {
 const HEX_D = 'M 0,-11 L 9.53,-5.5 L 9.53,5.5 L 0,11 L -9.53,5.5 L -9.53,-5.5 Z';
 const HEX_INNER = 'M 0,-6.8 L 5.9,-3.4 L 5.9,3.4 L 0,6.8 L -5.9,3.4 L -5.9,-3.4 Z';
 
-/** 戰術圖上徽章／光暈／選中框共用邊界（略小於 hit 區，青框貼圖） */
+/** 戰術圖上徽章／光暈／選中框共用邊界（命中區已收斂為徽章＋標籤外一層薄 padding） */
 const BADGE_FRAME_CLASS =
   'h-[5.65rem] w-[7.85rem] sm:h-[6.1rem] sm:w-[8.45rem]';
 
@@ -318,27 +318,30 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   }, [rasterSrc, locked]);
 
   return (
-    <button
-      type="button"
-      data-mission-hex="1"
-      onClick={onSelect}
-      onDoubleClick={onDoubleClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+    <div
+      className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2"
       style={{ left: `${xPct}%`, top: `${yPct}%` }}
-      className={`mission-hex-tactical-btn pointer-events-auto group absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded-lg border-0 bg-transparent shadow-none outline-none focus-visible:outline-none h-[11.4rem] w-[14.6rem] sm:h-[12.4rem] sm:w-[15.6rem] ${
-        locked ? 'cursor-not-allowed opacity-60' : 'hover:scale-[1.04]'
-      } p-0 transition-transform active:scale-[0.98]`}
-      aria-pressed={selected}
-      aria-label={`關卡 ${stage}${isBoss ? '（章末）' : ''}${locked ? '（鎖定）' : ''}`}
     >
+      <button
+        type="button"
+        data-mission-hex="1"
+        onClick={onSelect}
+        onDoubleClick={onDoubleClick}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        className={`mission-hex-tactical-btn pointer-events-auto group relative mx-auto inline-flex max-w-[min(100%,10.5rem)] flex-col items-center justify-center rounded-lg border-0 bg-transparent px-2 py-2 shadow-none outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 sm:max-w-[min(100%,11.25rem)] ${
+          locked ? 'cursor-not-allowed opacity-60' : 'hover:scale-[1.04]'
+        } transition-transform active:scale-[0.98]`}
+        aria-pressed={selected}
+        aria-label={`關卡 ${stage}${isBoss ? '（章末）' : ''}${locked ? '（鎖定）' : ''}`}
+      >
       {confirmFlash && !locked ? (
         <span
           className="mission-hex-confirm-flash pointer-events-none absolute inset-[-4px] rounded-lg"
           aria-hidden
         />
       ) : null}
-      <div className="relative flex h-full w-full min-h-0 min-w-0 flex-col items-center justify-center">
+      <div className="relative flex min-h-0 min-w-0 flex-col items-center justify-center">
         {!locked ? (
           <span
             className={`pointer-events-none absolute rounded-xl blur-md transition-opacity duration-300 ${hover ? 'opacity-100' : 'opacity-50'} ${
@@ -397,5 +400,6 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
         </div>
       </div>
     </button>
+    </div>
   );
 });

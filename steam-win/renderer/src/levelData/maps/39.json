@@ -1,6 +1,6 @@
 {
   "mapLayout": {
-    "type": "TRIANGLE",
+    "type": "HEXAGON",
     "placeholder": {
       "width": 9,
       "height": 8
@@ -104,5 +104,10 @@
       ]
     ]
   },
-  "mapTheme": "鑽石面"
+  "mapTheme": "鑽石面",
+  "gridStats": {
+    "totalCells": 72,
+    "forbiddenCellCount": 24,
+    "playableCells": 48
+  }
 }

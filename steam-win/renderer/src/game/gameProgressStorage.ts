@@ -1,127 +1,145 @@
 import { MEDAL_RANK, type Medal } from './medalThresholds';
 
-export const LS_HIGHEST_CLEARED_LEVEL = 'md:highestClearedLevel';
-export const LS_BEST_MEDAL_BY_LEVEL = 'md:bestMedalByLevel';
+export const LS_CLEARED_LEVEL_KEYS = 'md:clearedLevelKeys';
+export const LS_BEST_MEDAL_BY_LEVEL_KEY = 'md:bestMedalByLevelKey';
 
-export const LEVEL_MIN = 1;
-export const LEVEL_MAX = 80;
 const FORCE_UNLOCK_ALL_LEVELS = import.meta.env.VITE_UNLOCK_ALL_LEVELS?.trim() === '1';
 
 export type GameProgress = {
-  highestClearedLevel: number; // 0..80 (0 means no level cleared)
+  clearedLevelKeys: string[];
   /** 可選：寫入時若省略則不覆蓋既有勳章（避免 saveGameProgress 把已記錄的 bestMedal 清空） */
-  bestMedalByLevel?: Record<number, Medal>;
+  bestMedalByLevelKey?: Record<string, Medal>;
 };
 
-function clampInt(n: number, min: number, max: number) {
-  if (!Number.isFinite(n)) return min;
-  const v = Math.trunc(n);
-  return Math.min(max, Math.max(min, v));
-}
-
-export function normalizeHighestClearedLevel(v: number): number {
-  return clampInt(v, 0, LEVEL_MAX);
+function normalizeLevelKeyList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of raw) {
+    if (typeof v !== 'string') continue;
+    const key = v.trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
 }
 
 function isMedal(v: unknown): v is Medal {
   return v === 'bronze' || v === 'silver' || v === 'gold';
 }
 
-function normalizeMedalMap(raw: unknown): Record<number, Medal> {
-  const out: Record<number, Medal> = {};
+function normalizeMedalMap(raw: unknown): Record<string, Medal> {
+  const out: Record<string, Medal> = {};
   if (!raw || typeof raw !== 'object') return out;
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-    const id = Number.parseInt(k, 10);
-    if (!Number.isFinite(id) || id < LEVEL_MIN || id > LEVEL_MAX) continue;
-    if (isMedal(v)) out[id] = v;
+    const key = k.trim();
+    if (!key) continue;
+    if (isMedal(v)) out[key] = v;
   }
   return out;
 }
 
 export function loadGameProgress(): GameProgress {
-  let highestClearedLevel = 0;
-  let bestMedalByLevel: Record<number, Medal> = {};
+  let clearedLevelKeys: string[] = [];
+  let bestMedalByLevelKey: Record<string, Medal> = {};
   try {
-    const raw = localStorage.getItem(LS_HIGHEST_CLEARED_LEVEL);
-    if (raw != null) highestClearedLevel = parseInt(raw, 10);
+    const raw = localStorage.getItem(LS_CLEARED_LEVEL_KEYS);
+    if (raw != null) clearedLevelKeys = normalizeLevelKeyList(JSON.parse(raw));
   } catch {
     /* ignore */
   }
   try {
-    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL);
-    if (raw != null) bestMedalByLevel = normalizeMedalMap(JSON.parse(raw));
+    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL_KEY);
+    if (raw != null) bestMedalByLevelKey = normalizeMedalMap(JSON.parse(raw));
   } catch {
     /* ignore */
   }
 
   return {
-    highestClearedLevel: normalizeHighestClearedLevel(highestClearedLevel),
-    bestMedalByLevel,
+    clearedLevelKeys,
+    bestMedalByLevelKey,
   };
 }
 
 export function saveGameProgress(progress: GameProgress) {
   try {
-    localStorage.setItem(LS_HIGHEST_CLEARED_LEVEL, String(normalizeHighestClearedLevel(progress.highestClearedLevel)));
+    localStorage.setItem(LS_CLEARED_LEVEL_KEYS, JSON.stringify(normalizeLevelKeyList(progress.clearedLevelKeys)));
   } catch {
     /* ignore */
   }
-  if (progress.bestMedalByLevel !== undefined) {
+  if (progress.bestMedalByLevelKey !== undefined) {
     try {
-      localStorage.setItem(LS_BEST_MEDAL_BY_LEVEL, JSON.stringify(progress.bestMedalByLevel));
+      localStorage.setItem(LS_BEST_MEDAL_BY_LEVEL_KEY, JSON.stringify(normalizeMedalMap(progress.bestMedalByLevelKey)));
     } catch {
       /* ignore */
     }
   }
 }
 
-export function isLevelUnlocked(levelId: number, highestClearedLevel: number): boolean {
+export function nextPlayableLevelKey(clearedLevelKeys: string[], orderedLevelKeys: string[]): string | null {
+  if (orderedLevelKeys.length === 0) return null;
+  const idxByKey = new Map<string, number>();
+  for (let i = 0; i < orderedLevelKeys.length; i += 1) idxByKey.set(orderedLevelKeys[i]!, i);
+  let furthest = -1;
+  for (const key of new Set(clearedLevelKeys)) {
+    const idx = idxByKey.get(key);
+    if (idx != null && idx > furthest) furthest = idx;
+  }
+  const nextIdx = Math.min(orderedLevelKeys.length - 1, furthest + 1);
+  return orderedLevelKeys[nextIdx] ?? null;
+}
+
+export function isLevelUnlocked(levelKey: string, clearedLevelKeys: string[], orderedLevelKeys: string[]): boolean {
   if (FORCE_UNLOCK_ALL_LEVELS) return true;
-  if (!Number.isFinite(levelId)) return false;
-  const id = clampInt(levelId, LEVEL_MIN, LEVEL_MAX);
-  const unlockedMax = highestClearedLevel + 1;
-  return id <= unlockedMax;
+  if (!levelKey) return false;
+  if (orderedLevelKeys.length === 0) return false;
+  const next = nextPlayableLevelKey(clearedLevelKeys, orderedLevelKeys);
+  if (next == null) return false;
+  return levelKey === next || clearedLevelKeys.includes(levelKey);
 }
 
 /**
  * 寫入單關最佳勳章；只升不降（gold > silver > bronze）。
  * 回傳寫入後的最佳勳章（可能維持舊值）。
  */
-export function recordMedal(levelId: number, medal: Medal): Medal {
-  const id = clampInt(levelId, LEVEL_MIN, LEVEL_MAX);
-  let map: Record<number, Medal> = {};
+export function recordMedal(levelKey: string, medal: Medal): Medal {
+  const key = levelKey.trim();
+  if (!key) return medal;
+  let map: Record<string, Medal> = {};
   try {
-    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL);
+    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL_KEY);
     if (raw != null) map = normalizeMedalMap(JSON.parse(raw));
   } catch {
     /* ignore */
   }
-  const prev = map[id];
+  const prev = map[key];
   const next: Medal = prev && MEDAL_RANK[prev] >= MEDAL_RANK[medal] ? prev : medal;
-  map[id] = next;
+  map[key] = next;
   try {
-    localStorage.setItem(LS_BEST_MEDAL_BY_LEVEL, JSON.stringify(map));
+    localStorage.setItem(LS_BEST_MEDAL_BY_LEVEL_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
   }
   return next;
 }
 
-export function getBestMedal(levelId: number): Medal | null {
-  const id = clampInt(levelId, LEVEL_MIN, LEVEL_MAX);
+export function getBestMedal(levelKey: string): Medal | null {
+  const key = levelKey.trim();
+  if (!key) return null;
   try {
-    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL);
+    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL_KEY);
     if (raw == null) return null;
     const map = normalizeMedalMap(JSON.parse(raw));
-    return map[id] ?? null;
+    return map[key] ?? null;
   } catch {
     return null;
   }
 }
 
-export function getAllBestMedals(): Record<number, Medal> {
+export function getAllBestMedals(): Record<string, Medal> {
   try {
-    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL);
+    const raw = localStorage.getItem(LS_BEST_MEDAL_BY_LEVEL_KEY);
     if (raw == null) return {};
     return normalizeMedalMap(JSON.parse(raw));
   } catch {

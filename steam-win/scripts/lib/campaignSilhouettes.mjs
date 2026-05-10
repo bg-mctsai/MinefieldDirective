@@ -2,16 +2,17 @@
  * 戰役剪影幾何：與 gen-chapter4-maps 同構的 8 種占位剪影 + CH4 尺寸階梯。
  */
 
-export const CH4_TRIANGLE_LAYOUTS = [
-  { width: 8, height: 9 },
-  { width: 9, height: 9 },
-  { width: 10, height: 8 },
-  { width: 8, height: 10 },
-  { width: 9, height: 10 },
-  { width: 10, height: 9 },
-  { width: 7, height: 10 },
+/** 與 renderer ch4MapLayout CH4_HEX_PLACEHOLDER_LAYOUTS 一致 */
+export const CH4_HEX_PLACEHOLDER_LAYOUTS = [
+  { width: 10, height: 5 },
+  { width: 9, height: 7 },
   { width: 10, height: 7 },
-  { width: 9, height: 8 },
+  { width: 11, height: 7 },
+  { width: 10, height: 8 },
+  { width: 10, height: 9 },
+  { width: 11, height: 9 },
+  { width: 10, height: 10 },
+  { width: 10, height: 10 },
   { width: 10, height: 10 },
 ];
 

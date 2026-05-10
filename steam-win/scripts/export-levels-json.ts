@@ -48,7 +48,6 @@ function layoutCellBudget(ml: LevelDefinition['mapLayout']): number {
     case 'SQUARE':
     case 'CROSS':
       return ml.width * ml.height;
-    case 'TRIANGLE':
     case 'HEXAGON':
       return ml.placeholder.width * ml.placeholder.height;
     case 'DIAMOND':

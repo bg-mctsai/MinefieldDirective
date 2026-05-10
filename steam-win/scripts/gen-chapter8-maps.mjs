@@ -1,7 +1,7 @@
 /**
  * 第八章 maps/71～80：第 7 章剪影「水平鏡像」+ 手調主題（可玩格 70～100），
- * SQUARE／TRIANGLE／HEXAGON 與 L61～L70 一一對應；炸點自動挑在 '#' 上並 8 鄰併入。
- * 同步 levels.json：gridSystem、weights、blastPoints.pos
+ * SQUARE／HEXAGON 與 L61～L70 一一對應；炸點自動挑在 '#' 上並 8 鄰併入。
+ * 同步 levels.json：weights、blastPoints.pos（gridSystem 由 mapLayout.type 推導，不再寫入）
  *
  * 執行（cwd = steam-win）：node scripts/gen-chapter8-maps.mjs
  */
@@ -40,12 +40,10 @@ const WEIGHTS = {
   SQUARE_B: { 1: 8, 2: 12, 3: 18, 4: 18, 5: 16, 6: 12, 7: 8, 8: 4 },
   SQUARE_C: { 1: 8, 2: 12, 3: 16, 4: 18, 5: 16, 6: 12, 7: 10, 8: 6 },
   SQUARE_D: { 1: 6, 2: 10, 3: 16, 4: 18, 5: 18, 6: 14, 7: 10, 8: 6 },
-  TRIANGLE: { 1: 28, 2: 34, 3: 38 },
   HEXAGON: { 1: 18, 2: 22, 3: 20, 4: 18, 5: 12, 6: 8 },
 };
 
 function weightsForLevel(id, type) {
-  if (type === 'TRIANGLE') return WEIGHTS.TRIANGLE;
   if (type === 'HEXAGON') return WEIGHTS.HEXAGON;
   if (id <= 75) return WEIGHTS.SQUARE_A;
   if (id <= 78) return WEIGHTS.SQUARE_B;
@@ -102,7 +100,6 @@ for (let i = 0; i < 10; i++) {
   );
 
   if (lv) {
-    lv.gridSystem = type;
     lv.commands = lv.commands ?? {};
     lv.commands.weights = stringifyWeights(weightsForLevel(id, type));
     const bps = lv.blastPoints ?? [];
@@ -119,4 +116,4 @@ for (let i = 0; i < 10; i++) {
 }
 
 fs.writeFileSync(LEVELS_PATH, `${JSON.stringify(levelsDoc, null, 2)}\n`, 'utf8');
-console.log('\ngridSystem / blast pos / weights synced → levels.json');
+console.log('\nblast pos / weights synced → levels.json');

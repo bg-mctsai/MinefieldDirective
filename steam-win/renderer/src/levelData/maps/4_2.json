@@ -1,0 +1,41 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 9,
+      "height": 7
+    },
+    "forbiddenCells": [
+      [
+        0,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        0,
+        6
+      ]
+    ]
+  },
+  "mapTheme": "巢面展開",
+  "gridStats": {
+    "totalCells": 63,
+    "forbiddenCellCount": 6,
+    "playableCells": 57
+  }
+}

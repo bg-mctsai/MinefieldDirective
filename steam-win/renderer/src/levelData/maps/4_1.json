@@ -1,0 +1,16 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 10,
+      "height": 5
+    },
+    "forbiddenCells": []
+  },
+  "mapTheme": "蜂格初陣",
+  "gridStats": {
+    "totalCells": 50,
+    "forbiddenCellCount": 0,
+    "playableCells": 50
+  }
+}

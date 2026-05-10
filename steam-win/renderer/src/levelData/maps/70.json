@@ -222,5 +222,10 @@
       ]
     ]
   },
-  "mapTheme": "指揮塔"
+  "mapTheme": "指揮塔",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 54,
+    "playableCells": 90
+  }
 }

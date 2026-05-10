@@ -10,7 +10,7 @@ import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
 import { VictoryCelebrationOverlay } from './VictoryCelebrationOverlay';
-import { LEVEL_MAX, getBestMedal, isLevelUnlocked, recordMedal, saveGameProgress } from './gameProgressStorage';
+import { getBestMedal, isLevelUnlocked, recordMedal, saveGameProgress } from './gameProgressStorage';
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
@@ -28,16 +28,16 @@ export type BackToMissionContext = {
 export default function GameView({
   initialLevelIndex: initialLevelProp,
   onBack,
-  highestClearedLevel,
-  unlockHighestClearedLevel,
-  onHighestClearedLevelChange: _onHighestClearedLevelChange,
+  clearedLevelKeys,
+  unlockClearedLevelKeys,
+  onClearedLevelKeysChange: _onClearedLevelKeysChange,
 }: {
   initialLevelIndex: number;
   onBack: (context?: BackToMissionContext) => void;
-  highestClearedLevel: number;
-  /** 可選：僅用於 isLevelUnlocked／接關前進；存檔仍以 highestClearedLevel 為準（例：DEV 行動卷宗開放全部章節） */
-  unlockHighestClearedLevel?: number;
-  onHighestClearedLevelChange: (next: number) => void;
+  clearedLevelKeys: string[];
+  /** 可選：僅用於 isLevelUnlocked／接關前進；存檔仍以 clearedLevelKeys 為準（例：DEV 行動卷宗開放全部章節） */
+  unlockClearedLevelKeys?: string[];
+  onClearedLevelKeysChange: (next: string[]) => void;
 }) {
   useEffect(() => {
     // 戰場掛載時強制收掉選單系 BGM，避免與戰場曲重疊。
@@ -48,11 +48,12 @@ export default function GameView({
 
   useBgmChannel('combat');
 
-  const unlockBasis = unlockHighestClearedLevel ?? highestClearedLevel;
-  const requestedLevelId = GAME_LEVELS[initialLevelProp]?.id ?? 1;
-  const isRequestedUnlocked = isLevelUnlocked(requestedLevelId, unlockBasis);
-  const safeInitialLevelId = isRequestedUnlocked ? requestedLevelId : Math.min(LEVEL_MAX, unlockBasis + 1);
-  const safeInitialLevelIndex = safeInitialLevelId - 1;
+  const orderedLevelKeys = GAME_LEVELS.map((l) => l.levelKey);
+  const unlockBasis = unlockClearedLevelKeys ?? clearedLevelKeys;
+  const requestedLevel = GAME_LEVELS[initialLevelProp] ?? GAME_LEVELS[0];
+  const isRequestedUnlocked =
+    requestedLevel != null && isLevelUnlocked(requestedLevel.levelKey, unlockBasis, orderedLevelKeys);
+  const safeInitialLevelIndex = isRequestedUnlocked ? initialLevelProp : 0;
 
   const {
     LEVELS: levelList,
@@ -98,9 +99,9 @@ export default function GameView({
     if (gameState?.status !== 'won') return;
     const ch = gameState.level.definition.chapter;
     if (typeof ch !== 'number' || !Number.isFinite(ch)) return;
-    if (stageInChapter(gameState.level.id, ch) !== LEVELS_PER_CHAPTER) return;
+    if (stageInChapter(gameState.level.stage) !== LEVELS_PER_CHAPTER) return;
     chapterBossClearedForDossierRef.current = ch;
-  }, [gameState?.status, gameState?.level.id, gameState?.level.definition.chapter, gameState?.gameId]);
+  }, [gameState?.status, gameState?.level.stage, gameState?.level.definition.chapter, gameState?.gameId]);
 
   const lastGameIdRef = useRef<number | null>(null);
   useEffect(() => {
@@ -114,20 +115,19 @@ export default function GameView({
   const handleNextLevel = useCallback(() => {
     if (!gameState) return;
     const ch = gameState.level.definition.chapter;
-    if (gameState.status === 'won' && typeof ch === 'number' && stageInChapter(gameState.level.id, ch) === LEVELS_PER_CHAPTER) {
+    if (gameState.status === 'won' && typeof ch === 'number' && stageInChapter(gameState.level.stage) === LEVELS_PER_CHAPTER) {
       chapterBossClearedForDossierRef.current = null;
     }
     const nextIndex = currentLevelIndex + 1;
     const nextLevel = levelList[nextIndex];
     if (!nextLevel) return;
 
-    const effectiveHighestCleared =
-      gameState.status === 'won'
-        ? Math.max(highestClearedLevel, gameState.level.id)
-        : unlockBasis;
-    if (!isLevelUnlocked(nextLevel.id, effectiveHighestCleared)) return;
+    const effectiveCleared = gameState.status === 'won'
+      ? Array.from(new Set([...unlockBasis, gameState.level.levelKey]))
+      : unlockBasis;
+    if (!isLevelUnlocked(nextLevel.levelKey, effectiveCleared, orderedLevelKeys)) return;
     setCurrentLevelIndex(nextIndex);
-  }, [currentLevelIndex, levelList, gameState, highestClearedLevel, unlockBasis]);
+  }, [currentLevelIndex, levelList, gameState, unlockBasis, orderedLevelKeys]);
 
   const handleExitToMission = useCallback(() => {
     const c = chapterBossClearedForDossierRef.current;
@@ -140,20 +140,20 @@ export default function GameView({
     if (gameState.status !== 'won') return;
     if (lastRecordedWinGameId.current === gameState.gameId) return;
 
-    const clearedLevelId = gameState.level.id;
+    const clearedLevelKey = gameState.level.levelKey;
     const ch = gameState.level.definition.chapter;
-    if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(clearedLevelId, ch) === LEVELS_PER_CHAPTER) {
+    if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(gameState.level.stage) === LEVELS_PER_CHAPTER) {
       mergeUnlockedOnChapterCleared(ch);
     }
-    const nextHighestCleared = Math.max(highestClearedLevel, clearedLevelId);
+    const nextClearedLevelKeys = Array.from(new Set([...clearedLevelKeys, clearedLevelKey]));
     if (gameState.settledMedal != null) {
-      recordMedal(clearedLevelId, gameState.settledMedal);
+      recordMedal(clearedLevelKey, gameState.settledMedal);
     }
-    saveGameProgress({ highestClearedLevel: nextHighestCleared });
-    _onHighestClearedLevelChange(nextHighestCleared);
+    saveGameProgress({ clearedLevelKeys: nextClearedLevelKeys });
+    _onClearedLevelKeysChange(nextClearedLevelKeys);
     getStoredHeroId();
     lastRecordedWinGameId.current = gameState.gameId;
-  }, [gameState?.status, gameState?.gameId, gameState?.level.id, gameState?.settledMedal, highestClearedLevel, _onHighestClearedLevelChange]);
+  }, [gameState?.status, gameState?.gameId, gameState?.level.levelKey, gameState?.level.stage, gameState?.settledMedal, clearedLevelKeys, _onClearedLevelKeysChange]);
 
   if (!gameState) return null;
 
@@ -179,14 +179,14 @@ export default function GameView({
     gameState.status === 'won' &&
     typeof ch === 'number' &&
     Number.isFinite(ch) &&
-    stageInChapter(gameState.level.id, ch) === LEVELS_PER_CHAPTER;
+    stageInChapter(gameState.level.stage) === LEVELS_PER_CHAPTER;
 
   const combatHeroId = getStoredHeroId();
   const combatTheme = getHeroCombatTheme(combatHeroId);
 
   return (
     <div
-      className={`relative flex min-h-screen flex-col items-center p-3 font-sans text-slate-300 md:p-5 ${combatTheme.root}`}
+      className={`relative flex min-h-[100dvh] w-full flex-col items-center p-1 font-sans text-slate-300 sm:p-2 md:p-2.5 ${combatTheme.root}`}
     >
       <GameHeader
         destructivePowerPercentage={destructivePowerPercentage}
@@ -198,7 +198,7 @@ export default function GameView({
         showEarlySettleButton={canEarlySettle}
         onEarlySettle={requestEarlySettle}
         onBack={handleExitToMission}
-        onRestart={() => initGame(currentLevelIndex, gameState.runSeed)}
+        onRestart={() => initGame(currentLevelIndex)}
         showNextLevelButton={winInlineActionsUnlocked && !isLastLevel && !isChapterFinalStage}
         onNextLevel={handleNextLevel}
         showChapterEndButton={winInlineActionsUnlocked && isChapterFinalStage && !isLastLevel}
@@ -243,15 +243,14 @@ export default function GameView({
         showTrigger={false}
       />
 
-      <div className="flex w-full max-w-7xl flex-col items-center">
+      <div className="flex w-full max-w-7xl flex-1 flex-col items-stretch min-h-[75dvh]">
         <GameStatusMessageBar
           gameState={gameState}
-          boardRef={boardRef}
           statusBarFrameClass={combatTheme.statusBarWrap}
           speakerHeroId={combatHeroId}
           buckEmergencyAvailable={gameState.buckEmergencyAvailable}
         />
-        <div className="flex w-full flex-col items-center gap-4">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 py-0.5 sm:gap-1.5 sm:py-1">
           <div className="min-w-0 w-full">
             <GameBoard
               boardRef={boardRef}
@@ -271,7 +270,7 @@ export default function GameView({
           destructivePowerPercentage={destructivePowerPercentage}
           showInlineWinActions={winInlineActionsUnlocked}
           onReturnToMission={handleExitToMission}
-          onReplayFinalLevel={() => initGame(currentLevelIndex, gameState.runSeed)}
+          onReplayFinalLevel={() => initGame(currentLevelIndex)}
         />
       </div>
 
@@ -282,7 +281,7 @@ export default function GameView({
         levelCount={levelList.length}
         onConfirm={() => setDismissedWinCelebrationGameId(gameState.gameId)}
         settledMedal={gameState.settledMedal}
-        previousBestMedal={getBestMedal(gameState.level.id)}
+        previousBestMedal={getBestMedal(gameState.level.levelKey)}
         secondsLeft={gameState.settledSecondsLeft}
         timeLimit={gameState.level.definition.timeLimit}
         medalThresholds={medalThresholds}

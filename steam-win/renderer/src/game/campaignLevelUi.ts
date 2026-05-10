@@ -6,7 +6,7 @@ export { stageInChapter } from './chapterStage';
 
 /** 僅章內關次（對局內若還要章名請用 `campaignLevelHeaderTitle`） */
 export function campaignLevelStageLabel(level: Level): string {
-  return `第 ${stageInChapter(level.id, level.definition.chapter)} 關`;
+  return `第 ${stageInChapter(level.stage)} 關`;
 }
 
 /**
@@ -15,7 +15,7 @@ export function campaignLevelStageLabel(level: Level): string {
  */
 export function campaignLevelHeaderTitle(level: Level): string {
   const tag = chapterCampaignTagline(level.definition.chapter).trim();
-  const stage = stageInChapter(level.id, level.definition.chapter);
+  const stage = stageInChapter(level.stage);
   const theme = level.definition.mapTheme?.trim();
   const stagePart = `${tag}(${stage})`;
   return theme ? `${stagePart}-${theme}` : stagePart;

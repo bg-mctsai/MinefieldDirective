@@ -12,7 +12,6 @@ export function NeighborResonancePlaceOverlay({
   cellSize,
   hexMin,
   squareGridMin,
-  triangleSvgTranslate,
 }: {
   layout: OverlayBoardLayout;
   x: number;
@@ -21,7 +20,6 @@ export function NeighborResonancePlaceOverlay({
   cellSize: number;
   hexMin?: { x: number; y: number };
   squareGridMin?: { x: number; y: number };
-  triangleSvgTranslate?: { x: number; y: number };
 }) {
   const { cx, cy } = overlayBoardCellCenterPx(
     layout,
@@ -30,15 +28,12 @@ export function NeighborResonancePlaceOverlay({
     cellSize,
     layout === 'hex' ? hexMin : undefined,
     layout === 'square' ? squareGridMin : undefined,
-    layout === 'triangle' ? triangleSvgTranslate : undefined,
   );
 
   const numFont =
     layout === 'square'
       ? Math.max(15, Math.round(cellSize * 0.52))
-      : layout === 'triangle'
-        ? Math.max(13, Math.round(cellSize * 0.36))
-        : Math.max(13, Math.round(cellSize * 0.42));
+      : Math.max(13, Math.round(cellSize * 0.42));
 
   return (
     <motion.div

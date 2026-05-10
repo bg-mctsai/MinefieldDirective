@@ -67,26 +67,26 @@ export function CommanderTelegraphRow({
 
   return (
     <div
-      className={`flex h-full min-h-[3.25rem] min-w-0 flex-1 items-center gap-2 rounded-2xl border-2 px-2 py-1.5 shadow-xl sm:gap-3 sm:px-3 sm:py-2 ${heroTheme.telegraphWrap}`}
+      className={`flex h-full min-h-[2.4rem] min-w-0 flex-1 items-center gap-1.5 rounded-lg border-2 px-1.5 py-1 shadow-md sm:min-h-[2.55rem] sm:gap-2 sm:rounded-xl sm:px-2 sm:py-1.5 sm:shadow-lg md:min-h-[2.65rem] md:rounded-2xl md:shadow-xl ${heroTheme.telegraphWrap}`}
       title={hint}
     >
-      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
         <div className="flex flex-col leading-none">
-          <span className="text-xs font-black text-white sm:text-sm">長官電報</span>
-          <span className="hidden text-[8px] font-bold uppercase tracking-wide text-slate-500 sm:block">
+          <span className="text-[10px] font-black text-white sm:text-xs md:text-sm">長官電報</span>
+          <span className="hidden text-[7px] font-bold uppercase tracking-wide text-slate-500 md:block">
             HQ Telegraph
           </span>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-0.5 sm:gap-1">
           <motion.div
             animate={gameState.placedInTurn >= 1 ? { scale: [1, 1.2, 1] } : {}}
-            className={`h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 ${
+            className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 ${
               gameState.placedInTurn >= 1 ? 'bg-amber-500 shadow-[0_0_6px_#f59e0b]' : 'bg-slate-800'
             }`}
           />
           <motion.div
             animate={gameState.placedInTurn >= 2 ? { scale: [1, 1.2, 1] } : {}}
-            className={`h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 ${
+            className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 ${
               gameState.placedInTurn >= 2 ? 'bg-amber-500 shadow-[0_0_6px_#f59e0b]' : 'bg-slate-800'
             }`}
           />
@@ -94,7 +94,7 @@ export function CommanderTelegraphRow({
       </div>
 
       <div
-        className="grid min-w-0 flex-1 gap-1.5 sm:gap-2"
+        className="grid min-w-0 flex-1 gap-1 sm:gap-1.5 md:gap-2"
         style={{
           gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
         }}
@@ -120,11 +120,11 @@ export function CommanderTelegraphRow({
           <motion.button
             key={`${gameState.gameId}-slot-${idx}`}
             type="button"
-            whileHover={gameState.status === 'playing' ? { y: -2, scale: 1.03 } : {}}
+            whileHover={gameState.status === 'playing' ? { y: -1, scale: 1.02 } : {}}
             whileTap={gameState.status === 'playing' ? { scale: 0.95 } : {}}
             disabled={gameState.status !== 'playing' || movingSoldier !== null}
             onClick={() => onSelectHand(idx)}
-            className={`flex aspect-square max-h-[3.25rem] min-h-[2.75rem] w-full min-w-0 items-center justify-center rounded-2xl border-[3px] text-xl font-black transition-all sm:max-h-[3.5rem] sm:text-2xl
+            className={`flex aspect-square max-h-[2.55rem] min-h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:max-h-[2.85rem] sm:min-h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:max-h-[3.1rem] md:text-xl
                 ${
                   selectedHandIndex === idx
                     ? heroTheme.telegraphDigitSelected

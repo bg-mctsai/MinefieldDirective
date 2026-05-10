@@ -1,7 +1,7 @@
 import type { GridSystem } from '../levelData/types';
 import { logicNeighborKeys, neighborModeForGridSystem, type NeighborMode } from '../levelData/gridTopology';
 
-/** 此雷與幾個「已佈署數字格」邏輯相鄰；每多一格數字就多一個線索指向此雷（與 solver 鄰接定義一致）。 */
+/** 此雷與幾個「已佈署數字格」邏輯相鄰；每多一格數字就多一道指向此雷的讀數（與 solver 鄰接定義一致）。 */
 export function adjacentPlacedDigitCount(
   x: number,
   y: number,
@@ -18,19 +18,61 @@ export function adjacentPlacedDigitCount(
   return n;
 }
 
+/** 賽琳娜格網倍乘：單顆雷火力分子加權上限（對應 n≥5 緊鄰已佈數字）。 */
+export const SELINA_GRID_FIREPOWER_WEIGHT_MAX = 16;
+
+/** 地雷／廢雷圖示與格底色階（1 基礎 → 5 為倍乘封頂階）。 */
+export type MineBombVisualTier = 1 | 2 | 3 | 4 | 5;
+
 /**
- * 火力分級（僅視覺／提示）：≥2 個已佈數字格與此雷「邏輯相鄰」＝兩個或以上數字都指向同一雷 → 2，否則 1。
+ * `capTwo`：每顆雷旁邊有幾格「已佈數字」當讀數；權重 = 1（無或一格）～最多 2（兩格以上仍為 2）。
+ * `convergenceExp`：賽琳娜格網倍乘——0～1 格鄰數權重 1；2 格起每多一格 ×2，上限 {@link SELINA_GRID_FIREPOWER_WEIGHT_MAX}。
  */
-export function mineCombatTier(adjacentPlacedDigits: number): 1 | 2 {
-  return adjacentPlacedDigits >= 2 ? 2 : 1;
+export type FirepowerDigitWeightMode = 'capTwo' | 'convergenceExp';
+
+/**
+ * `capTwo`：僅 1／2 兩階視覺（與火力封頂一致）。
+ * `convergenceExp`：賽琳娜格網倍乘——依緊鄰已佈數字格數分 5 階（n≥5 併入第 5 階，權重封頂 16）。
+ */
+export function mineBombVisualTier(
+  adjacentPlacedDigits: number,
+  digitWeightMode: FirepowerDigitWeightMode,
+): MineBombVisualTier {
+  const n = adjacentPlacedDigits;
+  if (digitWeightMode === 'capTwo') {
+    return (n >= 2 ? 2 : 1) as MineBombVisualTier;
+  }
+  if (n <= 1) return 1;
+  if (n === 2) return 2;
+  if (n === 3) return 3;
+  if (n === 4) return 4;
+  return 5;
 }
 
-/** 預設：每雷權重封頂在「兩個已佈數字格」；賽琳娜交會測繪為不封頂（完整 n）。 */
-export type FirepowerDigitWeightMode = 'capTwo' | 'fullCount';
+/** @deprecated 請用 `mineBombVisualTier(n, 'capTwo')`；保留舊呼叫點相容。 */
+export function mineCombatTier(adjacentPlacedDigits: number): MineBombVisualTier {
+  return mineBombVisualTier(adjacentPlacedDigits, 'capTwo');
+}
+
+/** 單顆已揭示雷依「與幾格已佈數字邏輯相鄰」計入火力分子的權重。 */
+export function firepowerWeightForAdjacentDigitCount(
+  adjacentPlacedDigits: number,
+  mode: FirepowerDigitWeightMode,
+): number {
+  const n = adjacentPlacedDigits;
+  if (mode === 'capTwo') return Math.max(1, Math.min(n, 2));
+  if (n <= 1) return 1;
+  return Math.min(2 ** (n - 1), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
+}
+
+/** 依視覺階推算格網倍乘火力加權（tooltip 用，與 {@link firepowerWeightForAdjacentDigitCount} 在賽琳娜側一致）。 */
+export function convergenceFirepowerWeightFromTier(tier: MineBombVisualTier): number {
+  if (tier <= 1) return 1;
+  return Math.min(2 ** (tier - 1), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
+}
 
 /**
- * HUD「火力 %」分子：每顆已揭示雷加權（至少 1）；`capTwo` 時與已佈數字相鄰數封頂在 2，`fullCount` 時為完整相鄰數。
- * 分母仍為可玩總格數；% 上限 100。
+ * HUD「火力 %」分子：每顆已揭示雷依模式加權；分母為可玩總格數；% 上限 100。
  */
 export function weightedFirepowerSumAndPct(
   mineKeys: Iterable<string>,
@@ -53,9 +95,7 @@ export function weightedFirepowerSumAndPct(
     const y = Number(key.slice(comma + 1));
     if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
     const n = adjacentPlacedDigitCount(x, y, placedByKey, validKeys, mode, boardW, boardH);
-    const capped = Math.max(1, Math.min(n, 2));
-    const full = Math.max(1, n);
-    weightedSum += digitWeightMode === 'fullCount' ? full : capped;
+    weightedSum += firepowerWeightForAdjacentDigitCount(n, digitWeightMode);
   }
   return {
     weightedSum,
@@ -64,15 +104,35 @@ export function weightedFirepowerSumAndPct(
   };
 }
 
-/** 1＝基本雷：淺紅；2＝多數字指向同一雷：亮紅＋強光暈。 */
-export function redMineBombIconClass(tier: 1 | 2): string {
-  return tier >= 2
-    ? 'text-red-200 drop-shadow-[0_0_10px_rgba(239,68,68,0.92)]'
-    : 'text-red-400/90 drop-shadow-[0_0_4px_rgba(248,113,113,0.35)]';
+/** 紅雷圖示：階越高色越亮、光暈越強（格網倍乘 3～5 階明顯區別）。 */
+export function redMineBombIconClass(tier: MineBombVisualTier): string {
+  switch (tier) {
+    case 1:
+      return 'text-red-400/90 drop-shadow-[0_0_4px_rgba(248,113,113,0.35)]';
+    case 2:
+      return 'text-red-200 drop-shadow-[0_0_10px_rgba(239,68,68,0.92)]';
+    case 3:
+      return 'text-orange-200 drop-shadow-[0_0_12px_rgba(251,146,60,0.95)]';
+    case 4:
+      return 'text-amber-100 drop-shadow-[0_0_14px_rgba(250,204,21,0.98)]';
+    case 5:
+    default:
+      return 'text-yellow-50 drop-shadow-[0_0_16px_rgba(253,224,71,1)]';
+  }
 }
 
-export function cyanJunkMineBombIconClass(tier: 1 | 2): string {
-  return tier >= 2
-    ? 'text-cyan-200 drop-shadow-[0_0_12px_rgba(34,211,238,0.88)]'
-    : 'text-cyan-400 opacity-75 drop-shadow-[0_0_4px_rgba(34,211,238,0.5)]';
+export function cyanJunkMineBombIconClass(tier: MineBombVisualTier): string {
+  switch (tier) {
+    case 1:
+      return 'text-cyan-400 opacity-75 drop-shadow-[0_0_4px_rgba(34,211,238,0.5)]';
+    case 2:
+      return 'text-cyan-200 drop-shadow-[0_0_12px_rgba(34,211,238,0.88)]';
+    case 3:
+      return 'text-sky-200 drop-shadow-[0_0_13px_rgba(56,189,248,0.92)]';
+    case 4:
+      return 'text-teal-100 drop-shadow-[0_0_14px_rgba(45,212,191,0.95)]';
+    case 5:
+    default:
+      return 'text-emerald-100 drop-shadow-[0_0_16px_rgba(52,211,153,0.98)]';
+  }
 }

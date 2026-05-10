@@ -1,9 +1,8 @@
-import { LEVEL_MAX } from './game/gameProgressStorage';
-
-/** DEV：行動卷宗「開放全部章節」時傳入 MissionMap／onStart 的 effective highestCleared。 */
-export function effectiveMissionHighestCleared(
-  actualHighestCleared: number,
+/** DEV：行動卷宗「開放全部章節」時，視為全關已通關（供解鎖判定）。 */
+export function effectiveMissionClearedLevelKeys(
+  actualClearedLevelKeys: string[],
   devUnlockAllChapters: boolean,
-): number {
-  return devUnlockAllChapters ? LEVEL_MAX : actualHighestCleared;
+  allLevelKeys: string[],
+): string[] {
+  return devUnlockAllChapters ? [...allLevelKeys] : actualClearedLevelKeys;
 }

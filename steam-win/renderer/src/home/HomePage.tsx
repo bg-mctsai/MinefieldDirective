@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TerminalBackdrop } from '../ui/TerminalBackdrop';
 import { HEROES, getStoredHeroId, setStoredHeroId } from '../heroes';
 import { AudioEngine } from '../audio/AudioEngine';
@@ -30,8 +30,19 @@ export default function HomePage({
   const [settings, setSettings] = useState<HomeSettings>(loadHomeSettings);
   const [devReloadBusy, setDevReloadBusy] = useState(false);
   const [devReloadHint, setDevReloadHint] = useState<string | null>(null);
+  const devReloadHintTimerRef = useRef<number | null>(null);
 
   const hero = useMemo(() => HEROES.find((h) => h.id === heroId) ?? HEROES[0], [heroId]);
+
+  useEffect(
+    () => () => {
+      if (devReloadHintTimerRef.current != null) {
+        window.clearTimeout(devReloadHintTimerRef.current);
+        devReloadHintTimerRef.current = null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     saveHomeSettings(settings);
@@ -74,6 +85,10 @@ export default function HomePage({
   const handleDevReloadLevels = useCallback(async () => {
     setDevReloadBusy(true);
     setDevReloadHint(null);
+    if (devReloadHintTimerRef.current != null) {
+      window.clearTimeout(devReloadHintTimerRef.current);
+      devReloadHintTimerRef.current = null;
+    }
     const r = await devReloadLevelsFromJson();
     setDevReloadBusy(false);
     if (r.ok) {
@@ -82,7 +97,10 @@ export default function HomePage({
     } else {
       setDevReloadHint(r.error);
     }
-    window.setTimeout(() => setDevReloadHint(null), 4500);
+    devReloadHintTimerRef.current = window.setTimeout(() => {
+      setDevReloadHint(null);
+      devReloadHintTimerRef.current = null;
+    }, 4500);
   }, [onDevLevelsReloaded]);
 
   return (

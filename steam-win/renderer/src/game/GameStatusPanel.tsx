@@ -1,9 +1,8 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, Crown, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
 import type { GameState } from './types';
-import { useDynamicHeroBarrage, type HeroBarrageOut } from './useDynamicHeroBarrage';
+import { useDynamicHeroBarrage } from './useDynamicHeroBarrage';
 import { HeroAvatarSilhouette } from '../home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from '../home/HeroPortraitLightbox';
 import { getHeroDef } from '../heroes';
@@ -22,33 +21,14 @@ function messageCaretClass(status: GameState['status']): string {
   return 'bg-slate-400/85';
 }
 
-function SupportBarrageSpeech({ barrage, gameId }: { barrage: HeroBarrageOut; gameId: number }) {
-  const resetKey = `${gameId}-${barrage.id}`;
-  const caretCls = barrage.tone === 'alert' ? 'bg-red-200/85' : 'bg-slate-100/80';
-  return (
-    <p
-      className={`max-w-[min(76vw,30rem)] whitespace-nowrap text-center text-[14px] font-semibold italic tracking-[0.01em] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] sm:text-[15px] ${
-        barrage.tone === 'alert' ? 'text-red-200' : 'text-slate-100/92'
-      }`}
-    >
-      <TeletypeInline full={barrage.text} resetKey={resetKey} caretClassName={caretCls} />
-    </p>
-  );
-}
-
-/** 地圖上方狀態台詞：單行、極窄寬時可橫向捲動 */
+/** 地圖上方狀態台詞：單行、極窄寬時可橫向捲動（動態幹員台詞併入此列） */
 export function GameStatusMessageBar({
   gameState,
-  boardRef,
-  enableSupportBarrage = true,
   statusBarFrameClass = 'border-slate-700/90 bg-slate-900/95',
   speakerHeroId,
   buckEmergencyAvailable = true,
 }: {
   gameState: GameState;
-  boardRef: RefObject<HTMLDivElement | null>;
-  /** 是否啟用棋盤下方飄字工兵台詞 */
-  enableSupportBarrage?: boolean;
   /** 狀態訊息外框（依幹員主題） */
   statusBarFrameClass?: string;
   /** 顯示在訊息左側的幹員頭像（對白） */
@@ -58,12 +38,6 @@ export function GameStatusMessageBar({
 }) {
   const { openPortrait } = useHeroPortraitLightbox();
   const dynamicBarrage = useDynamicHeroBarrage(gameState);
-  /** 棋盤下方飄字：與 hook 同步；victory 僅用上方訊息列（見 useDynamicHeroBarrage 註解） */
-  const supportBarrage: HeroBarrageOut | null =
-    enableSupportBarrage && dynamicBarrage != null && dynamicBarrage.trigger !== 'victory'
-      ? dynamicBarrage
-      : null;
-  const [boardAnchor, setBoardAnchor] = useState<{ left: number; top: number } | null>(null);
   const [skillBriefOpen, setSkillBriefOpen] = useState(false);
   const [skillBriefPos, setSkillBriefPos] = useState<{ top: number; left: number } | null>(null);
   const avatarSkillBtnRef = useRef<HTMLButtonElement>(null);
@@ -117,26 +91,6 @@ export function GameStatusMessageBar({
     };
   }, [skillBriefOpen, syncSkillBriefPos]);
 
-  useEffect(() => {
-    const syncAnchor = () => {
-      const el = boardRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      setBoardAnchor({
-        left: rect.left + rect.width / 2,
-        top: rect.bottom + 8,
-      });
-    };
-
-    syncAnchor();
-    window.addEventListener('resize', syncAnchor);
-    window.addEventListener('scroll', syncAnchor, true);
-    return () => {
-      window.removeEventListener('resize', syncAnchor);
-      window.removeEventListener('scroll', syncAnchor, true);
-    };
-  }, [boardRef, gameState.gameId]);
-
   const skillPanels =
     speakerHeroId != null ? getHeroSkillBriefPanels(speakerHeroId, buckEmergencyAvailable) : [];
   const speakerName = speakerHeroId != null ? getHeroDef(speakerHeroId).name : '';
@@ -144,7 +98,7 @@ export function GameStatusMessageBar({
   const statusMsgKey = `${gameState.gameId}|||${statusMessage}`;
 
   return (
-    <div className="relative mb-3 w-full max-w-7xl shrink-0">
+    <div className="relative mb-1 w-full max-w-7xl shrink-0 sm:mb-1.5">
       {skillBriefOpen && speakerHeroId != null && (
         <>
           <div role="presentation" className="fixed inset-0 z-[100] bg-black/50" onClick={closeSkillBrief} />
@@ -252,33 +206,6 @@ export function GameStatusMessageBar({
             </div>
           </div>
         </motion.div>
-      </AnimatePresence>
-      <AnimatePresence>
-        {supportBarrage && (
-          <motion.div
-            key={`${gameState.gameId}-${supportBarrage.id}`}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 0.95, y: -10 }}
-            exit={{ opacity: 0, y: -18 }}
-            transition={{ duration: 4.4, ease: 'linear' }}
-            className="pointer-events-none fixed z-20"
-            style={{
-              left: `${boardAnchor?.left ?? window.innerWidth / 2}px`,
-              top: `${(boardAnchor?.top ?? 12) + supportBarrage.lane * 18}px`,
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <div
-              className={`rounded-md px-3 py-1 ${
-                supportBarrage.tone === 'alert'
-                  ? 'ops-alert-pulse border border-red-500/60 bg-red-500/15'
-                  : ''
-              }`}
-            >
-              <SupportBarrageSpeech barrage={supportBarrage} gameId={gameState.gameId} />
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
     </div>
   );

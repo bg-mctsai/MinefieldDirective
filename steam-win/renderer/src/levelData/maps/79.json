@@ -248,5 +248,10 @@
       ]
     ]
   },
-  "mapTheme": "強波堤"
+  "mapTheme": "強波堤",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 60,
+    "playableCells": 84
+  }
 }

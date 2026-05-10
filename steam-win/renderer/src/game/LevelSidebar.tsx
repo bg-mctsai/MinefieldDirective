@@ -8,13 +8,14 @@ export function LevelSidebar({
   levels,
   currentLevelIndex,
   onSelectLevel,
-  highestClearedLevel,
+  clearedLevelKeys,
 }: {
   levels: Level[];
   currentLevelIndex: number;
   onSelectLevel: (index: number) => void;
-  highestClearedLevel: number;
+  clearedLevelKeys: string[];
 }) {
+  const orderedLevelKeys = levels.map((l) => l.levelKey);
   return (
     <div className="space-y-6 lg:col-span-3">
       <div className="rounded-[2rem] border-2 border-slate-800 bg-slate-900 p-6 shadow-xl">
@@ -27,13 +28,13 @@ export function LevelSidebar({
             <button
               key={level.id}
               type="button"
-              disabled={!isLevelUnlocked(level.id, highestClearedLevel)}
+              disabled={!isLevelUnlocked(level.levelKey, clearedLevelKeys, orderedLevelKeys)}
               onClick={() => {
-                if (!isLevelUnlocked(level.id, highestClearedLevel)) return;
+                if (!isLevelUnlocked(level.levelKey, clearedLevelKeys, orderedLevelKeys)) return;
                 onSelectLevel(idx);
               }}
               className={`group flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all ${
-                !isLevelUnlocked(level.id, highestClearedLevel)
+                !isLevelUnlocked(level.levelKey, clearedLevelKeys, orderedLevelKeys)
                   ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed opacity-70'
                   : currentLevelIndex === idx
                     ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40'
@@ -42,7 +43,7 @@ export function LevelSidebar({
             >
               <span className="flex items-center gap-2 font-bold">
                 {campaignLevelHeaderTitle(level)}
-                {!isLevelUnlocked(level.id, highestClearedLevel) && <Lock size={14} className="text-slate-500" />}
+                {!isLevelUnlocked(level.levelKey, clearedLevelKeys, orderedLevelKeys) && <Lock size={14} className="text-slate-500" />}
               </span>
               <ChevronRight
                 size={16}

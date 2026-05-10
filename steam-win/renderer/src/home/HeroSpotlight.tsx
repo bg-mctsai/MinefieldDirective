@@ -44,7 +44,7 @@ export function HeroSpotlight({
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.18, duration: 0.45 }}
-      className="relative lg:col-span-4"
+      className="relative order-2 lg:order-none lg:col-span-4"
     >
       <div className="relative overflow-hidden rounded-3xl border-2 border-[#1e293b] bg-[#0f141c]/95 p-7 shadow-xl xl:p-8">
         <div className="pointer-events-none absolute inset-0 opacity-30">
@@ -115,16 +115,16 @@ export function HeroSpotlight({
         <AnimatePresence mode="wait">
           <motion.p
             key={quoteKey}
-            initial={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 3 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
+            exit={{ opacity: 0, y: -3 }}
             transition={{ duration: 0.25 }}
-            className="relative mt-4 min-h-[4.6rem] overflow-hidden rounded-2xl border border-emerald-500/20 bg-slate-950/35 px-5 py-3.5 text-left text-xl leading-relaxed text-slate-100"
-            style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+            className="relative mt-4 min-h-[4.25rem] overflow-hidden rounded-2xl border border-emerald-500/20 bg-slate-950/35 px-5 py-3.5 text-left text-lg leading-relaxed text-slate-100 line-clamp-2 sm:text-xl"
           >
             <TeletypeInline
               full={quoteLine}
               resetKey={quoteKey}
+              className="block break-words"
               caretClassName="bg-emerald-500/75"
               prefix={
                 <span className="text-slate-500" aria-hidden>

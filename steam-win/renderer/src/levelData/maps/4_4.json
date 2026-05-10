@@ -1,0 +1,33 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 11,
+      "height": 7
+    },
+    "forbiddenCells": [
+      [
+        5,
+        0
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ]
+  },
+  "mapTheme": "工峽蜂巢",
+  "gridStats": {
+    "totalCells": 77,
+    "forbiddenCellCount": 4,
+    "playableCells": 73
+  }
+}

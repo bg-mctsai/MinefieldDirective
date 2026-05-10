@@ -5,9 +5,16 @@ import { mergeChapterEntryBriefingsIntoDefinitions } from './mergeChapterEntryBr
 
 export * from './types';
 export { buildPlayableLevel, type PlayableLevel } from './buildRuntimeLevel';
-export { buildCh4HexMapLayout, buildCh4TriangleMapLayout } from './ch4MapLayout';
+export { buildCh4HexMapLayout } from './ch4MapLayout';
 export { PLANNER_FIELD_DOCS } from './plannerFieldDocs';
-export { hydrateLevelDefinitions, type MapFilePayload, type MapLayoutFilePayload } from './hydrateLevelMaps';
+export {
+  hydrateLevelDefinitions,
+  inferGridSystemFromMapLayout,
+  resolveChapterStageLevelKey,
+  type MapFilePayload,
+  type MapGridStats,
+  type MapLayoutFilePayload,
+} from './hydrateLevelMaps';
 
 type LevelsJsonRoot = {
   _企劃欄位說明?: Record<string, string>;

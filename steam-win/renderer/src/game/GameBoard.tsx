@@ -2,15 +2,14 @@ import type { RefObject } from 'react';
 import { GameCell } from './GameCell';
 import { MapCloudOverlay } from './MapCloudOverlay';
 import { Soldier } from './Soldier';
-import { TriangleGameBoardLayer } from './TriangleGameBoardLayer';
 import { HexGameBoardLayer } from './HexGameBoardLayer';
 import { BOARD_GAP_PX, boardCellPxForLevel } from './constants';
 import { lossChainPhaseForKey } from './lossExplosionChain';
-import { triangleSidePxForLevel, triangleValidCellsSvgLayout } from './triangleBoardLayout';
 import { hexBoardContentSizePxForCells, hexRadiusPxForLevel } from './hexBoardLayout';
 import type { GameState, MovingSoldierState } from './types';
 import { neighborModeForGridSystem } from '../levelData/gridTopology';
-import { adjacentPlacedDigitCount, mineCombatTier } from './mineCombatVisual';
+import { adjacentPlacedDigitCount, mineBombVisualTier } from './mineCombatVisual';
+import { heroFirepowerDigitWeightMode, getStoredHeroId } from '../heroes';
 import { NeighborBonusPlusOneFlight } from './NeighborBonusPlusOneFlight';
 import { NeighborResonancePlaceOverlay } from './NeighborResonancePlaceOverlay';
 
@@ -32,7 +31,6 @@ export function GameBoard({
   const w = gameState.level.width;
   const h = gameState.level.height;
   const grid = gameState.level.definition.gridSystem;
-  const isTriangle = grid === 'TRIANGLE';
   const isHex = grid === 'HEXAGON';
   const cloud = gameState.level.definition.mapCloudOverlay;
   const configuredBonusTargets = gameState.level.definition.mineBonusTargetCells;
@@ -52,73 +50,6 @@ export function GameBoard({
     (gameState.level.definition.digitOutposts ?? []).map(([ox, oy]) => `${ox},${oy}`),
   );
   const boardAlignClass = align === 'left' ? 'mr-auto' : 'mx-auto';
-
-  if (isTriangle) {
-    const side = triangleSidePxForLevel(w, h);
-    const { contentW, contentH, svgGroupTx, svgGroupTy } = triangleValidCellsSvgLayout(
-      gameState.level.cells,
-      side,
-    );
-    const triangleSvgTranslate = { x: svgGroupTx, y: svgGroupTy };
-
-    return (
-      <div className="w-full max-w-full overflow-x-auto">
-        <div
-          ref={boardRef}
-          key={gameState.gameId}
-          className={`relative overflow-hidden rounded-[2rem] border-[3px] border-slate-800 bg-slate-900 p-3 shadow-2xl ${boardAlignClass}`}
-          style={{ width: 'fit-content' }}
-        >
-          <TriangleGameBoardLayer
-            gameState={gameState}
-            side={side}
-            contentW={contentW}
-            contentH={contentH}
-            svgGroupTx={svgGroupTx}
-            svgGroupTy={svgGroupTy}
-            onCellClick={onCellClick}
-            bonusFxKeys={bonusFxKeySet}
-            bonusSeconds={bonusSeconds}
-          />
-
-          {cloud && (
-            <MapCloudOverlay config={cloud} boardWidthPx={contentW} boardHeightPx={contentH} />
-          )}
-
-          {movingSoldier?.phase === 'resonance' && (
-            <NeighborResonancePlaceOverlay
-              layout="triangle"
-              x={movingSoldier.x}
-              y={movingSoldier.y}
-              shownValue={movingSoldier.resonanceShown}
-              cellSize={side}
-              triangleSvgTranslate={triangleSvgTranslate}
-            />
-          )}
-          {movingSoldier?.phase === 'resonance' && movingSoldier.flightFrom && (
-            <NeighborBonusPlusOneFlight
-              layout="triangle"
-              fromX={movingSoldier.flightFrom.x}
-              fromY={movingSoldier.flightFrom.y}
-              toX={movingSoldier.x}
-              toY={movingSoldier.y}
-              cellSize={side}
-              triangleSvgTranslate={triangleSvgTranslate}
-            />
-          )}
-          {movingSoldier && movingSoldier.phase !== 'resonance' && (
-            <Soldier
-              x={movingSoldier.x}
-              y={movingSoldier.y}
-              cellSize={side}
-              layout="triangle"
-              triangleSvgTranslate={triangleSvgTranslate}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
 
   if (isHex) {
     const r = hexRadiusPxForLevel(w, h);
@@ -210,6 +141,7 @@ export function GameBoard({
   const conflictKeySet = new Set(gameState.conflictCells.map((c) => `${c.x},${c.y}`));
   const explosionMarkKeySet = new Set(gameState.explosionMarkCells.map((c) => `${c.x},${c.y}`));
   const squareNeighborMode = neighborModeForGridSystem(gameState.level.definition.gridSystem);
+  const fireDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
 
   return (
     <div className="w-full max-w-full overflow-x-auto">
@@ -258,7 +190,7 @@ export function GameBoard({
           const showBonusFx = bonusFxKeySet.has(key);
           const blastPointCountdown = blastPointsCountdown.get(key);
           const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, squareNeighborMode, w, h);
-          const mCombat = mineCombatTier(adjDigits);
+          const mCombat = mineBombVisualTier(adjDigits, fireDigitMode);
 
           return (
             <GameCell
@@ -278,6 +210,7 @@ export function GameBoard({
               isDigitOutpost={digitOutpostKeys.has(key)}
               isDynamicMine={isDynMine}
               mineCombatTier={isMine || isDynMine ? mCombat : 1}
+              fireDigitMode={fireDigitMode}
               lossChainPhase={lossChainPhase}
               lossChainPopKey={gameState.lossExplosionWaveIndex}
               status={gameState.status}

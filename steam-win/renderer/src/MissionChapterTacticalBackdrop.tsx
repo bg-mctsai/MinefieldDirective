@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { buildTacticalRouteSmoothD } from './missionChapterTacticalRoute';
 import {
   TACTICAL_BG,
@@ -55,24 +56,39 @@ export function MissionChapterTacticalBackdrop({
   const gridId = `tacticalGrid-${sid}`;
   const gridCoarseId = `tacticalGridCoarse-${sid}`;
   const satFilterId = `satTerrain-${sid}`;
-  const satFilterFineId = `satTerrainFine-${sid}`;
   const satTintId = `satTint-${sid}`;
   const sweepGradId = `tacticalSweep-${sid}`;
   const mapSheenId = `mapSheen-${sid}`;
   const mapVignetteId = `mapVignette-${sid}`;
   const scanPatternId = `tacticalScan-${sid}`;
 
-  const routeD = buildTacticalRouteSmoothD(routePoints, 0.3);
-  const decorA = routePoints.length >= 2 ? buildParallelSmoothD(routePoints, 2.4, false, 0.26) : '';
-  const decorB = routePoints.length >= 2 ? buildParallelSmoothD(routePoints, -2.1, true, 0.22) : '';
-  const decorC = routePoints.length >= 2 ? buildParallelSmoothD(routePoints, 3.6, true, 0.2) : '';
-
-  const routeDash = visualSeed % 3 === 0 ? '1.2 1.9' : visualSeed % 3 === 1 ? '1.0 1.6' : '1.35 2.0';
   const faintDash = '0.45 0.85';
   const noiseSeed = Math.abs(visualSeed % 17) + 1;
 
-  const arrows = segmentMidArrows(routePoints);
-  const extras = extraTacticalSegments(visualSeed);
+  const routeD = useMemo(() => buildTacticalRouteSmoothD(routePoints, 0.3), [routePoints]);
+  const decorA = useMemo(
+    () => (routePoints.length >= 2 ? buildParallelSmoothD(routePoints, 2.4, false, 0.26) : ''),
+    [routePoints],
+  );
+  const decorB = useMemo(
+    () => (routePoints.length >= 2 ? buildParallelSmoothD(routePoints, -2.1, true, 0.22) : ''),
+    [routePoints],
+  );
+  const decorC = useMemo(
+    () => (routePoints.length >= 2 ? buildParallelSmoothD(routePoints, 3.6, true, 0.2) : ''),
+    [routePoints],
+  );
+  const routeTwinPaths = useMemo(() => {
+    if (routePoints.length < 2) return { mainA: '', mainB: '' };
+    return {
+      mainA: buildParallelSmoothD(routePoints, 0.55, false, 0.3),
+      mainB: buildParallelSmoothD(routePoints, 0.55, true, 0.3),
+    };
+  }, [routePoints]);
+
+  const arrows = useMemo(() => segmentMidArrows(routePoints), [routePoints]);
+  const extras = useMemo(() => extraTacticalSegments(visualSeed), [visualSeed]);
+  const geoLabels = useMemo(() => missionBackdropGeographyLabels(chapter), [chapter]);
 
   /** 雷達中心偏左上，讓扇形掃過主要戰區（與等高線中心錯開） */
   const radarCx = 40;
@@ -80,7 +96,6 @@ export function MissionChapterTacticalBackdrop({
   /** 附圖中大圓幾乎覆蓋整張地圖 */
   const radarR = 62;
   const terrainSrc = missionTerrainSrcForLevel(visualSeed, chapter);
-  const geoLabels = missionBackdropGeographyLabels(chapter);
 
   return (
     <div className={`pointer-events-none absolute inset-0 h-full w-full select-none ${className}`}>
@@ -89,8 +104,9 @@ export function MissionChapterTacticalBackdrop({
         key={terrainSrc}
         src={terrainSrc}
         alt=""
+        decoding="async"
         draggable={false}
-        className="absolute inset-0 h-full w-full object-cover object-center will-change-transform [transform:translateZ(0)] [image-rendering:high-quality] [filter:brightness(1.05)_contrast(1.06)_saturate(0.86)]"
+        className="absolute inset-0 h-full w-full object-cover object-center [image-rendering:high-quality] [filter:brightness(1.05)_contrast(1.06)_saturate(0.86)]"
         onLoad={(e) => {
           const { naturalWidth: nw, naturalHeight: nh } = e.currentTarget;
           if (nw > 0 && nh > 0) onTerrainNaturalSize?.(nw, nh);
@@ -109,11 +125,11 @@ export function MissionChapterTacticalBackdrop({
           <stop offset="50%" stopColor="#030405" stopOpacity="0.52" />
           <stop offset="100%" stopColor="#08090a" stopOpacity="0.68" />
         </linearGradient>
-        <filter id={satFilterId} x="-5%" y="-5%" width="110%" height="110%">
+        <filter id={satFilterId} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
           <feTurbulence
             type="fractalNoise"
             baseFrequency="0.022 0.032"
-            numOctaves="3"
+            numOctaves="2"
             seed={noiseSeed}
             result="noise"
           />
@@ -124,24 +140,6 @@ export function MissionChapterTacticalBackdrop({
                     0.11 0.12 0.1 0 0.018
                     0.1 0.11 0.12 0 0.018
                     0 0 0 0.34 0"
-            result="colored"
-          />
-        </filter>
-        <filter id={satFilterFineId} x="-5%" y="-5%" width="110%" height="110%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.095 0.14"
-            numOctaves="2"
-            seed={(noiseSeed + chapter * 3 + 11) % 97}
-            result="fineN"
-          />
-          <feColorMatrix
-            in="fineN"
-            type="matrix"
-            values="0.09 0.085 0.08 0 0.012
-                    0.085 0.09 0.08 0 0.012
-                    0.08 0.085 0.09 0 0.012
-                    0 0 0 0.26 0"
             result="colored"
           />
         </filter>
@@ -198,8 +196,6 @@ export function MissionChapterTacticalBackdrop({
       <rect x="0" y="0" width="100" height="100" fill={`url(#mapAmbient-${sid})`} />
       <rect x="0" y="0" width="100" height="100" fill={`url(#${gridCoarseId})`} opacity="0.12" />
       <rect x="0" y="0" width="100" height="100" fill={`url(#${gridId})`} opacity="0.06" />
-      {/** 高頻細顆粒：底片／紙面感，疊加強度低 */}
-      <rect x="0" y="0" width="100" height="100" filter={`url(#${satFilterFineId})`} opacity="0.022" />
       {/** 極淡掃描線：指揮台 CRT，不搶戰術線條 */}
       <rect x="0" y="0" width="100" height="100" fill={`url(#${scanPatternId})`} opacity="0.16" />
 
@@ -364,50 +360,44 @@ export function MissionChapterTacticalBackdrop({
               opacity="0.9"
             />
             {/* 雙股平行虛線：主軌 + 副軌，皆流動，保留透氣感 */}
-            {(() => {
-              const mainA = buildParallelSmoothD(routePoints, 0.55, false, 0.3);
-              const mainB = buildParallelSmoothD(routePoints, 0.55, true, 0.3);
-              return (
-                <>
-                  {/* 軌跡外暈（淡綠寬帶，讓雙股有共同光暈） */}
-                  <path
-                    d={routeD}
-                    fill="none"
-                    stroke="#39ff7a"
-                    strokeWidth={0.85}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    opacity="0.14"
-                  />
-                  {mainA ? (
-                    <path
-                      d={mainA}
-                      fill="none"
-                      stroke="#39ff7a"
-                      strokeWidth={0.22}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeDasharray="1.4 1.6"
-                      className="mission-route-flow-dash"
-                      opacity="0.88"
-                    />
-                  ) : null}
-                  {mainB ? (
-                    <path
-                      d={mainB}
-                      fill="none"
-                      stroke="#b7ffd0"
-                      strokeWidth={0.18}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeDasharray="1.0 1.8"
-                      className="mission-route-flow-dash mission-route-flow-dash--reverse"
-                      opacity="0.72"
-                    />
-                  ) : null}
-                </>
-              );
-            })()}
+            <>
+              {/* 軌跡外暈（淡綠寬帶，讓雙股有共同光暈） */}
+              <path
+                d={routeD}
+                fill="none"
+                stroke="#39ff7a"
+                strokeWidth={0.85}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.14"
+              />
+              {routeTwinPaths.mainA ? (
+                <path
+                  d={routeTwinPaths.mainA}
+                  fill="none"
+                  stroke="#39ff7a"
+                  strokeWidth={0.22}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="1.4 1.6"
+                  className="mission-route-flow-dash"
+                  opacity="0.88"
+                />
+              ) : null}
+              {routeTwinPaths.mainB ? (
+                <path
+                  d={routeTwinPaths.mainB}
+                  fill="none"
+                  stroke="#b7ffd0"
+                  strokeWidth={0.18}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="1.0 1.8"
+                  className="mission-route-flow-dash mission-route-flow-dash--reverse"
+                  opacity="0.72"
+                />
+              ) : null}
+            </>
           </g>
         ) : null}
       </g>

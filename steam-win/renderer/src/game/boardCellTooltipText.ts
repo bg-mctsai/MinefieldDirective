@@ -1,5 +1,10 @@
 import type { LossChainPhase } from './lossExplosionChain';
 import { GAME_FIXED, sub } from './gameFixedMessages';
+import {
+  convergenceFirepowerWeightFromTier,
+  type FirepowerDigitWeightMode,
+  type MineBombVisualTier,
+} from './mineCombatVisual';
 
 export function boardCellTooltipText(opts: {
   isConflict: boolean;
@@ -13,8 +18,10 @@ export function boardCellTooltipText(opts: {
   bonusSeconds: number;
   /** 乾谷據點：必須佈數字 */
   isDigitOutpost?: boolean;
-  /** 僅地雷／廢雷：兩個或以上數字指向此雷時為 2 */
-  mineCombatTier?: 1 | 2;
+  /** 僅地雷／廢雷：火力視覺階 1～5 */
+  mineCombatTier?: MineBombVisualTier;
+  /** 與目前選中幹員火力加權模式一致（賽琳娜格網倍乘 tooltip 顯示 4／8／16） */
+  fireDigitMode?: FirepowerDigitWeightMode;
 }): string {
   const T = GAME_FIXED.cellTooltip;
   const {
@@ -28,17 +35,28 @@ export function boardCellTooltipText(opts: {
     bonusSeconds,
     isDigitOutpost,
     mineCombatTier,
+    fireDigitMode = 'capTwo',
   } = opts;
+  const tier = mineCombatTier ?? 1;
   if (isConflict) return T.conflict;
   if (placedValue !== undefined) return sub(T.placedDigit, { value: placedValue });
   if (blastPointCountdown !== undefined) return T.blastPoint;
   if (isDigitOutpost) return T.digitOutpost;
   if (isDynamicMine) {
-    return mineCombatTier === 2 ? `${T.dynamicJunkMine}（火力 2）` : T.dynamicJunkMine;
+    if (fireDigitMode === 'convergenceExp' && tier >= 2) {
+      const w = convergenceFirepowerWeightFromTier(tier);
+      return `${T.dynamicJunkMine}（格網倍乘 火力 ${w}）`;
+    }
+    return tier >= 2 ? `${T.dynamicJunkMine}（火力 2）` : T.dynamicJunkMine;
   }
   if (neutralBonusTarget) return sub(T.bonusTargetMine, { seconds: bonusSeconds });
   if (isMine || lossChainPhase !== 'none') {
-    return mineCombatTier === 2 && isMine ? T.mineCountsHigh : T.mineCounts;
+    if (isMine && fireDigitMode === 'convergenceExp' && tier >= 2) {
+      const w = convergenceFirepowerWeightFromTier(tier);
+      return `地雷（格網倍乘 火力 ${w}）：多格已佈數字緊鄰此雷`;
+    }
+    if (isMine && tier >= 2) return T.mineCountsHigh;
+    return T.mineCounts;
   }
   return T.emptyPlaceable;
 }

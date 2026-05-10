@@ -176,5 +176,10 @@
       ]
     ]
   },
-  "mapTheme": "深海巨獸"
+  "mapTheme": "深海巨獸",
+  "gridStats": {
+    "totalCells": 132,
+    "forbiddenCellCount": 42,
+    "playableCells": 90
+  }
 }

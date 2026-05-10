@@ -1,5 +1,5 @@
 /**
- * 讀取 levels.json 與 maps/{mapRef}.json，檢查 gridSystem 與 mapLayout.type 一致，
+ * 讀取 levels.json 與 maps/{mapRef}.json，檢查（若 levels 仍寫 gridSystem）與 mapLayout.type 推導一致，
  * 且 digitOutposts／blastPoints／forcedMineCells 不在 forbidden、且在邊界內。
  * 可選：--write-times 依 playable×coverageGoal 寫回 timeLimit（章內遞增）。
  *
@@ -16,6 +16,15 @@ const LEVELS_PATH = path.join(ROOT, 'renderer/src/levelData/levels.json');
 const MAPS_DIR = path.join(ROOT, 'renderer/src/levelData/maps');
 
 const key = (x, y) => `${x},${y}`;
+
+/** 與 hydrateLevelMaps.inferGridSystemFromMapLayout 一致 */
+function inferGridSystemFromLayoutType(mt) {
+  if (mt === 'HEXAGON') return 'HEXAGON';
+  // 舊地圖殘值：三角盤已廢止，視同蜂巢
+  if (mt === 'TRIANGLE') return 'HEXAGON';
+  if (mt === 'MIXED') return 'MIXED';
+  return 'SQUARE';
+}
 
 function loadMapJson(mapRef) {
   const p = path.join(MAPS_DIR, `${mapRef}.json`);
@@ -36,7 +45,7 @@ function bounds(mapLayout) {
   if (mapLayout.type === 'SQUARE') {
     return { W: mapLayout.width, H: mapLayout.height };
   }
-  if (mapLayout.type === 'TRIANGLE' || mapLayout.type === 'HEXAGON') {
+  if (mapLayout.type === 'HEXAGON' || mapLayout.type === 'TRIANGLE') {
     const ph = mapLayout.placeholder;
     return { W: ph.width, H: ph.height };
   }
@@ -74,13 +83,13 @@ for (const lv of levels) {
     continue;
   }
 
-  const gs = lv.gridSystem;
   const mt = mapLayout.type;
-  if (gs === 'SQUARE' || gs === 'TRIANGLE' || gs === 'HEXAGON') {
-    if (gs !== mt) {
-      console.error(`L${lv.levelId}: gridSystem ${gs} !== mapLayout.type ${mt}`);
-      errors++;
-    }
+  const inferred = inferGridSystemFromLayoutType(mt);
+  if (lv.gridSystem != null && lv.gridSystem !== inferred) {
+    console.error(
+      `L${lv.levelId}: levels.gridSystem ${lv.gridSystem} 與 mapLayout.type ${mt} 推導值 ${inferred} 不符（請刪除 gridSystem 或修正地圖）`,
+    );
+    errors++;
   }
 
   const b = bounds(mapLayout);

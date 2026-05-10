@@ -150,5 +150,10 @@
       ]
     ]
   },
-  "mapTheme": "神之眼監視"
+  "mapTheme": "神之眼監視",
+  "gridStats": {
+    "totalCells": 196,
+    "forbiddenCellCount": 36,
+    "playableCells": 160
+  }
 }

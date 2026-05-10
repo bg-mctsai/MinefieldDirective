@@ -22,6 +22,13 @@ type Props = {
   contentOverride?: DossierPostChapter10Block;
 };
 
+const CHAPTER_NUMERALS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'] as const;
+
+function toChapterNumeral(n: number): string {
+  if (n >= 0 && n < CHAPTER_NUMERALS.length) return CHAPTER_NUMERALS[n];
+  return String(n);
+}
+
 function ArchiveStamp({ completedChapter }: { completedChapter: number }) {
   return (
     <div
@@ -31,10 +38,9 @@ function ArchiveStamp({ completedChapter }: { completedChapter: number }) {
       <div className="bg-red-950/20 px-2.5 py-1.5 text-center">
         <p className="text-[0.6rem] font-black uppercase tracking-[0.35em] text-red-500/95 [text-shadow:0_0_1px_rgba(0,0,0,0.4)]">CONFIRMED</p>
         <p className="mt-0.5 text-[0.5rem] font-bold uppercase tracking-[0.12em] text-red-300/80">[ ARCHIVED ]</p>
-        <p className="mt-1.5 text-[0.6rem] font-bold leading-tight text-red-200/90">
-          第 {completedChapter} 章 · 第 8 關
+        <p className="mt-1.5 text-sm font-black leading-tight text-red-200/95 [text-shadow:0_0_2px_rgba(0,0,0,0.5)]">
+          第{toChapterNumeral(completedChapter)}章完結
         </p>
-        <p className="text-[0.5rem] font-bold text-red-400/80">戰果已寫入指揮鏈</p>
       </div>
     </div>
   );
@@ -154,7 +160,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                           onClick={() => openPortrait(COMMANDER_AVATAR_HERO_ID)}
                           className="shrink-0 cursor-zoom-in rounded-lg outline-none ring-emerald-500/40 ring-offset-2 ring-offset-slate-950 focus-visible:ring-2"
                         >
-                          <HeroAvatarSilhouette heroId={COMMANDER_AVATAR_HERO_ID} size={40} />
+                          <HeroAvatarSilhouette heroId={COMMANDER_AVATAR_HERO_ID} size={64} />
                         </button>
                         <div className="min-w-0">
                           <p className="text-sm font-bold uppercase tracking-[0.08em] text-emerald-300">{COMMANDER_SECTION_HEADING}</p>

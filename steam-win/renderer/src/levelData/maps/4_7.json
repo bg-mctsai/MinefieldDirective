@@ -1,0 +1,37 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 11,
+      "height": 9
+    },
+    "forbiddenCells": [
+      [
+        5,
+        2
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        5,
+        4
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        5,
+        6
+      ]
+    ]
+  },
+  "mapTheme": "窄巢縱谷",
+  "gridStats": {
+    "totalCells": 99,
+    "forbiddenCellCount": 5,
+    "playableCells": 94
+  }
+}

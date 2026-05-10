@@ -2,14 +2,14 @@
  * 戰鬥內動態工兵台詞：六種觸發、依 heroId 切換文案
  * - opening：第一次選電報後 800ms（用 placedInTurn 從 0 變 ≥1 取代「選電報」事件，
  *            因為 placedInTurn 在第一次成功放置後變 1；無 placement 事件時退而用 timerStarted 開始計時）
- * - lastTen：secondsLeft <= 10 第一次
+ * - lastTen：secondsLeft <= 10 第一次（台詞池建議帶「快撤／收線／離開壓力區」語意）
  * - idle：timerStarted 後 18 秒沒有 placedInTurn 變化
  * - good：placedInTurn 從 1 → 2（成功一回合）
  * - bad：status 切到 exploding | lost
  * - victory：status 切到 won
  *
- * 顯示沿用既有 supportBarrage 機制，hook 只回傳當前 barrage 與 heroId；
- * 渲染端根據 tone 切換是否套紅色脈動描邊。
+ * 由 `GameStatusMessageBar` 以 `dynamicBarrage.text` 併入上方訊息列顯示；
+ * `tone === 'alert'` 時可搭配外層狀態列樣式（原棋盤下飄字已移除）。
  */
 import { useEffect, useRef, useState } from 'react';
 import { getHeroDef, getStoredHeroId, type HeroBarrageTrigger, type HeroDef } from '../heroes';
@@ -21,9 +21,7 @@ export interface HeroBarrageOut {
   text: string;
   /** 觸發來源，供渲染端決定顯示管線（例：victory 走上方訊息框） */
   trigger: HeroBarrageTrigger;
-  /** 0~2 軌道，避免疊在同一行 */
-  lane: number;
-  /** 'normal' | 'alert'：alert 顯示紅色脈動描邊 */
+  /** 'normal' | 'alert'：踩雷等危急語氣 */
   tone: 'normal' | 'alert';
 }
 
@@ -49,6 +47,16 @@ export function useDynamicHeroBarrage(gameState: GameState): HeroBarrageOut | nu
   const idleFiredRef = useRef(false);
   const prevStatusRef = useRef<GameState['status']>(gameState.status);
   const openingTimerRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (openingTimerRef.current != null) {
+        window.clearTimeout(openingTimerRef.current);
+        openingTimerRef.current = null;
+      }
+    },
+    [],
+  );
 
   // 局與局之間重置
   useEffect(() => {
@@ -88,7 +96,6 @@ export function useDynamicHeroBarrage(gameState: GameState): HeroBarrageOut | nu
         id: now + Math.floor(Math.random() * 999),
         text,
         trigger,
-        lane: Math.floor(Math.random() * 3),
         tone,
       });
     };

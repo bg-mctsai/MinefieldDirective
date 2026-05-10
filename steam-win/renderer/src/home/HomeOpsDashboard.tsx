@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Activity, Users } from 'lucide-react';
 import { LEVELS } from '../gameLogic';
 import { stageInChapter } from '../game/chapterStage';
-import { loadGameProgress, LEVEL_MAX } from '../game/gameProgressStorage';
+import { loadGameProgress, nextPlayableLevelKey } from '../game/gameProgressStorage';
 import { loadUnlockedHeroIds } from '../game/heroUnlockedStorage';
 import { HEROES } from '../heroes';
 import type { HomeNavigateHandler } from './types';
@@ -21,20 +21,21 @@ function levelTitleBase(name: string): string {
 
 export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandler }) {
   const report = useMemo(() => {
-    const highestClearedLevel = loadGameProgress().highestClearedLevel;
-    const total = Math.min(LEVEL_MAX, LEVELS.length);
-    const campaignComplete = total > 0 && highestClearedLevel >= total;
-    const nextLevelId = campaignComplete ? total : Math.min(total, highestClearedLevel + 1);
-    const nextLevel = campaignComplete ? undefined : (LEVELS.find((level) => level.id === nextLevelId) ?? LEVELS[0]);
+    const progress = loadGameProgress();
+    const cleared = new Set(progress.clearedLevelKeys);
+    const total = LEVELS.length;
+    const orderedKeys = LEVELS.map((l) => l.levelKey);
+    const nextKey = nextPlayableLevelKey(progress.clearedLevelKeys, orderedKeys);
+    const nextLevel = nextKey == null ? undefined : LEVELS.find((level) => level.levelKey === nextKey);
     const chapter = nextLevel?.definition.chapter ?? LEVELS.at(-1)?.definition.chapter ?? 1;
     const chapterLevels = LEVELS.filter((level) => level.definition.chapter === chapter);
-    const chapterCleared = chapterLevels.filter((level) => level.id <= highestClearedLevel).length;
+    const chapterCleared = chapterLevels.filter((level) => cleared.has(level.levelKey)).length;
     const chapterTotal = Math.max(1, chapterLevels.length);
     const unlockedHeroCount = loadUnlockedHeroIds().length;
-    const stage = nextLevel ? stageInChapter(nextLevel.id, chapter) : 1;
+    const stage = nextLevel ? stageInChapter(nextLevel.stage) : 1;
 
     return {
-      highestClearedLevel,
+      clearedCount: cleared.size,
       total,
       nextLevel,
       chapter,
@@ -53,7 +54,7 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.16, duration: 0.45 }}
-      className="relative lg:col-span-5"
+      className="relative order-3 lg:order-none lg:col-span-5"
       aria-label="作戰狀態"
     >
       <div className="relative overflow-hidden rounded-3xl border-2 border-[#1e293b] bg-[#0d141d]/95 p-5 shadow-xl lg:min-h-0 xl:p-6">
@@ -105,7 +106,7 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
             <Activity className="shrink-0 text-emerald-300" size={28} strokeWidth={2.25} aria-hidden />
             <div className="min-w-0 flex-1 text-right">
               <div className="text-xl font-black tabular-nums text-white sm:text-2xl">
-                {report.highestClearedLevel}/{report.total}
+                {report.clearedCount}/{report.total}
               </div>
               <div className="text-xs font-bold tracking-[0.04em] text-slate-300 sm:text-sm">戰役完成</div>
             </div>

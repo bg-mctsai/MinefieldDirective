@@ -134,5 +134,10 @@
       ]
     ]
   },
-  "mapTheme": "終溝"
+  "mapTheme": "終溝",
+  "gridStats": {
+    "totalCells": 144,
+    "forbiddenCellCount": 32,
+    "playableCells": 112
+  }
 }

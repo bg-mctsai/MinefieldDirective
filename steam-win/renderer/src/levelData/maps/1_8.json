@@ -1,0 +1,49 @@
+{
+  "mapLayout": {
+    "type": "MIXED",
+    "sectors": [
+      {
+        "id": "top",
+        "shape": "SQUARE",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "size": [
+          10,
+          2
+        ]
+      },
+      {
+        "id": "stem",
+        "shape": "SQUARE",
+        "offset": {
+          "x": 3,
+          "y": 2
+        },
+        "size": [
+          4,
+          6
+        ]
+      },
+      {
+        "id": "bot",
+        "shape": "SQUARE",
+        "offset": {
+          "x": 0,
+          "y": 8
+        },
+        "size": [
+          10,
+          2
+        ]
+      }
+    ]
+  },
+  "mapTheme": "刻進反射",
+  "gridStats": {
+    "totalCells": 64,
+    "forbiddenCellCount": 0,
+    "playableCells": 64
+  }
+}

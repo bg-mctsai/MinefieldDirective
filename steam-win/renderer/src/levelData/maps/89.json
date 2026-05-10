@@ -224,5 +224,10 @@
       ]
     ]
   },
-  "mapTheme": "龜甲巢·鏡像"
+  "mapTheme": "龜甲巢·鏡像",
+  "gridStats": {
+    "totalCells": 132,
+    "forbiddenCellCount": 54,
+    "playableCells": 78
+  }
 }

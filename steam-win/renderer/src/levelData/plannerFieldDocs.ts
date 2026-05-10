@@ -4,12 +4,14 @@
  */
 export const PLANNER_FIELD_DOCS: Record<string, string> = {
   讀我:
-    '下方 levels 為 80 關資料陣列；大地圖幾何可外置於 levelData/maps/{mapRef}.json（見 mapRef）。編輯後請維持合法 JSON。可執行 npm run export-levels-json 驗證並更新頂層 `_企劃欄位說明`。',
+    '下方 levels 為關卡陣列（目前 80 筆）。大地圖幾何與戰場短名請以外置 levelData/maps/{mapRef}.json 為準（mapRef 與檔名一致，如 3_2）。levels 內勿再填 gridSystem（由 mapLayout.type 於載入時推導）。改地圖格數摘要可跑 node scripts/patch-map-grid-stats.mjs；幾何／炸點等約束可跑 node scripts/validate-map-constraints.mjs；npm run export-levels-json 會以本物件覆寫此說明區（並驗證關卡筆數，須與腳本設定一致）。編輯後請維持合法 JSON。',
 
   levelId: '關卡編號 1～80；第 N 筆資料應對應關卡 N。',
   chapter: '章節編號 1～10，對應戰役分章（見 docs/world_map_design.md）。',
-  title: '關卡標題（介面顯示用）。',
-  gridSystem: '地圖系統意圖：SQUARE | HEXAGON | TRIANGLE | MIXED（部分形狀執行時仍可能以方格占位，見技術 TODO）。',
+  title:
+    '可選；未填時介面名稱優先使用外置 maps 的 mapTheme，再退回「關卡 N」。多數關卡與第一章相同可不寫 title。',
+  gridSystem:
+    '勿寫在 levels。執行期由 hydrateLevelMaps 依 mapLayout.type 推導：HEXAGON／MIXED 同名；SQUARE／CROSS／DIAMOND → SQUARE。若殘留舊欄位且與推導不符，node scripts/validate-map-constraints.mjs 會報錯。',
   coverageGoal:
     '過關覆蓋率目標（企劃／平衡用），0～1（例：0.7 = 70%；1 = 100%）。與 HUD「火力」、勳章門檻無強制連動；未填 medalThresholds 時勳章門檻為銅 0.60、銀 0.75、金 0.90。',
   medalThresholds:
@@ -22,18 +24,24 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   initialSeed: '盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。',
 
   mapRef:
-    '可選；地圖幾何外置時填此字串（通常等於 levelId 之字串），對應檔案 levelData/maps/{mapRef}.json，內容為 { "mapLayout": …, "mapTheme"?: 關卡選擇畫面主題文案 }。與關卡內嵌 mapLayout 二擇一；兩者併存時以內嵌 mapLayout 為準。',
+    '可選；外置地圖時填「章節_關卡」（與 levelKey 相同，如 1_1、10_8），對應 levelData/maps/{mapRef}.json。檔案典型結構：mapLayout（必填）、mapTheme（可選）、gridStats（可選，僅企劃標註）。與關卡內嵌 mapLayout 二擇一；併存時以內嵌為準。',
+
+  '（外置地圖）mapTheme':
+    '可選；寫在 maps/*.json。極短戰場名，供關卡選擇列與戰情簡報標題（建議約 2～5 字）。',
+
+  '（外置地圖）gridStats':
+    '可選；寫在 maps/*.json，執行期忽略。totalCells／forbiddenCellCount／playableCells 供企劃速覽；改動 mapLayout 後可執行 node scripts/patch-map-grid-stats.mjs 重算。',
 
   mapLayout: '地圖幾何根物件；必含 type，其餘欄位依 type 擇一填寫（可改寫入外置 maps 檔，見 mapRef）。',
   'mapLayout.type':
-    'SQUARE=矩形格網；MIXED=多區塊合併；CROSS=十字；DIAMOND=菱形；TRIANGLE／HEXAGON=特殊（占位時仍可能為方格）。',
+    'SQUARE=矩形格網；MIXED=多區塊合併；CROSS=十字；DIAMOND=菱形；HEXAGON=蜂巢占位矩形（畫面為六角格）。',
   'mapLayout.width': '（type=SQUARE）寬度格數。',
   'mapLayout.height': '（type=SQUARE）高度格數。',
   'mapLayout.forbiddenCells':
-    '（type=SQUARE／TRIANGLE／HEXAGON，可選）障礙座標 [[x,y],…]，該格不可部署；HEXAGON 時索引與 placeholder 矩形及畫面蜂巢格一致。',
+    '（type=SQUARE／HEXAGON，可選）障礙座標 [[x,y],…]，該格不可部署；HEXAGON 時索引與 placeholder 矩形及畫面蜂巢格一致。',
   'mapLayout.prePlaced': '（type=SQUARE，可選）開局已揭示提示 [{ pos:[x,y], value:數字 }, …]。',
-  'mapLayout.sectors': '（type=MIXED）區塊陣列；每項含 id、shape（SQUARE|HEXAGON|TRIANGLE）、offset{x,y}、size[w,h]。',
-  'mapLayout.placeholder': '（type=TRIANGLE 或 HEXAGON）暫用方格寬高，待真幾何接線後替換。',
+  'mapLayout.sectors': '（type=MIXED）區塊陣列；每項含 id、shape（SQUARE|HEXAGON）、offset{x,y}、size[w,h]。',
+  'mapLayout.placeholder': '（type=HEXAGON）暫用方格寬高，與畫面蜂巢索引一致。',
 
   commands: '玩家手牌／指令池設定（長官電報；標準 3 選 2）。',
   'commands.maxHand':
@@ -81,9 +89,12 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   rewards: '通關敘事／企劃標記；可含 narrativeFlag、todo 等。幹員解鎖：levelData/heroUnlockByChapter.json。',
 
   missionTacticalBriefingMap:
-    '可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央三角→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。',
+    '可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央稜線→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。',
   'missionTacticalBriefingMap.nodePositionPct':
-    '可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章各有獨立八點幾何，見程式 missionChapterNodePositions）。',
+    '可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章見程式 missionChapterNodePositions）。',
   'missionTacticalBriefingMap.mapPalette':
     '可選；底圖與路徑色票：aurora | ember | jade | steel | violet | monsoon；未填則依 levelId 在六種預設間輪替。',
+
+  missionTacticalTerrainAsset:
+    '作戰地圖衛星／點陣「全畫面底圖」：（1）關卡專屬：renderer/src/assets/mission-tactical-level-{兩位數 levelId}.png，有則優先。（2）章節預設：assets/mission-tactical-chapter-maps/mission-tactical-chapter-{NN}.png；第 1 章可為 mission-tactical-chapter-01-bootcamp.png；建置時 glob 收錄，缺檔章節用 mission-tactical-satellite-base.png。無須在 levels.json 填欄位。',
 };

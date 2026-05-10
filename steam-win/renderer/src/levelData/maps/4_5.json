@@ -1,0 +1,16 @@
+{
+  "mapLayout": {
+    "type": "HEXAGON",
+    "placeholder": {
+      "width": 10,
+      "height": 8
+    },
+    "forbiddenCells": []
+  },
+  "mapTheme": "匙孔巢區",
+  "gridStats": {
+    "totalCells": 80,
+    "forbiddenCellCount": 0,
+    "playableCells": 80
+  }
+}

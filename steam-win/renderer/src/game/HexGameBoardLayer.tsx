@@ -1,18 +1,28 @@
 import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
-import { Bomb } from 'lucide-react';
-import { hexCenterScreenPx, hexPolygonPoints } from './hexBoardLayout';
+import { Bomb, MapPin } from 'lucide-react';
+import { getStoredHeroId, heroFirepowerDigitWeightMode } from '../heroes';
+import { hexCenterScreenPx, hexPolygonPoints, hexVertexScreenPx } from './hexBoardLayout';
 import { lossChainPhaseForKey } from './lossExplosionChain';
 import type { GameState } from './types';
 import { boardCellTooltipText } from './boardCellTooltipText';
 import { useSvgBoardTooltip } from './useSvgBoardTooltip';
 import { neighborModeForGridSystem } from '../levelData/gridTopology';
+import { hexOffsetForEdge } from '../levelData/hexGrid';
 import {
   adjacentPlacedDigitCount,
   cyanJunkMineBombIconClass,
-  mineCombatTier,
+  mineBombVisualTier,
   redMineBombIconClass,
 } from './mineCombatVisual';
+import { MineTierBombIcon } from './mineBombTierIcon';
+
+function hexCellOwnsSharedEdge(ax: number, ay: number, bx: number, by: number): boolean {
+  return ay < by || (ay === by && ax < bx);
+}
+
+/** 蜂巢外露邊統一線色／寬，避免數字格 amber 邊與其他格 slate 邊視覺粗細不一 */
+const HEX_OUTWARD_EDGE_STROKE_CLASS = 'stroke-slate-400/32';
 
 export function HexGameBoardLayer({
   gameState,
@@ -54,6 +64,10 @@ export function HexGameBoardLayer({
   const conflictKeySet = new Set(gameState.conflictCells.map((c) => `${c.x},${c.y}`));
   const explosionMarkKeySet = new Set(gameState.explosionMarkCells.map((c) => `${c.x},${c.y}`));
   const neighborMode = neighborModeForGridSystem(gameState.level.definition.gridSystem);
+  const fireDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
+  const digitOutpostKeys = new Set(
+    (gameState.level.definition.digitOutposts ?? []).map(([ox, oy]) => `${ox},${oy}`),
+  );
 
   const terrainPolys: ReactNode[] = [];
   for (let y = 0; y < h; y++) {
@@ -101,46 +115,69 @@ export function HexGameBoardLayer({
         const neutralBonusTarget = isBonusTarget && !placed && !isConflict;
         const isDynamicMine = gameState.dynamicMines.has(key);
         const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, neighborMode, w, h);
-        const mCombat = mineCombatTier(adjDigits);
+        const mCombat = mineBombVisualTier(adjDigits, fireDigitMode);
 
         const numFont = Math.max(11, Math.round(r * 0.38));
         const iconSize = Math.max(12, Math.round(r * 0.36));
 
         let fillClass = 'fill-slate-800';
-        let strokeClass = 'stroke-slate-600';
         if (isConflict) {
           fillClass = 'fill-red-600';
-          strokeClass = 'stroke-white';
         } else if (placed) {
           fillClass = 'fill-amber-950/90';
-          strokeClass = 'stroke-amber-500';
         } else if (isDynamicMine) {
-          fillClass = mCombat >= 2 ? 'fill-cyan-950/65' : 'fill-cyan-950/55';
-          strokeClass = mCombat >= 2 ? 'stroke-cyan-400' : 'stroke-cyan-700';
-        } else if ((postBlast && isMine && lossChainPhase === 'none') || (lossChainPhase === 'dead' && postBlast)) {
-          fillClass = 'fill-stone-950/80';
-          strokeClass = 'stroke-stone-600';
-        } else if (lossChainPhase === 'live' && gameState.status === 'exploding') {
-          fillClass = 'fill-red-500/10';
-          strokeClass = 'stroke-red-400/75';
+          fillClass =
+            mCombat >= 5
+              ? 'fill-emerald-950/55'
+              : mCombat >= 4
+                ? 'fill-teal-950/58'
+                : mCombat >= 3
+                  ? 'fill-cyan-950/62'
+                  : mCombat >= 2
+                    ? 'fill-cyan-950/65'
+                    : 'fill-cyan-950/55';
+        } else if (
+          (lossChainPhase === 'dead' && postBlast) ||
+          (gameState.status === 'lost' && isMine && lossChainPhase === 'none')
+        ) {
+          /** 焦痕／餘燼色，避免純黑死格貼在 slate-900 背景上像髒塊 */
+          fillClass = 'fill-[#2c1518]/92';
+        } else if (lossChainPhase === 'popping' && gameState.status === 'exploding') {
+          fillClass = 'fill-orange-950/65';
         } else if (blastPointCountdown !== undefined && !postBlast) {
           if (blastPointCountdown <= 5) {
             fillClass = 'fill-red-500/35';
-            strokeClass = 'stroke-red-400';
           } else if (blastPointCountdown <= 10) {
             fillClass = 'fill-orange-950/55';
-            strokeClass = 'stroke-orange-400';
           } else {
             fillClass = 'fill-yellow-950/50';
-            strokeClass = 'stroke-yellow-500';
           }
         } else if (isMine) {
-          fillClass = mCombat >= 2 ? 'fill-red-400/22' : 'fill-red-500/10';
-          strokeClass = mCombat >= 2 ? 'stroke-red-300/90' : 'stroke-red-400/75';
+          fillClass =
+            mCombat >= 5
+              ? 'fill-yellow-400/20'
+              : mCombat >= 4
+                ? 'fill-amber-400/21'
+                : mCombat >= 3
+                  ? 'fill-orange-400/20'
+                  : mCombat >= 2
+                    ? 'fill-red-400/22'
+                    : 'fill-red-500/10';
         } else if (neutralBonusTarget) {
           fillClass = 'fill-slate-800';
-          strokeClass = 'stroke-slate-600';
+        } else if (
+          digitOutpostKeys.has(key) &&
+          !placed &&
+          !isMine &&
+          !isDynamicMine &&
+          blastPointCountdown === undefined &&
+          lossChainPhase === 'none'
+        ) {
+          fillClass = 'fill-slate-800';
         }
+        const isDigitOutpostTooltip = Boolean(
+          digitOutpostKeys.has(key) && !placed && blastPointCountdown === undefined,
+        );
         const tooltipText = boardCellTooltipText({
           isConflict,
           placedValue: placed?.value,
@@ -150,7 +187,9 @@ export function HexGameBoardLayer({
           isMine,
           lossChainPhase,
           bonusSeconds,
+          isDigitOutpost: isDigitOutpostTooltip,
           mineCombatTier: isMine || isDynamicMine ? mCombat : 1,
+          fireDigitMode,
         });
 
         return (
@@ -162,7 +201,7 @@ export function HexGameBoardLayer({
           >
             <polygon
               points={hexPolygonPoints(cx, cy, r)}
-              className={`cursor-pointer stroke-[1.5] transition-colors ${fillClass} ${strokeClass} ${
+              className={`cursor-pointer stroke-none transition-colors ${fillClass} ${
                 isConflict ? 'animate-pulse' : ''
               }`}
               onClick={() => onCellClick(x, y)}
@@ -170,6 +209,29 @@ export function HexGameBoardLayer({
               onMouseMove={onPolygonMove}
               onMouseLeave={onPolygonLeave}
             />
+            <g className="pointer-events-none">
+              {Array.from({ length: 6 }, (_, ei) => {
+                const [dx, dy] = hexOffsetForEdge(y, ei);
+                const nx = x + dx;
+                const ny = y + dy;
+                const nk = `${nx},${ny}`;
+                const outward = !validKey.has(nk) || hexCellOwnsSharedEdge(x, y, nx, ny);
+                if (!outward) return null;
+                const a = hexVertexScreenPx(cx, cy, r, ei);
+                const b = hexVertexScreenPx(cx, cy, r, ei + 1);
+                return (
+                  <line
+                    key={`e-${ei}`}
+                    x1={a.x}
+                    y1={a.y}
+                    x2={b.x}
+                    y2={b.y}
+                    className={`stroke-1 ${HEX_OUTWARD_EDGE_STROKE_CLASS}`}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                );
+              })}
+            </g>
             {placed && (
               <text
                 x={cx}
@@ -182,6 +244,26 @@ export function HexGameBoardLayer({
                 {placed.value}
               </text>
             )}
+            {!placed &&
+              !isDynamicMine &&
+              digitOutpostKeys.has(key) &&
+              blastPointCountdown === undefined &&
+              !postBlast && (
+                <foreignObject
+                  x={cx - r * 0.92}
+                  y={cy - r * 0.92}
+                  width={r * 0.88}
+                  height={r * 0.88}
+                  className="pointer-events-none overflow-visible"
+                >
+                  <div className="flex h-full w-full items-start justify-start" aria-hidden>
+                    <MapPin
+                      size={Math.max(12, Math.round(r * 0.34))}
+                      className="text-teal-400/95 drop-shadow-[0_0_4px_rgba(20,184,166,0.55)]"
+                    />
+                  </div>
+                </foreignObject>
+              )}
             {blastPointCountdown !== undefined && !postBlast && (
               <foreignObject
                 x={cx - r * 0.95}
@@ -212,7 +294,7 @@ export function HexGameBoardLayer({
                 </div>
               </foreignObject>
             )}
-            {!placed && lossChainPhase !== 'none' && (
+            {!placed && lossChainPhase === 'popping' && gameState.status === 'exploding' && (
               <foreignObject
                 x={cx - iconSize / 2}
                 y={cy - iconSize / 2}
@@ -221,19 +303,12 @@ export function HexGameBoardLayer({
                 className="pointer-events-none overflow-visible"
               >
                 <div className="flex h-full w-full items-center justify-center">
-                  {lossChainPhase === 'live' && gameState.status === 'exploding' && (
-                    <Bomb size={iconSize} className={redMineBombIconClass(mCombat)} />
-                  )}
-                  {lossChainPhase === 'popping' && gameState.status === 'exploding' && (
-                    <Bomb
-                      key={`lc-${gameState.lossExplosionWaveIndex}`}
-                      size={iconSize}
-                      className={redMineBombIconClass(mCombat)}
-                    />
-                  )}
-                  {lossChainPhase === 'dead' && postBlast && (
-                    <Bomb size={iconSize} className={redMineBombIconClass(mCombat)} />
-                  )}
+                  <MineTierBombIcon
+                    key={`lc-${gameState.lossExplosionWaveIndex}`}
+                    tier={mCombat}
+                    size={iconSize}
+                    className={redMineBombIconClass(mCombat)}
+                  />
                 </div>
               </foreignObject>
             )}
@@ -247,9 +322,17 @@ export function HexGameBoardLayer({
               >
                 <div className="flex h-full w-full items-center justify-center">
                   {isDynamicMine ? (
-                    <Bomb size={iconSize} className={cyanJunkMineBombIconClass(mCombat)} />
+                    <MineTierBombIcon
+                      tier={mCombat}
+                      size={iconSize}
+                      className={cyanJunkMineBombIconClass(mCombat)}
+                    />
                   ) : (
-                    <Bomb size={iconSize} className={redMineBombIconClass(mCombat)} />
+                    <MineTierBombIcon
+                      tier={mCombat}
+                      size={iconSize}
+                      className={redMineBombIconClass(mCombat)}
+                    />
                   )}
                 </div>
               </foreignObject>
@@ -262,7 +345,7 @@ export function HexGameBoardLayer({
                   x2={cx + r * 0.28}
                   y2={cy + r * 0.28}
                   className="stroke-rose-400"
-                  strokeWidth={Math.max(3, r * 0.09)}
+                  strokeWidth={Math.max(1.25, r * 0.038)}
                   strokeLinecap="round"
                 />
                 <line
@@ -271,7 +354,7 @@ export function HexGameBoardLayer({
                   x2={cx - r * 0.28}
                   y2={cy + r * 0.28}
                   className="stroke-rose-400"
-                  strokeWidth={Math.max(3, r * 0.09)}
+                  strokeWidth={Math.max(1.25, r * 0.038)}
                   strokeLinecap="round"
                 />
               </g>

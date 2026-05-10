@@ -6,6 +6,8 @@ import type {
 
 export type PlayableLevel = {
   id: number;
+  levelKey: string;
+  stage: number;
   name: string;
   width: number;
   height: number;
@@ -51,8 +53,6 @@ function boardBoundsFromDefinition(definition: LevelDefinition, cells: { x: numb
       return { width: ml.width, height: ml.height };
     case 'CROSS':
       return { width: ml.width, height: ml.height };
-    case 'TRIANGLE':
-      return { width: ml.placeholder.width, height: ml.placeholder.height };
     case 'HEXAGON':
       return { width: ml.placeholder.width, height: ml.placeholder.height };
     case 'DIAMOND':
@@ -128,7 +128,7 @@ function mixedSectorCells(sector: {
     }
     return out;
   }
-  // HEXAGON / TRIANGLE：幾何 TODO，先以同尺寸方格塊佔位
+  // HEXAGON：幾何 TODO，先以同尺寸方格塊佔位
   const out: { x: number; y: number }[] = [];
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -146,15 +146,6 @@ function cellsFromMapLayout(layout: MapLayout): { x: number; y: number }[] {
       return layout.width === 11 && layout.height === 11 ? defaultCrossCells() : crossCells(layout.width, layout.height);
     case 'DIAMOND':
       return diamondCells(layout.radius);
-    case 'TRIANGLE': {
-      const { width, height } = layout.placeholder;
-      return squareCells({
-        type: 'SQUARE',
-        width,
-        height,
-        forbiddenCells: layout.forbiddenCells,
-      });
-    }
     case 'HEXAGON': {
       const { width, height } = layout.placeholder;
       return squareCells({
@@ -191,7 +182,12 @@ export function buildPlayableLevel(definition: LevelDefinition): PlayableLevel {
 
   return {
     id: definition.levelId,
-    name: definition.title,
+    levelKey: definition.levelKey,
+    stage: definition.stage,
+    name:
+      definition.title?.trim() ||
+      definition.mapTheme?.trim() ||
+      `關卡 ${definition.levelId}`,
     width,
     height,
     cells,

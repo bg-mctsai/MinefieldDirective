@@ -1,8 +1,7 @@
 import type { GridSystem } from './types';
 import { hexEdgeNeighborKeys } from './hexGrid';
-import { triangleEdgeNeighborKeys } from './triangleGrid';
 
-export type NeighborMode = 'MOORE' | 'TRIANGLE' | 'HEXAGON';
+export type NeighborMode = 'MOORE' | 'HEXAGON';
 
 const cellKey = (x: number, y: number) => `${x},${y}`;
 
@@ -27,17 +26,15 @@ export function logicNeighborKeys(
   boardH: number
 ): string[] {
   if (mode === 'MOORE') return mooreNeighborKeys(x, y, validKeys);
-  if (mode === 'HEXAGON') return hexEdgeNeighborKeys(x, y, boardW, boardH, validKeys);
-  return triangleEdgeNeighborKeys(x, y, boardW, boardH, validKeys);
+  return hexEdgeNeighborKeys(x, y, boardW, boardH, validKeys);
 }
 
 export function neighborModeForGridSystem(gs: GridSystem): NeighborMode {
-  if (gs === 'TRIANGLE') return 'TRIANGLE';
   if (gs === 'HEXAGON') return 'HEXAGON';
   return 'MOORE';
 }
 
-/** 敗北台詞用：兩格是否在「邏輯鄰接圖」上相鄰（三角為邊鄰接，其餘為八鄰） */
+/** 敗北台詞用：兩格是否在「邏輯鄰接圖」上相鄰（蜂巢為六邊鄰，方格為八鄰） */
 export function areLogicNeighbors(
   ax: number,
   ay: number,
@@ -53,7 +50,7 @@ export function areLogicNeighbors(
 }
 
 /**
- * 自動揭曉強制格時的「鄰近」範圍：方格為切比雪夫距離；三角格為僅沿三角邊相接的圖距離 ≤ maxDist。
+ * 自動揭曉強制格時的「鄰近」範圍：方格為切比雪夫距離；蜂巢為邊相接圖距離 ≤ maxDist。
  */
 export function withinForcedRevealZone(
   targetKey: string,
@@ -74,7 +71,7 @@ export function withinForcedRevealZone(
     return Math.max(Math.abs(tx - centerX), Math.abs(ty - centerY)) <= maxDist;
   }
 
-  if (mode === 'TRIANGLE' || mode === 'HEXAGON') {
+  if (mode === 'HEXAGON') {
     const goal = targetKey;
     const start = cellKey(centerX, centerY);
     if (goal === start) return true;

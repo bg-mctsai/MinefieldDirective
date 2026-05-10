@@ -78,7 +78,7 @@ function findBoardForSilhouette(silBase, need, minPlay = 100, maxPlay = 200) {
 
 const CH10 = [
   { id: 91, type: 'SQUARE', sil: 0, theme: '終焉對角' },
-  { id: 92, type: 'TRIANGLE', sil: 1, theme: '三角雙工峽' },
+  { id: 92, type: 'HEXAGON', sil: 1, theme: '三角雙工峽' },
   { id: 93, type: 'HEXAGON', sil: 2, theme: '鑰芯' },
   { id: 94, type: 'SQUARE', sil: 3, theme: '廢雷場' },
   { id: 95, type: 'SQUARE', sil: 4, theme: '干擾槽掃' },

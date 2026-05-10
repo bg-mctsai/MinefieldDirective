@@ -1,0 +1,12 @@
+{
+  "mapLayout": {
+    "type": "DIAMOND",
+    "radius": 6
+  },
+  "mapTheme": "大菱形",
+  "gridStats": {
+    "totalCells": 85,
+    "forbiddenCellCount": 0,
+    "playableCells": 85
+  }
+}

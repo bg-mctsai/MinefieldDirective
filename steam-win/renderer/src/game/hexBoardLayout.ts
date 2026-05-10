@@ -22,6 +22,17 @@ export function hexPolygonPoints(cx: number, cy: number, r: number): string {
   return pts.join(' ');
 }
 
+/** 頂點序與 `hexPolygonPoints` 相同：0 為正上方，順時針。 */
+export function hexVertexScreenPx(
+  cx: number,
+  cy: number,
+  r: number,
+  vertexIndex: number,
+): { x: number; y: number } {
+  const a = -Math.PI / 2 + (vertexIndex % 6) * (Math.PI / 3);
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+
 export function hexBoardBoundsPx(w: number, h: number, r: number): {
   minX: number;
   minY: number;

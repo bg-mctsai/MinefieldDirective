@@ -14,7 +14,6 @@ export function NeighborBonusPlusOneFlight({
   cellSize,
   hexMin,
   squareGridMin,
-  triangleSvgTranslate,
 }: {
   layout: OverlayBoardLayout;
   fromX: number;
@@ -24,21 +23,14 @@ export function NeighborBonusPlusOneFlight({
   cellSize: number;
   hexMin?: { x: number; y: number };
   squareGridMin?: { x: number; y: number };
-  triangleSvgTranslate?: { x: number; y: number };
 }) {
-  const centerArgs = [
-    layout === 'hex' ? hexMin : undefined,
-    layout === 'square' ? squareGridMin : undefined,
-    layout === 'triangle' ? triangleSvgTranslate : undefined,
-  ] as const;
+  const centerArgs = [layout === 'hex' ? hexMin : undefined, layout === 'square' ? squareGridMin : undefined] as const;
   const from = overlayBoardCellCenterPx(layout, fromX, fromY, cellSize, ...centerArgs);
   const to = overlayBoardCellCenterPx(layout, toX, toY, cellSize, ...centerArgs);
   const font =
     layout === 'square'
       ? Math.max(12, Math.round(cellSize * 0.34))
-      : layout === 'triangle'
-        ? Math.max(11, Math.round(cellSize * 0.28))
-        : Math.max(11, Math.round(cellSize * 0.3));
+      : Math.max(11, Math.round(cellSize * 0.3));
 
   return (
     <motion.div
