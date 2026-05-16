@@ -18,7 +18,16 @@
 - 典型節奏：10×10 -> 11×11 -> 12×12 三階段。
 - Lv30 是 triple penalty（高 coverage + 高 forbidden + 壓秒）。
 
-## Chapter 5～7（Lv41～70）建議 `k`
+## Chapter 6～10（Lv41～80）`timeLimit` 公式
+
+- **公式**：`timeLimit = playableCells − 15`（見 `formulas-and-heuristics.md`）。
+- **地圖來源**：`steam-win/renderer/src/levelData/maps/{mapRef}.json` → `gridStats.playableCells`。
+- **典型秒數帶**：ch6～9 多為 **57～66**；ch10 為 **85～102**（大地圖 playable 100+）。
+- 第 6 章地圖幾何為 **六角／方格混用**（非全 HEXAGON）；估時仍只依 `playableCells`，與 `mapLayout.type` 無關。
+
+## Chapter 5～7 建議 `k`（歷史參照）
+
+以下 `k` 僅供舊版手調／coverage 估算對照；**ch6 起以 `playableCells − 15` 為準，勿用 `k` 覆寫**。
 
 | gridSystem | weights 範例 | `k` |
 |---|---|---:|

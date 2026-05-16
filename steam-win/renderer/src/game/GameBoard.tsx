@@ -19,6 +19,7 @@ export function GameBoard({
   onCellClick,
   boardRef,
   bonusFxKeys,
+  combatHeroId = getStoredHeroId(),
   align = 'center',
 }: {
   gameState: GameState;
@@ -26,6 +27,7 @@ export function GameBoard({
   onCellClick: (x: number, y: number) => void;
   boardRef: RefObject<HTMLDivElement | null>;
   bonusFxKeys: string[];
+  combatHeroId?: string;
   align?: 'center' | 'left';
 }) {
   const w = gameState.level.width;
@@ -105,6 +107,7 @@ export function GameBoard({
               x={movingSoldier.x}
               y={movingSoldier.y}
               cellSize={r}
+              heroId={combatHeroId}
               layout="hex"
               hexMin={{ x: minX, y: minY }}
             />
@@ -209,7 +212,7 @@ export function GameBoard({
               blastPointCountdown={blastPointCountdown}
               isDigitOutpost={digitOutpostKeys.has(key)}
               isDynamicMine={isDynMine}
-              mineCombatTier={isMine || isDynMine ? mCombat : 1}
+              mineCombatTier={isMine ? mCombat : 1}
               fireDigitMode={fireDigitMode}
               lossChainPhase={lossChainPhase}
               lossChainPopKey={gameState.lossExplosionWaveIndex}
@@ -249,6 +252,7 @@ export function GameBoard({
             x={movingSoldier.x}
             y={movingSoldier.y}
             cellSize={cellSize}
+            heroId={combatHeroId}
             layout="square"
             squareGridMin={squareGridMin}
           />

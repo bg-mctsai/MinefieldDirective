@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Activity, Users } from 'lucide-react';
+import { campaignHomeContinueLabels } from '../game/campaignLevelUi';
 import { LEVELS } from '../gameLogic';
-import { stageInChapter } from '../game/chapterStage';
 import { loadGameProgress, nextPlayableLevelKey } from '../game/gameProgressStorage';
 import { loadUnlockedHeroIds } from '../game/heroUnlockedStorage';
 import { HEROES } from '../heroes';
@@ -11,12 +11,6 @@ import { ChapterMedalSummary } from './ChapterMedalSummary';
 
 function pct(n: number) {
   return `${Math.round(Math.max(0, Math.min(1, n)) * 100)}%`;
-}
-
-/** 去除標題尾端「· 第 N 戰」；首頁戰序改顯示章內第 1～8 戰 */
-function levelTitleBase(name: string): string {
-  const trimmed = name.replace(/\s*[·・]\s*第\s*\d+\s*戰\s*$/u, '').trim();
-  return trimmed.length > 0 ? trimmed : name;
 }
 
 export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandler }) {
@@ -32,14 +26,12 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
     const chapterCleared = chapterLevels.filter((level) => cleared.has(level.levelKey)).length;
     const chapterTotal = Math.max(1, chapterLevels.length);
     const unlockedHeroCount = loadUnlockedHeroIds().length;
-    const stage = nextLevel ? stageInChapter(nextLevel.stage) : 1;
 
     return {
       clearedCount: cleared.size,
       total,
       nextLevel,
       chapter,
-      stage,
       chapterCleared,
       chapterTotal,
       chapterProgress: chapterCleared / chapterTotal,
@@ -48,6 +40,7 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
   }, []);
 
   const nextLevel = report.nextLevel;
+  const continueLabels = nextLevel ? campaignHomeContinueLabels(nextLevel) : null;
 
   return (
     <motion.section
@@ -74,8 +67,8 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
               {nextLevel ? (
                 <>
                   <div className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">戰役接續</div>
-                  <div className="mt-1 truncate text-2xl font-black text-white">{levelTitleBase(nextLevel.name)}</div>
-                  <div className="mt-0.5 text-base font-bold text-slate-200">第 {report.stage} 戰</div>
+                  <div className="mt-1 truncate text-2xl font-black text-white">{continueLabels!.heading}</div>
+                  <div className="mt-0.5 text-base font-bold tabular-nums text-slate-200">關卡 {continueLabels!.stageLabel}</div>
                 </>
               ) : (
                 <>

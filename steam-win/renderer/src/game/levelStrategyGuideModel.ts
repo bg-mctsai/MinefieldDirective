@@ -1,6 +1,5 @@
 import type { Level } from '../gameLogic';
 import type { GridSystem, MapLayout } from '../levelData/types';
-import { stageInChapter } from './chapterStage';
 
 const CHAPTER_NAMES = [
   '',

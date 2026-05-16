@@ -4,12 +4,12 @@ import { Bomb, MapPin } from 'lucide-react';
 import type { LossChainPhase } from './lossExplosionChain';
 import { boardCellTooltipText } from './boardCellTooltipText';
 import {
-  cyanJunkMineBombIconClass,
-  redMineBombIconClass,
+  placedCommandDigitClassName,
+  placedCommandDigitFontPx,
   type FirepowerDigitWeightMode,
   type MineBombVisualTier,
 } from './mineCombatVisual';
-import { MineTierBombIcon } from './mineBombTierIcon';
+import { MineCellCombatDisplay } from './MineCellCombatDisplay';
 
 export interface GameCellProps {
   x: number;
@@ -69,7 +69,7 @@ const GameCellComponent = ({
   onClick,
 }: GameCellProps) => {
   const postBlast = status === 'exploding' || status === 'lost';
-  const numFont = Math.max(13, Math.round(cellSizePx * 0.48));
+  const commandDigitFont = placedCommandDigitFontPx(cellSizePx);
   const iconSize = Math.max(14, Math.round(cellSizePx * 0.45));
   /** 加秒目標格（未佈數字、無衝突）：空白目標格可疊白炸彈預覽；已揭示雷仍走紅雷樣式 */
   const neutralBonusTarget = Boolean(isBonusTarget && !placed && !isConflict);
@@ -108,15 +108,7 @@ const GameCellComponent = ({
           : placed
             ? 'border-2 border-amber-500 bg-amber-900/40'
             : isDynamicMine
-              ? combatTier >= 5
-                ? 'border-2 border-emerald-300/80 bg-emerald-950/55 shadow-[0_0_18px_rgba(52,211,153,0.35)]'
-                : combatTier >= 4
-                  ? 'border-2 border-teal-400/78 bg-teal-950/58 shadow-[0_0_16px_rgba(45,212,191,0.32)]'
-                  : combatTier >= 3
-                    ? 'border-2 border-sky-400/76 bg-cyan-950/60 shadow-[0_0_15px_rgba(56,189,248,0.3)]'
-                    : combatTier >= 2
-                      ? 'border-2 border-cyan-400/75 bg-cyan-950/60 shadow-[0_0_14px_rgba(34,211,238,0.28)]'
-                      : 'border border-cyan-700 bg-cyan-950/50'
+              ? 'border border-cyan-700 bg-cyan-950/50'
               : chainDeadStone || (status === 'lost' && isMine && lossChainPhase === 'none')
                 ? 'border border-stone-600/70 bg-stone-950/55'
                 : chainPopping
@@ -128,15 +120,7 @@ const GameCellComponent = ({
                         ? 'border-2 border-orange-400 bg-orange-950/50'
                         : 'border-2 border-yellow-500 bg-yellow-950/40'
                     : isMine
-                        ? combatTier >= 5
-                          ? 'border-2 border-yellow-200/95 bg-yellow-400/14 shadow-[0_0_22px_rgba(253,224,71,0.5)] ring-1 ring-yellow-200/40'
-                          : combatTier >= 4
-                            ? 'border-2 border-amber-200/92 bg-amber-400/16 shadow-[0_0_20px_rgba(251,191,36,0.48)] ring-1 ring-amber-200/38'
-                            : combatTier >= 3
-                              ? 'border-2 border-orange-300/90 bg-orange-400/17 shadow-[0_0_19px_rgba(251,146,60,0.52)] ring-1 ring-orange-300/35'
-                              : combatTier >= 2
-                                ? 'border-2 border-red-300/90 bg-red-400/18 shadow-[0_0_18px_rgba(248,113,113,0.55)] ring-1 ring-red-300/35'
-                                : 'border border-red-400/65 bg-red-500/10'
+                        ? 'border border-red-400/65 bg-red-500/10'
                       : neutralBonusTarget
                         ? 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
                         : isDigitOutpost && !placed
@@ -146,59 +130,57 @@ const GameCellComponent = ({
     `}
     >
       {!placed && !isDynamicMine && isDigitOutpost && blastPointCountdown === undefined && (
-        <div className="pointer-events-none absolute left-0.5 top-0.5 z-[11]" aria-hidden>
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center"
+          aria-hidden
+        >
           <MapPin
             size={Math.max(12, Math.round(cellSizePx * 0.34))}
             className="text-teal-400/95 drop-shadow-[0_0_4px_rgba(20,184,166,0.55)]"
           />
-        </div>
+        </motion.div>
       )}
       {placed && (
         <motion.span
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          style={{ fontSize: numFont }}
-          className={`font-black leading-none ${isConflict ? 'text-white' : 'text-amber-400'}`}
+          style={{ fontSize: commandDigitFont }}
+          className={placedCommandDigitClassName(isConflict)}
         >
           {placed.value}
         </motion.span>
       )}
       {isDynamicMine && !placed && (
-        <motion.div
-          initial={{ scale: 0, rotate: -90 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-          className="pointer-events-none flex items-center justify-center"
-        >
-          <MineTierBombIcon
-            tier={combatTier}
-            size={iconSize}
-            className={cyanJunkMineBombIconClass(combatTier)}
-          />
-        </motion.div>
+        <MineCellCombatDisplay
+          tier={1}
+          fireDigitMode={fireDigitMode}
+          iconSize={iconSize}
+          cellExtentPx={cellSizePx}
+          variant="cyan"
+        />
       )}
       {!placed && !isDynamicMine && lossChainPhase === 'popping' && status === 'exploding' && (
-        <div className="pointer-events-none flex items-center justify-center">
-          <MineTierBombIcon
-            key={`lc-${lossChainPopKey}`}
-            tier={combatTier}
-            size={iconSize}
-            className={redMineBombIconClass(combatTier)}
-          />
-        </div>
+        <MineCellCombatDisplay
+          tier={combatTier}
+          fireDigitMode={fireDigitMode}
+          iconSize={iconSize}
+          cellExtentPx={cellSizePx}
+          variant="red"
+          popKey={lossChainPopKey}
+        />
       )}
       {isMine &&
         !placed &&
         !isDynamicMine &&
         lossChainPhase === 'none' &&
         blastPointCountdown === undefined && (
-        <div className="pointer-events-none flex items-center justify-center">
-          <MineTierBombIcon
-            tier={combatTier}
-            size={iconSize}
-            className={redMineBombIconClass(combatTier)}
-          />
-        </div>
+        <MineCellCombatDisplay
+          tier={combatTier}
+          fireDigitMode={fireDigitMode}
+          iconSize={iconSize}
+          cellExtentPx={cellSizePx}
+          variant="red"
+        />
       )}
       {showExplosionX && postBlast && (
         <div

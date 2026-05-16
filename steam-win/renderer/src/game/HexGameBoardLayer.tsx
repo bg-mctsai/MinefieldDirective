@@ -11,11 +11,11 @@ import { neighborModeForGridSystem } from '../levelData/gridTopology';
 import { hexOffsetForEdge } from '../levelData/hexGrid';
 import {
   adjacentPlacedDigitCount,
-  cyanJunkMineBombIconClass,
   mineBombVisualTier,
-  redMineBombIconClass,
+  placedCommandDigitFontPx,
+  placedCommandDigitSvgClassName,
 } from './mineCombatVisual';
-import { MineTierBombIcon } from './mineBombTierIcon';
+import { MineCellCombatDisplay } from './MineCellCombatDisplay';
 
 function hexCellOwnsSharedEdge(ax: number, ay: number, bx: number, by: number): boolean {
   return ay < by || (ay === by && ax < bx);
@@ -117,8 +117,10 @@ export function HexGameBoardLayer({
         const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, neighborMode, w, h);
         const mCombat = mineBombVisualTier(adjDigits, fireDigitMode);
 
-        const numFont = Math.max(11, Math.round(r * 0.38));
+        const commandDigitFont = placedCommandDigitFontPx(r);
         const iconSize = Math.max(12, Math.round(r * 0.36));
+        const outpostPinSize = Math.max(14, Math.round(r * 0.44));
+        const outpostPinBox = outpostPinSize * 1.12;
 
         let fillClass = 'fill-slate-800';
         if (isConflict) {
@@ -126,16 +128,7 @@ export function HexGameBoardLayer({
         } else if (placed) {
           fillClass = 'fill-amber-950/90';
         } else if (isDynamicMine) {
-          fillClass =
-            mCombat >= 5
-              ? 'fill-emerald-950/55'
-              : mCombat >= 4
-                ? 'fill-teal-950/58'
-                : mCombat >= 3
-                  ? 'fill-cyan-950/62'
-                  : mCombat >= 2
-                    ? 'fill-cyan-950/65'
-                    : 'fill-cyan-950/55';
+          fillClass = 'fill-cyan-950/55';
         } else if (
           (lossChainPhase === 'dead' && postBlast) ||
           (gameState.status === 'lost' && isMine && lossChainPhase === 'none')
@@ -153,16 +146,7 @@ export function HexGameBoardLayer({
             fillClass = 'fill-yellow-950/50';
           }
         } else if (isMine) {
-          fillClass =
-            mCombat >= 5
-              ? 'fill-yellow-400/20'
-              : mCombat >= 4
-                ? 'fill-amber-400/21'
-                : mCombat >= 3
-                  ? 'fill-orange-400/20'
-                  : mCombat >= 2
-                    ? 'fill-red-400/22'
-                    : 'fill-red-500/10';
+          fillClass = 'fill-red-500/10';
         } else if (neutralBonusTarget) {
           fillClass = 'fill-slate-800';
         } else if (
@@ -188,7 +172,7 @@ export function HexGameBoardLayer({
           lossChainPhase,
           bonusSeconds,
           isDigitOutpost: isDigitOutpostTooltip,
-          mineCombatTier: isMine || isDynamicMine ? mCombat : 1,
+          mineCombatTier: isMine ? mCombat : 1,
           fireDigitMode,
         });
 
@@ -238,8 +222,14 @@ export function HexGameBoardLayer({
                 y={cy}
                 textAnchor="middle"
                 dominantBaseline="central"
-                className={`pointer-events-none font-black ${isConflict ? 'fill-white' : 'fill-amber-400'}`}
-                style={{ fontSize: numFont }}
+                className={placedCommandDigitSvgClassName(isConflict)}
+                style={{
+                  fontSize: commandDigitFont,
+                  fontWeight: 900,
+                  paintOrder: 'stroke fill',
+                  stroke: 'rgba(0,0,0,0.55)',
+                  strokeWidth: Math.max(0.6, r * 0.04),
+                }}
               >
                 {placed.value}
               </text>
@@ -250,18 +240,18 @@ export function HexGameBoardLayer({
               blastPointCountdown === undefined &&
               !postBlast && (
                 <foreignObject
-                  x={cx - r * 0.92}
-                  y={cy - r * 0.92}
-                  width={r * 0.88}
-                  height={r * 0.88}
+                  x={cx - outpostPinBox / 2}
+                  y={cy - outpostPinBox / 2}
+                  width={outpostPinBox}
+                  height={outpostPinBox}
                   className="pointer-events-none overflow-visible"
                 >
-                  <div className="flex h-full w-full items-start justify-start" aria-hidden>
+                  <motion.div className="flex h-full w-full items-center justify-center" aria-hidden>
                     <MapPin
-                      size={Math.max(12, Math.round(r * 0.34))}
+                      size={outpostPinSize}
                       className="text-teal-400/95 drop-shadow-[0_0_4px_rgba(20,184,166,0.55)]"
                     />
-                  </div>
+                  </motion.div>
                 </foreignObject>
               )}
             {blastPointCountdown !== undefined && !postBlast && (
@@ -296,45 +286,41 @@ export function HexGameBoardLayer({
             )}
             {!placed && lossChainPhase === 'popping' && gameState.status === 'exploding' && (
               <foreignObject
-                x={cx - iconSize / 2}
-                y={cy - iconSize / 2}
-                width={iconSize}
-                height={iconSize}
+                x={cx - r * 0.72}
+                y={cy - r * 0.72}
+                width={r * 1.44}
+                height={r * 1.44}
                 className="pointer-events-none overflow-visible"
               >
                 <div className="flex h-full w-full items-center justify-center">
-                  <MineTierBombIcon
-                    key={`lc-${gameState.lossExplosionWaveIndex}`}
+                  <MineCellCombatDisplay
                     tier={mCombat}
-                    size={iconSize}
-                    className={redMineBombIconClass(mCombat)}
+                    fireDigitMode={fireDigitMode}
+                    iconSize={iconSize}
+                    cellExtentPx={r}
+                    variant="red"
+                    popKey={gameState.lossExplosionWaveIndex}
                   />
                 </div>
               </foreignObject>
             )}
-            {isMine && !placed && lossChainPhase === 'none' && (
+            {(isMine || isDynamicMine) && !placed && lossChainPhase === 'none' && (
               <foreignObject
-                x={cx - iconSize / 2}
-                y={cy - iconSize / 2}
-                width={iconSize}
-                height={iconSize}
+                x={cx - r * 0.72}
+                y={cy - r * 0.72}
+                width={r * 1.44}
+                height={r * 1.44}
                 className="pointer-events-none overflow-visible"
               >
-                <div className="flex h-full w-full items-center justify-center">
-                  {isDynamicMine ? (
-                    <MineTierBombIcon
-                      tier={mCombat}
-                      size={iconSize}
-                      className={cyanJunkMineBombIconClass(mCombat)}
-                    />
-                  ) : (
-                    <MineTierBombIcon
-                      tier={mCombat}
-                      size={iconSize}
-                      className={redMineBombIconClass(mCombat)}
-                    />
-                  )}
-                </div>
+                <motion.div className="flex h-full w-full items-center justify-center">
+                  <MineCellCombatDisplay
+                    tier={isDynamicMine ? 1 : mCombat}
+                    fireDigitMode={fireDigitMode}
+                    iconSize={iconSize}
+                    cellExtentPx={r}
+                    variant={isDynamicMine ? 'cyan' : 'red'}
+                  />
+                </motion.div>
               </foreignObject>
             )}
             {showExplosionX && postBlast && (

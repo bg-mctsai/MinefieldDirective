@@ -621,7 +621,6 @@ export default function MissionMap({
       nextPlayableLevelKey(clearedLevelKeys, orderedLevelKeys) === lv.levelKey;
     const tone: LevelProgressTone = cleared ? 'cleared' : inProgress ? 'inProgress' : 'new';
     return {
-      chapterView: chapter,
       level: lv,
       stage,
       unlocked,

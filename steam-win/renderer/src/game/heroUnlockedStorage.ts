@@ -89,7 +89,7 @@ export function isHeroIdUnlocked(heroId: string): boolean {
 }
 
 /**
- * 通關第 chapter 章整章（剛通關第 10 戰且勝利）時，合併企劃表解鎖的幹員 id。可重入、冪等。
+ * 通關第 chapter 章整章（剛通關該章第 8 關且勝利）時，合併企劃表解鎖的幹員 id。可重入、冪等。
  */
 export function mergeUnlockedOnChapterCleared(chapter: number): void {
   const extra = heroIdsUnlockedOnChapterCleared(chapter);

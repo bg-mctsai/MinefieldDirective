@@ -10,8 +10,10 @@
     "medalThresholds.silver": "銀級勳章火力門檻 0～1。建議比銅高約 0.05～0.15。",
     "medalThresholds.gold": "金級勳章火力門檻 0～1。達此值對局自動結算；建議比銀高約 0.05～0.15。受 forbiddenCells 影響時請避免逼近 1.0。",
     "timeLimit": "時間限制（秒）；須為正整數，全戰役關卡皆計時。",
-    "timeLimit.chapter4": "第 4 章（chapter=4）：建議 timeLimit = 該關 mapRef 對應 maps/*.json 之 gridStats.playableCells + 10。實際數值以本檔各 level 條目為單一真相來源；改地圖後請手動對齊本欄。",
+    "timeLimit.chapter4": "第 4 章（chapter=4）：建議 timeLimit = 該關 mapRef 對應 maps/*.json 之 gridStats.playableCells（1:1，不加秒）。實際數值以本檔各 level 條目為單一真相來源；改地圖後請手動對齊本欄。",
+    "timeLimit.chapter5": "第 5 章（chapter=5）：建議 timeLimit = playableCells − 5。5_1～5_4 各 3 據點；5_5～5_8 各 4 據點。",
     "commands.chapter4": "第 4 章蜂巢關（mapRef 4_1～4_8）：commands.weights 請只使用鍵 \"1\"～\"6\"（六角鄰數上限）；勿填 7、8。",
+    "commands.chapter6": "第 6 章（chapter=6）：依 maps/{mapRef}.json 的 mapLayout.type——HEXAGON 僅 \"1\"～\"6\"；SQUARE 為 \"1\"～\"8\"。六角建議 18/22/20/18/12/8；四方建議 8/14/22/22/14/10/7/3（同第 3 章方格池）。",
     "digitOutposts.chapter4": "第 4 章僅 mapRef 4_5～4_8 填 digitOutposts；4_1～4_4 請省略 digitOutposts。座標須落在該關可部署格。",
     "initialSeed": "盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。",
     "mapRef": "可選；外置地圖時填「章節_關卡」（與 levelKey 相同，如 1_1、10_8），對應 levelData/maps/{mapRef}.json。檔案典型結構：mapLayout（必填）、mapTheme（可選）、gridStats（可選，僅企劃標註）。與關卡內嵌 mapLayout 二擇一；併存時以內嵌為準。",
@@ -411,7 +413,7 @@
     {
       "levelId": 17,
       "chapter": 3,
-      "title": "乾谷據點 · 第 21 戰",
+      "title": "乾谷據點 · 3_1",
       "coverageGoal": 0.75,
       "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L21-ch3",
@@ -446,7 +448,7 @@
     {
       "levelId": 18,
       "chapter": 3,
-      "title": "乾谷據點 · 第 22 戰",
+      "title": "乾谷據點 · 3_2",
       "coverageGoal": 0.75,
       "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L22-ch3",
@@ -481,7 +483,7 @@
     {
       "levelId": 19,
       "chapter": 3,
-      "title": "乾谷據點 · 第 23 戰",
+      "title": "乾谷據點 · 3_3",
       "coverageGoal": 0.75,
       "timeLimit": 95,
       "initialSeed": "minefield-campaign-v1-L23-ch3",
@@ -520,7 +522,7 @@
     {
       "levelId": 20,
       "chapter": 3,
-      "title": "乾谷據點 · 第 24 戰",
+      "title": "乾谷據點 · 3_4",
       "coverageGoal": 0.75,
       "timeLimit": 117,
       "initialSeed": "minefield-campaign-v1-L24-ch3",
@@ -563,7 +565,7 @@
     {
       "levelId": 21,
       "chapter": 3,
-      "title": "乾谷據點 · 第 25 戰",
+      "title": "乾谷據點 · 3_5",
       "coverageGoal": 0.75,
       "timeLimit": 98,
       "initialSeed": "minefield-campaign-v1-L25-ch3",
@@ -606,7 +608,7 @@
     {
       "levelId": 22,
       "chapter": 3,
-      "title": "乾谷據點 · 第 26 戰",
+      "title": "乾谷據點 · 3_6",
       "coverageGoal": 0.75,
       "timeLimit": 106,
       "initialSeed": "minefield-campaign-v1-L26-ch3",
@@ -649,7 +651,7 @@
     {
       "levelId": 23,
       "chapter": 3,
-      "title": "乾谷據點 · 第 27 戰",
+      "title": "乾谷據點 · 3_7",
       "coverageGoal": 0.75,
       "timeLimit": 94,
       "initialSeed": "minefield-campaign-v1-L27-ch3",
@@ -696,7 +698,7 @@
     {
       "levelId": 24,
       "chapter": 3,
-      "title": "乾谷據點 · 第 28 戰",
+      "title": "乾谷據點 · 3_8",
       "coverageGoal": 0.75,
       "timeLimit": 139,
       "initialSeed": "minefield-campaign-v1-L28-ch3",
@@ -747,9 +749,9 @@
     {
       "levelId": 25,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 31 戰",
+      "title": "蜂格前哨 · 4_1",
       "coverageGoal": 0.73,
-      "timeLimit": 60,
+      "timeLimit": 50,
       "initialSeed": "minefield-campaign-v1-L31-ch4",
       "commands": {
         "maxHand": 3,
@@ -770,9 +772,9 @@
     {
       "levelId": 26,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 32 戰",
+      "title": "蜂格前哨 · 4_2",
       "coverageGoal": 0.73,
-      "timeLimit": 67,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L32-ch4",
       "commands": {
         "maxHand": 3,
@@ -793,9 +795,9 @@
     {
       "levelId": 27,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 33 戰",
+      "title": "蜂格前哨 · 4_3",
       "coverageGoal": 0.73,
-      "timeLimit": 75,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L33-ch4",
       "commands": {
         "maxHand": 3,
@@ -816,9 +818,9 @@
     {
       "levelId": 28,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 34 戰",
+      "title": "蜂格前哨 · 4_4",
       "coverageGoal": 0.73,
-      "timeLimit": 83,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L34-ch4",
       "commands": {
         "maxHand": 3,
@@ -839,9 +841,9 @@
     {
       "levelId": 29,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 35 戰",
+      "title": "蜂格前哨 · 4_5",
       "coverageGoal": 0.73,
-      "timeLimit": 90,
+      "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L35-ch4",
       "commands": {
         "maxHand": 3,
@@ -872,9 +874,9 @@
     {
       "levelId": 30,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 36 戰",
+      "title": "蜂格前哨 · 4_6",
       "coverageGoal": 0.73,
-      "timeLimit": 97,
+      "timeLimit": 87,
       "initialSeed": "minefield-campaign-v1-L36-ch4",
       "commands": {
         "maxHand": 3,
@@ -905,9 +907,9 @@
     {
       "levelId": 31,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 37 戰",
+      "title": "蜂格前哨 · 4_7",
       "coverageGoal": 0.73,
-      "timeLimit": 104,
+      "timeLimit": 94,
       "initialSeed": "minefield-campaign-v1-L37-ch4",
       "commands": {
         "maxHand": 3,
@@ -938,9 +940,9 @@
     {
       "levelId": 32,
       "chapter": 4,
-      "title": "蜂格前哨 · 第 38 戰",
+      "title": "蜂格前哨 · 4_8",
       "coverageGoal": 0.73,
-      "timeLimit": 110,
+      "timeLimit": 100,
       "initialSeed": "minefield-campaign-v1-L38-ch4",
       "commands": {
         "maxHand": 3,
@@ -971,9 +973,9 @@
     {
       "levelId": 33,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 41 戰",
+      "title": "蜂巢防線 · 5_1",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L41-ch4",
       "commands": {
         "maxHand": 3,
@@ -988,6 +990,20 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          6,
+          9
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -998,9 +1014,9 @@
     {
       "levelId": 34,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 42 戰",
+      "title": "蜂巢防線 · 5_2",
       "coverageGoal": 0.8,
-      "timeLimit": 77,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L42-ch4",
       "commands": {
         "maxHand": 3,
@@ -1015,6 +1031,20 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          7,
+          0
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          9,
+          2
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1025,9 +1055,9 @@
     {
       "levelId": 35,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 43 戰",
+      "title": "蜂巢防線 · 5_3",
       "coverageGoal": 0.8,
-      "timeLimit": 75,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L43-ch4",
       "commands": {
         "maxHand": 3,
@@ -1042,6 +1072,20 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          6,
+          1
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          6,
+          9
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1052,9 +1096,9 @@
     {
       "levelId": 36,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 44 戰",
+      "title": "蜂巢防線 · 5_4",
       "coverageGoal": 0.8,
-      "timeLimit": 76,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L44-ch4",
       "commands": {
         "maxHand": 3,
@@ -1069,6 +1113,20 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          8,
+          1
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          8,
+          8
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1079,9 +1137,9 @@
     {
       "levelId": 37,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 45 戰",
+      "title": "蜂巢防線 · 5_5",
       "coverageGoal": 0.8,
-      "timeLimit": 72,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L45-ch4",
       "commands": {
         "maxHand": 3,
@@ -1096,6 +1154,24 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          6,
+          0
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          2,
+          2
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1106,9 +1182,9 @@
     {
       "levelId": 38,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 46 戰",
+      "title": "蜂巢防線 · 5_6",
       "coverageGoal": 0.8,
-      "timeLimit": 82,
+      "timeLimit": 77,
       "initialSeed": "minefield-campaign-v1-L46-ch4",
       "commands": {
         "maxHand": 3,
@@ -1123,6 +1199,24 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          5,
+          11
+        ],
+        [
+          0,
+          3
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1133,9 +1227,9 @@
     {
       "levelId": 39,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 47 戰",
+      "title": "蜂巢防線 · 5_7",
       "coverageGoal": 0.8,
-      "timeLimit": 86,
+      "timeLimit": 81,
       "initialSeed": "minefield-campaign-v1-L47-ch4",
       "commands": {
         "maxHand": 3,
@@ -1150,6 +1244,24 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          5,
+          10
+        ],
+        [
+          0,
+          2
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1160,9 +1272,9 @@
     {
       "levelId": 40,
       "chapter": 5,
-      "title": "蜂巢防線 · 第 48 戰",
+      "title": "蜂巢防線 · 5_8",
       "coverageGoal": 0.8,
-      "timeLimit": 72,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L48-ch4",
       "commands": {
         "maxHand": 3,
@@ -1177,6 +1289,24 @@
         }
       },
       "events": [],
+      "digitOutposts": [
+        [
+          6,
+          0
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          6,
+          10
+        ],
+        [
+          1,
+          2
+        ]
+      ],
       "rewards": {
         "todo": [
           "TODO: 六角格鄰居與畫面呈現"
@@ -1187,9 +1317,9 @@
     {
       "levelId": 41,
       "chapter": 6,
-      "title": "深海要塞 · 第 51 戰",
+      "title": "深海要塞 · 6_1",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L51-ch5",
       "commands": {
         "maxHand": 3,
@@ -1200,7 +1330,7 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 10
+          "6": 8
         }
       },
       "dynamicMinePerMove": true,
@@ -1215,17 +1345,20 @@
     {
       "levelId": 42,
       "chapter": 6,
-      "title": "深海要塞 · 第 52 戰",
+      "title": "深海要塞 · 6_2",
       "coverageGoal": 0.81,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L52-ch5-d3e3e0b1",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 8
         }
       },
       "dynamicMinePerMove": true,
@@ -1240,22 +1373,22 @@
     {
       "levelId": 43,
       "chapter": 6,
-      "title": "深海要塞 · 第 53 戰",
+      "title": "深海要塞 · 6_3",
       "coverageGoal": 0.8,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L53-ch5-bbecf6ff",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "dynamicMinePerMove": true,
@@ -1270,17 +1403,20 @@
     {
       "levelId": 44,
       "chapter": 6,
-      "title": "深海要塞 · 第 54 戰",
+      "title": "深海要塞 · 6_4",
       "coverageGoal": 0.81,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L54-ch5-34a684b5",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 8
         }
       },
       "dynamicMinePerMove": true,
@@ -1295,9 +1431,9 @@
     {
       "levelId": 45,
       "chapter": 6,
-      "title": "深海要塞 · 第 55 戰",
+      "title": "深海要塞 · 6_5",
       "coverageGoal": 0.8,
-      "timeLimit": 76,
+      "timeLimit": 61,
       "initialSeed": "minefield-campaign-v1-L55-ch5-9e656d2e",
       "commands": {
         "maxHand": 3,
@@ -1308,7 +1444,7 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 10
+          "6": 8
         }
       },
       "dynamicMinePerMove": true,
@@ -1323,22 +1459,22 @@
     {
       "levelId": 46,
       "chapter": 6,
-      "title": "深海要塞 · 第 56 戰",
+      "title": "深海要塞 · 6_6",
       "coverageGoal": 0.8,
-      "timeLimit": 72,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L56-ch5-7a1a9a14",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "dynamicMinePerMove": true,
@@ -1353,9 +1489,9 @@
     {
       "levelId": 47,
       "chapter": 6,
-      "title": "深海要塞 · 第 57 戰",
+      "title": "深海要塞 · 6_7",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L57-ch5-373fecbd",
       "commands": {
         "maxHand": 3,
@@ -1366,7 +1502,7 @@
           "3": 20,
           "4": 18,
           "5": 12,
-          "6": 10
+          "6": 8
         }
       },
       "dynamicMinePerMove": true,
@@ -1381,22 +1517,22 @@
     {
       "levelId": 48,
       "chapter": 6,
-      "title": "深海要塞 · 第 58 戰",
+      "title": "深海要塞 · 6_8",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L58-ch5-ba8efb67",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8,
-          "7": 1,
-          "8": 1
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "dynamicMinePerMove": true,
@@ -1411,9 +1547,9 @@
     {
       "levelId": 49,
       "chapter": 7,
-      "title": "信號干擾區 · 第 61 戰",
+      "title": "信號干擾區 · 7_1",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L61-ch7-88c6cebb",
       "commands": {
         "maxHand": 3,
@@ -1438,9 +1574,9 @@
     {
       "levelId": 50,
       "chapter": 7,
-      "title": "信號干擾區 · 第 62 戰",
+      "title": "信號干擾區 · 7_2",
       "coverageGoal": 0.81,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L62-ch7-309c3e55",
       "commands": {
         "maxHand": 3,
@@ -1460,9 +1596,9 @@
     {
       "levelId": 51,
       "chapter": 7,
-      "title": "信號干擾區 · 第 63 戰",
+      "title": "信號干擾區 · 7_3",
       "coverageGoal": 0.8,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L63-ch7-893b56a5",
       "commands": {
         "maxHand": 3,
@@ -1485,9 +1621,9 @@
     {
       "levelId": 52,
       "chapter": 7,
-      "title": "信號干擾區 · 第 64 戰",
+      "title": "信號干擾區 · 7_4",
       "coverageGoal": 0.8,
-      "timeLimit": 80,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L64-ch7-38378ceb",
       "commands": {
         "maxHand": 3,
@@ -1512,9 +1648,9 @@
     {
       "levelId": 53,
       "chapter": 7,
-      "title": "信號干擾區 · 第 65 戰",
+      "title": "信號干擾區 · 7_5",
       "coverageGoal": 0.81,
-      "timeLimit": 72,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
@@ -1534,9 +1670,9 @@
     {
       "levelId": 54,
       "chapter": 7,
-      "title": "信號干擾區 · 第 66 戰",
+      "title": "信號干擾區 · 7_6",
       "coverageGoal": 0.8,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L66-ch7-f5d69fa9",
       "commands": {
         "maxHand": 3,
@@ -1559,9 +1695,9 @@
     {
       "levelId": 55,
       "chapter": 7,
-      "title": "信號干擾區 · 第 67 戰",
+      "title": "信號干擾區 · 7_7",
       "coverageGoal": 0.81,
-      "timeLimit": 80,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L67-ch7-28d0d8ae",
       "commands": {
         "maxHand": 3,
@@ -1581,9 +1717,9 @@
     {
       "levelId": 56,
       "chapter": 7,
-      "title": "信號干擾區 · 第 68 戰",
+      "title": "信號干擾區 · 7_8",
       "coverageGoal": 0.8,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L68-ch7-68d7b054",
       "commands": {
         "maxHand": 3,
@@ -1608,9 +1744,9 @@
     {
       "levelId": 57,
       "chapter": 8,
-      "title": "引爆危機 · 第 71 戰",
+      "title": "引爆危機 · 8_1",
       "coverageGoal": 0.85,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L71-ch8-23dc551d",
       "commands": {
         "maxHand": 3,
@@ -1648,9 +1784,9 @@
     {
       "levelId": 58,
       "chapter": 8,
-      "title": "引爆危機 · 第 72 戰",
+      "title": "引爆危機 · 8_2",
       "coverageGoal": 0.86,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L72-ch8-4b889058",
       "commands": {
         "maxHand": 3,
@@ -1690,9 +1826,9 @@
     {
       "levelId": 59,
       "chapter": 8,
-      "title": "引爆危機 · 第 73 戰",
+      "title": "引爆危機 · 8_3",
       "coverageGoal": 0.85,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L73-ch8-67155d30",
       "commands": {
         "maxHand": 3,
@@ -1735,9 +1871,9 @@
     {
       "levelId": 60,
       "chapter": 8,
-      "title": "引爆危機 · 第 74 戰",
+      "title": "引爆危機 · 8_4",
       "coverageGoal": 0.85,
-      "timeLimit": 80,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L74-ch8-3a736261",
       "commands": {
         "maxHand": 3,
@@ -1790,9 +1926,9 @@
     {
       "levelId": 61,
       "chapter": 8,
-      "title": "引爆危機 · 第 75 戰",
+      "title": "引爆危機 · 8_5",
       "coverageGoal": 0.86,
-      "timeLimit": 72,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
@@ -1840,9 +1976,9 @@
     {
       "levelId": 62,
       "chapter": 8,
-      "title": "引爆危機 · 第 76 戰",
+      "title": "引爆危機 · 8_6",
       "coverageGoal": 0.85,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L76-ch8-7a01e404",
       "commands": {
         "maxHand": 3,
@@ -1893,9 +2029,9 @@
     {
       "levelId": 63,
       "chapter": 8,
-      "title": "引爆危機 · 第 77 戰",
+      "title": "引爆危機 · 8_7",
       "coverageGoal": 0.86,
-      "timeLimit": 80,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L77-ch8-302d0ade",
       "commands": {
         "maxHand": 3,
@@ -1943,9 +2079,9 @@
     {
       "levelId": 64,
       "chapter": 8,
-      "title": "引爆危機 · 第 78 戰",
+      "title": "引爆危機 · 8_8",
       "coverageGoal": 0.85,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L78-ch8-e959a386",
       "commands": {
         "maxHand": 3,
@@ -1998,9 +2134,9 @@
     {
       "levelId": 65,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 81 戰",
+      "title": "鄰焰共振 · 9_1",
       "coverageGoal": 0.85,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L81-ch9-b5064a16",
       "commands": {
         "maxHand": 3,
@@ -2024,9 +2160,9 @@
     {
       "levelId": 66,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 82 戰",
+      "title": "鄰焰共振 · 9_2",
       "coverageGoal": 0.86,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L82-ch9-091929ff",
       "commands": {
         "maxHand": 3,
@@ -2045,9 +2181,9 @@
     {
       "levelId": 67,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 83 戰",
+      "title": "鄰焰共振 · 9_3",
       "coverageGoal": 0.85,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L83-ch9-a027e43e",
       "commands": {
         "maxHand": 3,
@@ -2069,9 +2205,9 @@
     {
       "levelId": 68,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 84 戰",
+      "title": "鄰焰共振 · 9_4",
       "coverageGoal": 0.85,
-      "timeLimit": 72,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L84-ch9-00e0b334",
       "commands": {
         "maxHand": 3,
@@ -2095,9 +2231,9 @@
     {
       "levelId": 69,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 85 戰",
+      "title": "鄰焰共振 · 9_5",
       "coverageGoal": 0.86,
-      "timeLimit": 74,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
@@ -2116,9 +2252,9 @@
     {
       "levelId": 70,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 86 戰",
+      "title": "鄰焰共振 · 9_6",
       "coverageGoal": 0.85,
-      "timeLimit": 76,
+      "timeLimit": 61,
       "initialSeed": "minefield-campaign-v1-L86-ch9-613a3ba5",
       "commands": {
         "maxHand": 3,
@@ -2140,9 +2276,9 @@
     {
       "levelId": 71,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 87 戰",
+      "title": "鄰焰共振 · 9_7",
       "coverageGoal": 0.85,
-      "timeLimit": 78,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L87-ch9-d91760e8",
       "commands": {
         "maxHand": 3,
@@ -2166,9 +2302,9 @@
     {
       "levelId": 72,
       "chapter": 9,
-      "title": "鄰焰共振 · 第 88 戰",
+      "title": "鄰焰共振 · 9_8",
       "coverageGoal": 0.86,
-      "timeLimit": 81,
+      "timeLimit": 66,
       "initialSeed": "minefield-campaign-v1-L88-ch9-80a3f5ed",
       "commands": {
         "maxHand": 3,
@@ -2187,9 +2323,9 @@
     {
       "levelId": 73,
       "chapter": 10,
-      "title": "終焉防線 · 第 91 戰",
+      "title": "終焉防線 · 10_1",
       "coverageGoal": 0.88,
-      "timeLimit": 103,
+      "timeLimit": 88,
       "initialSeed": "minefield-campaign-v1-L91-ch10-a1b2c3d4",
       "commands": {
         "maxHand": 3,
@@ -2234,9 +2370,9 @@
     {
       "levelId": 74,
       "chapter": 10,
-      "title": "終焉防線 · 第 92 戰",
+      "title": "終焉防線 · 10_2",
       "coverageGoal": 0.89,
-      "timeLimit": 101,
+      "timeLimit": 86,
       "initialSeed": "minefield-campaign-v1-L92-ch10-b2c3d4e5",
       "commands": {
         "maxHand": 3,
@@ -2275,9 +2411,9 @@
     {
       "levelId": 75,
       "chapter": 10,
-      "title": "終焉防線 · 第 93 戰",
+      "title": "終焉防線 · 10_3",
       "coverageGoal": 0.88,
-      "timeLimit": 100,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L93-ch10-c3d4e5f6",
       "commands": {
         "maxHand": 3,
@@ -2321,9 +2457,9 @@
     {
       "levelId": 76,
       "chapter": 10,
-      "title": "終焉防線 · 第 94 戰",
+      "title": "終焉防線 · 10_4",
       "coverageGoal": 0.89,
-      "timeLimit": 102,
+      "timeLimit": 87,
       "initialSeed": "minefield-campaign-v1-L94-ch10-d4e5f6a7",
       "commands": {
         "maxHand": 3,
@@ -2369,9 +2505,9 @@
     {
       "levelId": 77,
       "chapter": 10,
-      "title": "終焉防線 · 第 95 戰",
+      "title": "終焉防線 · 10_5",
       "coverageGoal": 0.89,
-      "timeLimit": 102,
+      "timeLimit": 87,
       "initialSeed": "minefield-campaign-v1-L95-ch10-e5f6a7b8",
       "commands": {
         "maxHand": 3,
@@ -2417,9 +2553,9 @@
     {
       "levelId": 78,
       "chapter": 10,
-      "title": "終焉防線 · 第 96 戰",
+      "title": "終焉防線 · 10_6",
       "coverageGoal": 0.89,
-      "timeLimit": 103,
+      "timeLimit": 88,
       "initialSeed": "minefield-campaign-v1-L96-ch10-f6a7b8c9",
       "commands": {
         "maxHand": 3,
@@ -2469,9 +2605,9 @@
     {
       "levelId": 79,
       "chapter": 10,
-      "title": "終焉防線 · 第 97 戰",
+      "title": "終焉防線 · 10_7",
       "coverageGoal": 0.9,
-      "timeLimit": 105,
+      "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L97-ch10-a7b8c9d0",
       "commands": {
         "maxHand": 3,
@@ -2524,9 +2660,9 @@
     {
       "levelId": 80,
       "chapter": 10,
-      "title": "終焉防線 · 第 98 戰",
+      "title": "終焉防線 · 10_8",
       "coverageGoal": 0.9,
-      "timeLimit": 117,
+      "timeLimit": 102,
       "initialSeed": "minefield-campaign-v1-L98-ch10-b8c9d0e1",
       "commands": {
         "maxHand": 3,

@@ -13,13 +13,49 @@
 
 套用時同步編輯 `steam-win/renderer/src/levelData/levels.json` 對應筆的 `timeLimit`（正整數）。
 
-## 第 3～10 章：格子數即秒數（專案約定）
+## 第 3～5 章：格子數即秒數（專案約定）
 
 | 範圍 | `mapRef` | `levelId`（現行戰役） | `timeLimit` |
 |------|----------|----------------------|-------------|
-| 第三～十章 | `3_1`～`10_8` | 17～80 | **`playableCells`**（與可玩格 1:1） |
+| 第三～五章 | `3_1`～`5_8` | 17～40 | **`playableCells`**（與可玩格 1:1） |
 
-改動地圖後請以 `maps/{mapRef}.json` 的 `gridStats.playableCells` 為準更新 `levels.json`；亦可對 `chapter >= 3` 的關卡批次讀圖重算 `timeLimit`。
+改動地圖後請以 `maps/{mapRef}.json` 的 `gridStats.playableCells` 為準更新 `levels.json`；亦可對 `chapter >= 3 && chapter <= 5` 的關卡批次讀圖重算 `timeLimit`。
+
+## 第 6～10 章：可玩格減 15 秒（專案約定）
+
+| 範圍 | `mapRef` | `levelId`（現行戰役） | `timeLimit` |
+|------|----------|----------------------|-------------|
+| 第六～十章 | `6_1`～`10_8` | 41～80 | **`playableCells − 15`** |
+
+- 相對第 3～5 章 1:1 公式，後段戰役整體再緊 **15 秒**；仍完全由地圖 `playableCells` 驅動，不手填脫鉤秒數。
+- 改 `mapLayout`／`forbiddenCells` 後先跑 `node scripts/patch-map-grid-stats.mjs`，再重算本表。
+- 現行 `playableCells` 區間約 **72～117** → `timeLimit` 約 **57～102**（例：`6_1` 78→63、`10_8` 117→102）。
+
+### 批次重算（第 6 章起）
+
+於 repo 根目錄執行（會覆寫 `levels.json` 內 `chapter >= 6` 各筆 `timeLimit`）：
+
+```bash
+node -e "
+const fs = require('fs');
+const path = require('path');
+const root = process.cwd();
+const levelsPath = path.join(root, 'steam-win/renderer/src/levelData/levels.json');
+const mapsDir = path.join(root, 'steam-win/renderer/src/levelData/maps');
+const data = JSON.parse(fs.readFileSync(levelsPath, 'utf8'));
+let n = 0;
+for (const lvl of data.levels) {
+  if (lvl.chapter < 6) continue;
+  const map = JSON.parse(fs.readFileSync(path.join(mapsDir, lvl.mapRef + '.json'), 'utf8'));
+  const pc = map.gridStats?.playableCells;
+  if (typeof pc !== 'number') throw new Error('no playableCells: ' + lvl.mapRef);
+  lvl.timeLimit = pc - 15;
+  n++;
+}
+fs.writeFileSync(levelsPath, JSON.stringify(data, null, 2) + '\\n');
+console.log('updated', n, 'levels (ch6+, timeLimit = playableCells - 15)');
+"
+```
 
 ## 核心公式
 

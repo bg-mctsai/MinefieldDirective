@@ -5,8 +5,8 @@ import type { Level } from './gameLogic';
 
 export type MissionLevelTacticalDockedBriefProps = {
   onClose: () => void;
-  chapterView: number;
   level: Level;
+  /** 章內關次 1～8 */
   stage: number;
   unlocked: boolean;
   cleared: boolean;
@@ -21,7 +21,6 @@ export type MissionLevelTacticalDockedBriefProps = {
 /** 戰術地圖浮動關卡卡：精簡資訊、小版面（細節進場內再看） */
 export function MissionLevelTacticalDockedBrief({
   onClose,
-  chapterView,
   level,
   stage,
   unlocked,
@@ -57,8 +56,6 @@ export function MissionLevelTacticalDockedBrief({
           <div className="flex min-w-0 flex-wrap items-center gap-1.5">
             <MissionLevelCommsBlock
               stage={stage}
-              levelId={level.id}
-              chapter={chapterView}
               cleared={cleared}
               locked={!unlocked}
               isBossStage={isBossStage}

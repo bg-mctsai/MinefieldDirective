@@ -2,18 +2,10 @@ import { memo, useMemo } from 'react';
 
 import { LEVELS_PER_CHAPTER } from './game/chapterStage';
 
-const TACTICAL_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-
-function tacticalLetter(levelId: number, chapter: number, stage: number): string {
-  const seed = (levelId * 7919 + chapter * 9973 + stage * 293) >>> 0;
-  return TACTICAL_LETTERS[seed % TACTICAL_LETTERS.length]!;
-}
-
-/** 依關卡／章節固定：介面不重骰、存檔前後一致 */
-export function formatMissionChannelCode(levelId: number, chapter: number, stage: number): string {
-  const pad = String(stage).padStart(2, '0');
-  if (stage >= LEVELS_PER_CHAPTER) return `BOSS-${pad}`;
-  return `#${pad}-${tacticalLetter(levelId, chapter, stage)}`;
+/** 作戰地圖頻道標籤：章內關次（1～8），非 `章_關` */
+export function formatMissionMapChannelLabel(stage: number): string {
+  const n = Math.max(1, Math.min(LEVELS_PER_CHAPTER, Math.floor(stage || 1)));
+  return `CH.${String(n).padStart(2, '0')}`;
 }
 
 function ChannelWaveBars({
@@ -54,9 +46,8 @@ function ChannelWaveBars({
 }
 
 export type MissionLevelCommsBlockProps = {
+  /** 章內關次 1～8（作戰地圖用，非 levelKey） */
   stage: number;
-  levelId: number;
-  chapter: number;
   cleared: boolean;
   locked?: boolean;
   /** 章末第 8 槽：警示外框 */
@@ -78,7 +69,7 @@ export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
   inProgress = false,
   compact = false,
 }: MissionLevelCommsBlockProps) {
-  const ch = useMemo(() => String(stage).padStart(2, '0'), [stage]);
+  const channel = useMemo(() => formatMissionMapChannelLabel(stage), [stage]);
   const live = !locked && !cleared;
 
   const sizePad = compact
@@ -144,7 +135,7 @@ export const MissionLevelCommsBlock = memo(function MissionLevelCommsBlock({
           }`}
         >
           <span className={bracketTone}>{'['}</span>
-          <span className={`px-0.5 ${chTone}`}>CH.{ch}</span>
+          <span className={`px-0.5 ${chTone}`}>{channel}</span>
           <span className={bracketTone}>{']'}</span>
         </span>
         <ChannelWaveBars live={live} variant={waveVariant} />

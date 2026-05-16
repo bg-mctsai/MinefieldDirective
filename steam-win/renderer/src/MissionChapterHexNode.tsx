@@ -281,6 +281,7 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
   confirmFlash,
   bestMedal,
 }: {
+  /** 章內關次 1～8（作戰地圖節點顯示用） */
   stage: number;
   xPct: number;
   yPct: number;
@@ -333,7 +334,7 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
           locked ? 'cursor-not-allowed opacity-60' : 'hover:scale-[1.04]'
         } transition-transform active:scale-[0.98]`}
         aria-pressed={selected}
-        aria-label={`關卡 ${stage}${isBoss ? '（章末）' : ''}${locked ? '（鎖定）' : ''}`}
+        aria-label={`章內第 ${stage} 關${isBoss ? '（章末）' : ''}${locked ? '（鎖定）' : ''}`}
       >
       {confirmFlash && !locked ? (
         <span

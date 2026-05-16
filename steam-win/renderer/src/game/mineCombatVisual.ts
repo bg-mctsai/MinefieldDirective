@@ -19,7 +19,7 @@ export function adjacentPlacedDigitCount(
 }
 
 /** 賽琳娜格網倍乘：單顆雷火力分子加權上限（對應 n≥5 緊鄰已佈數字）。 */
-export const SELINA_GRID_FIREPOWER_WEIGHT_MAX = 16;
+export const SELINA_GRID_FIREPOWER_WEIGHT_MAX = 8;
 
 /** 地雷／廢雷圖示與格底色階（1 基礎 → 5 為倍乘封頂階）。 */
 export type MineBombVisualTier = 1 | 2 | 3 | 4 | 5;
@@ -32,7 +32,7 @@ export type FirepowerDigitWeightMode = 'capTwo' | 'convergenceExp';
 
 /**
  * `capTwo`：僅 1／2 兩階視覺（與火力封頂一致）。
- * `convergenceExp`：賽琳娜格網倍乘——依緊鄰已佈數字格數分 5 階（n≥5 併入第 5 階，權重封頂 16）。
+ * `convergenceExp`：賽琳娜格網倍乘——依緊鄰已佈數字格數分 5 階（n≥5 併入第 5 階，權重封頂 {@link SELINA_GRID_FIREPOWER_WEIGHT_MAX}）。
  */
 export function mineBombVisualTier(
   adjacentPlacedDigits: number,
@@ -69,6 +69,51 @@ export function firepowerWeightForAdjacentDigitCount(
 export function convergenceFirepowerWeightFromTier(tier: MineBombVisualTier): number {
   if (tier <= 1) return 1;
   return Math.min(2 ** (tier - 1), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
+}
+
+/** 棋格上顯示的火力數字；tier 1 不顯示（與 HUD 分子權重 1 一致）。 */
+export function mineFirepowerCellLabel(
+  tier: MineBombVisualTier,
+  digitWeightMode: FirepowerDigitWeightMode,
+): number | null {
+  if (tier <= 1) return null;
+  if (digitWeightMode === 'capTwo') return 2;
+  return convergenceFirepowerWeightFromTier(tier);
+}
+
+/** 玩家佈署的指令數字（與地雷火力數字區分）。 */
+export function placedCommandDigitFontPx(cellExtentPx: number): number {
+  return Math.max(15, Math.round(cellExtentPx * 0.58));
+}
+
+/** 地雷格上的火力加權數字（次要、小於指令數字）。 */
+export function mineFirepowerDigitFontPx(cellExtentPx: number): number {
+  return Math.max(10, Math.round(cellExtentPx * 0.32));
+}
+
+export const placedCommandDigitClassName = (isConflict: boolean): string =>
+  isConflict
+    ? 'font-black tabular-nums leading-none tracking-tight text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.95),0_0_8px_rgba(255,255,255,0.35)]'
+    : 'font-black tabular-nums leading-none tracking-tight text-amber-300 drop-shadow-[0_1px_0_rgba(0,0,0,0.92),0_0_14px_rgba(251,191,36,0.65)]';
+
+/** 蜂巢 SVG `<text>`：僅 fill／字重，描邊由 stroke 屬性處理。 */
+export const placedCommandDigitSvgClassName = (isConflict: boolean): string =>
+  isConflict ? 'pointer-events-none fill-white' : 'pointer-events-none fill-amber-300';
+
+export function mineFirepowerDigitTextClass(
+  weight: number,
+  variant: 'red' | 'cyan',
+): string {
+  if (variant === 'cyan') {
+    if (weight >= SELINA_GRID_FIREPOWER_WEIGHT_MAX)
+      return 'font-bold text-emerald-100/95 drop-shadow-[0_0_5px_rgba(52,211,153,0.75)]';
+    if (weight >= 4) return 'font-bold text-sky-200/95 drop-shadow-[0_0_4px_rgba(56,189,248,0.7)]';
+    return 'font-bold text-cyan-200/90 drop-shadow-[0_0_4px_rgba(34,211,238,0.65)]';
+  }
+  if (weight >= SELINA_GRID_FIREPOWER_WEIGHT_MAX)
+    return 'font-bold text-yellow-50/95 drop-shadow-[0_0_5px_rgba(253,224,71,0.75)]';
+  if (weight >= 4) return 'font-bold text-orange-200/95 drop-shadow-[0_0_4px_rgba(251,146,60,0.7)]';
+  return 'font-bold text-red-200/90 drop-shadow-[0_0_4px_rgba(248,113,113,0.65)]';
 }
 
 /**
@@ -119,6 +164,11 @@ export function redMineBombIconClass(tier: MineBombVisualTier): string {
     default:
       return 'text-yellow-50 drop-shadow-[0_0_16px_rgba(253,224,71,1)]';
   }
+}
+
+/** 廢雷炸彈圖示向下偏移（Lucide 圖形視覺重心偏上）。 */
+export function junkMineBombIconOffsetYPx(cellExtentPx: number): number {
+  return Math.max(2, Math.round(cellExtentPx * 0.1));
 }
 
 export function cyanJunkMineBombIconClass(tier: MineBombVisualTier): string {

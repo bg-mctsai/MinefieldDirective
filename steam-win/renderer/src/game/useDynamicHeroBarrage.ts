@@ -19,6 +19,8 @@ import type { GameState } from './types';
 export interface HeroBarrageOut {
   id: number;
   text: string;
+  /** 台詞所屬幹員（與頭像、文案池一致） */
+  heroId: string;
   /** 觸發來源，供渲染端決定顯示管線（例：victory 走上方訊息框） */
   trigger: HeroBarrageTrigger;
   /** 'normal' | 'alert'：踩雷等危急語氣 */
@@ -84,17 +86,19 @@ export function useDynamicHeroBarrage(gameState: GameState): HeroBarrageOut | nu
 
   // 主觸發 effect：依狀態切換選擇要丟哪一種 barrage
   useEffect(() => {
-    const hero = getHeroDef(heroIdRef.current);
     const now = Date.now();
 
     const push = (trigger: HeroBarrageTrigger, tone: HeroBarrageOut['tone'] = 'normal') => {
       if (now < cooldownUntilRef.current) return;
+      const heroId = getStoredHeroId();
+      const hero = getHeroDef(heroId);
       const text = pickLine(hero, trigger);
       if (!text) return;
       cooldownUntilRef.current = now + COOLDOWN_MS;
       setBarrage({
         id: now + Math.floor(Math.random() * 999),
         text,
+        heroId,
         trigger,
         tone,
       });
@@ -103,8 +107,13 @@ export function useDynamicHeroBarrage(gameState: GameState): HeroBarrageOut | nu
     const prevStatus = prevStatusRef.current;
     const currStatus = gameState.status;
 
-    // 5. bad：status 切到 exploding | lost
-    if ((currStatus === 'exploding' || currStatus === 'lost') && prevStatus === 'playing') {
+    // 5. bad：踩雷／邏輯爆連鎖（限時歸零改由各幹員 timeUp 狀態台詞，不搶 bad 池）
+    const timedOut =
+      currStatus === 'exploding' &&
+      prevStatus === 'playing' &&
+      gameState.timerStarted &&
+      gameState.secondsLeft === 0;
+    if ((currStatus === 'exploding' || currStatus === 'lost') && prevStatus === 'playing' && !timedOut) {
       push('bad', 'alert');
     }
     // 6. victory：status 切到 won

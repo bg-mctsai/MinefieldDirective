@@ -1,13 +1,16 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Crown, X } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Check, ChevronLeft, ChevronRight, Crown, X } from 'lucide-react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { GameState } from './types';
 import { useDynamicHeroBarrage } from './useDynamicHeroBarrage';
 import { HeroAvatarSilhouette } from '../home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from '../home/HeroPortraitLightbox';
-import { getHeroDef } from '../heroes';
+import { HEROES, getHeroDef, setStoredHeroId } from '../heroes';
+import { loadUnlockedHeroIds } from './heroUnlockedStorage';
 import { getHeroSkillBriefPanels } from './heroSkillBriefContent';
 import { TeletypeInline } from '../teletype';
+
+const SKILL_BRIEF_AVATAR_SIZE = 168;
 
 function messageColorClass(status: GameState['status']): string {
   if (status === 'lost' || status === 'exploding') return 'text-red-500';
@@ -27,6 +30,7 @@ export function GameStatusMessageBar({
   statusBarFrameClass = 'border-slate-700/90 bg-slate-900/95',
   speakerHeroId,
   buckEmergencyAvailable = true,
+  allowPreBattleHeroSwitch = false,
 }: {
   gameState: GameState;
   /** 狀態訊息外框（依幹員主題） */
@@ -35,6 +39,8 @@ export function GameStatusMessageBar({
   speakerHeroId?: string;
   /** 老張「加固模組」是否仍可用（僅 laozhang 時有意義） */
   buckEmergencyAvailable?: boolean;
+  /** 倒數未啟動前：技能說明彈層可左右切換已解鎖幹員 */
+  allowPreBattleHeroSwitch?: boolean;
 }) {
   const { openPortrait } = useHeroPortraitLightbox();
   const dynamicBarrage = useDynamicHeroBarrage(gameState);
@@ -91,15 +97,40 @@ export function GameStatusMessageBar({
     };
   }, [skillBriefOpen, syncSkillBriefPos]);
 
+  /** 動態台詞優先帶出該句的 heroId，否則用目前出戰幹員 */
+  const displaySpeakerId = dynamicBarrage?.heroId ?? speakerHeroId;
   const skillPanels =
-    speakerHeroId != null ? getHeroSkillBriefPanels(speakerHeroId, buckEmergencyAvailable) : [];
-  const speakerName = speakerHeroId != null ? getHeroDef(speakerHeroId).name : '';
+    displaySpeakerId != null
+      ? getHeroSkillBriefPanels(displaySpeakerId, buckEmergencyAvailable)
+      : [];
+  const speakerName = displaySpeakerId != null ? getHeroDef(displaySpeakerId).name : '';
   const statusMessage = dynamicBarrage?.text ?? gameState.message ?? '';
   const statusMsgKey = `${gameState.gameId}|||${statusMessage}`;
 
+  const pickableHeroes = useMemo(() => {
+    const unlockedHeroIds = new Set(loadUnlockedHeroIds());
+    const unlocked = HEROES.filter((h) => unlockedHeroIds.has(h.id));
+    return unlocked.length > 0 ? unlocked : [HEROES[0]];
+  }, []);
+  const briefHeroIndex = Math.max(
+    0,
+    displaySpeakerId != null ? pickableHeroes.findIndex((h) => h.id === displaySpeakerId) : 0,
+  );
+  const canCycleBriefHero =
+    allowPreBattleHeroSwitch && pickableHeroes.length > 1 && displaySpeakerId != null;
+  const pickRelativeBriefHero = useCallback(
+    (delta: number) => {
+      if (!canCycleBriefHero) return;
+      const next =
+        pickableHeroes[(briefHeroIndex + delta + pickableHeroes.length) % pickableHeroes.length];
+      if (next) setStoredHeroId(next.id);
+    },
+    [briefHeroIndex, canCycleBriefHero, pickableHeroes],
+  );
+
   return (
     <div className="relative mb-1 w-full max-w-7xl shrink-0 sm:mb-1.5">
-      {skillBriefOpen && speakerHeroId != null && (
+      {skillBriefOpen && displaySpeakerId != null && (
         <>
           <div role="presentation" className="fixed inset-0 z-[100] bg-black/50" onClick={closeSkillBrief} />
           {skillBriefPos != null && (
@@ -110,24 +141,44 @@ export function GameStatusMessageBar({
               style={{ top: skillBriefPos.top, left: skillBriefPos.left }}
               className="fixed z-[101] w-[min(28rem,calc(100vw-1.5rem))] max-h-[min(76vh,34rem)] overflow-y-auto rounded-2xl border-2 border-slate-600 bg-slate-900/98 p-5 shadow-2xl backdrop-blur-sm"
             >
-              <div className="mb-4 flex flex-col items-center gap-2 border-b border-slate-700/80 pb-4">
-                <button
-                  type="button"
-                  title="再點一次全螢幕放大頭像"
-                  aria-label="全螢幕放大頭像"
-                  onClick={() => openPortrait(speakerHeroId)}
-                  className="relative cursor-zoom-in rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/80"
-                >
-                  <HeroAvatarSilhouette heroId={speakerHeroId} size={120} />
-                  <span
-                    className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/55 bg-slate-950/95 text-[11px] font-black leading-none text-amber-400 ring-1 ring-black/45"
-                    aria-hidden
+              <motion.div className="mb-4 flex flex-col items-center gap-2 border-b border-slate-700/80 pb-4">
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => pickRelativeBriefHero(-1)}
+                    disabled={!canCycleBriefHero}
+                    className="rounded-xl border border-slate-600/90 bg-slate-950/70 p-2 text-slate-400 transition-colors hover:border-amber-500/60 hover:text-amber-400 disabled:cursor-default disabled:opacity-25"
+                    aria-label="上一名幹員"
                   >
-                    +
-                  </span>
-                </button>
-                <p className="text-center text-sm font-bold text-slate-300">{getHeroDef(speakerHeroId).role}</p>
-              </div>
+                    <ChevronLeft size={22} strokeWidth={2.25} />
+                  </button>
+                  <button
+                    type="button"
+                    title="再點一次全螢幕放大頭像"
+                    aria-label="全螢幕放大頭像"
+                    onClick={() => openPortrait(displaySpeakerId)}
+                    className="relative shrink-0 cursor-zoom-in rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/80"
+                  >
+                    <HeroAvatarSilhouette heroId={displaySpeakerId} size={SKILL_BRIEF_AVATAR_SIZE} />
+                    <span
+                      className="pointer-events-none absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-amber-500/55 bg-slate-950/95 text-xs font-black leading-none text-amber-400 ring-1 ring-black/45"
+                      aria-hidden
+                    >
+                      +
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => pickRelativeBriefHero(1)}
+                    disabled={!canCycleBriefHero}
+                    className="rounded-xl border border-slate-600/90 bg-slate-950/70 p-2 text-slate-400 transition-colors hover:border-amber-500/60 hover:text-amber-400 disabled:cursor-default disabled:opacity-25"
+                    aria-label="下一名幹員"
+                  >
+                    <ChevronRight size={22} strokeWidth={2.25} />
+                  </button>
+                </div>
+                <p className="text-center text-sm font-bold text-slate-300">{getHeroDef(displaySpeakerId).role}</p>
+              </motion.div>
               <div className="mb-3 flex items-start justify-between gap-2">
                 <h2 id="hero-skill-brief-heading" className="text-lg font-black tracking-tight text-white">
                   {speakerName} · 被動／作戰說明
@@ -170,9 +221,9 @@ export function GameStatusMessageBar({
         >
           <div className={`rounded-xl border px-4 py-2 shadow-md ${statusBarFrameClass}`}>
             <div
-              className={`flex min-w-0 items-center gap-2.5 sm:gap-3 ${speakerHeroId ? 'pb-2' : ''} ${speakerHeroId ? '' : 'justify-center'}`}
+              className={`flex min-w-0 items-center gap-2.5 sm:gap-3 ${displaySpeakerId ? 'pb-2' : ''} ${displaySpeakerId ? '' : 'justify-center'}`}
             >
-              {speakerHeroId ? (
+              {displaySpeakerId ? (
                 <button
                   ref={avatarSkillBtnRef}
                   type="button"
@@ -183,7 +234,7 @@ export function GameStatusMessageBar({
                   aria-label={`查看${speakerName}大頭像與被動／作戰說明`}
                   onClick={() => setSkillBriefOpen((v) => !v)}
                 >
-                  <HeroAvatarSilhouette heroId={speakerHeroId} size={48} />
+                  <HeroAvatarSilhouette heroId={displaySpeakerId} size={48} />
                   <span
                     className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/40 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40"
                     aria-hidden
@@ -194,7 +245,7 @@ export function GameStatusMessageBar({
               ) : null}
               <div className="min-w-0 flex-1 overflow-x-auto [-webkit-overflow-scrolling:touch]">
                 <p
-                  className={`whitespace-nowrap text-base font-bold leading-snug sm:text-lg ${speakerHeroId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
+                  className={`whitespace-nowrap text-base font-bold leading-snug sm:text-lg ${displaySpeakerId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
                 >
                   <TeletypeInline
                     full={statusMessage}

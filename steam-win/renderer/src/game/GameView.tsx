@@ -14,6 +14,7 @@ import { getBestMedal, isLevelUnlocked, recordMedal, saveGameProgress } from './
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
+import { useCombatHeroId } from './useCombatHeroId';
 import { mergeUnlockedOnChapterCleared } from './heroUnlockedStorage';
 import { getHeroCombatTheme } from './heroCombatTheme';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './chapterStage';
@@ -79,6 +80,7 @@ export default function GameView({
     requestEarlySettle,
   } = useMineGame(safeInitialLevelIndex);
 
+  const combatHeroId = useCombatHeroId();
   const [chapterBriefingDismissed, setChapterBriefingDismissed] = useState(false);
   const [strategyGuideOpen, setStrategyGuideOpen] = useState(false);
   /** 與 gameId 對齊：按「確定」關閉過關畫面後才顯示內嵌操作列 */
@@ -181,7 +183,6 @@ export default function GameView({
     Number.isFinite(ch) &&
     stageInChapter(gameState.level.stage) === LEVELS_PER_CHAPTER;
 
-  const combatHeroId = getStoredHeroId();
   const combatTheme = getHeroCombatTheme(combatHeroId);
 
   return (
@@ -249,6 +250,7 @@ export default function GameView({
           statusBarFrameClass={combatTheme.statusBarWrap}
           speakerHeroId={combatHeroId}
           buckEmergencyAvailable={gameState.buckEmergencyAvailable}
+          allowPreBattleHeroSwitch={gameState.status === 'playing' && !gameState.timerStarted}
         />
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 py-0.5 sm:gap-1.5 sm:py-1">
           <div className="min-w-0 w-full">
@@ -258,6 +260,7 @@ export default function GameView({
               movingSoldier={movingSoldier}
               onCellClick={handleCellClick}
               bonusFxKeys={bonusFxKeys}
+              combatHeroId={combatHeroId}
               align="center"
             />
           </div>

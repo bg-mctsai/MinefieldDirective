@@ -287,13 +287,13 @@ export const HEROES: HeroDef[] = [
     role: '戰地測繪師',
     skillName: '格網倍乘',
     skillDetail:
-      '盤面當格網看：每一顆已確定的雷，火力％裡單獨計加權。數「你已放下的數字」有幾格與它緊鄰——0 或 1 格當 1；從第 2 格緊鄰起是 2，之後每多一格緊鄰就再 ×2，單顆雷加權上限 16。',
+      '盤面當格網看：每一顆已確定的雷，火力％裡單獨計加權。數「你已放下的數字」有幾格與它緊鄰——0 或 1 格當 1；從第 2 格緊鄰起是 2，之後每多一格緊鄰就再 ×2，單顆雷加權上限 8。',
     combatSkills: [
       {
         name: '格網倍乘',
         hudIcon: 'mails',
         detail:
-          '每顆已確定的雷：幾格已佈數字與它緊鄰，加權 0～1 格→1；2 格→2，每再多一格 ×2（4、8…），封頂 16。',
+          '每顆已確定的雷：幾格已佈數字與它緊鄰，加權 0～1 格→1；2 格→2，每再多一格 ×2（4、8…），封頂 8。',
       },
     ],
     missionMapHook:
@@ -302,7 +302,7 @@ export const HEROES: HeroDef[] = [
     serialNo: 'SN-MD-0002',
     background: [
       '學界報告上她的名字還在，人卻只在戰區出沒。全息投影儀在腕上旋出方格與蜂巢格，口袋塞滿不同地形的偵測標——她習慣用座標替隊友踩雷。',
-      '裂隙周邊的空間陷阱會拐人視線；她最恨「感覺對了」這種賭法。參謀台把她的格網倍乘寫進火力公式：同一雷旁邊每多一格已佈數字，權重就沿 1→2→4→8… 乘上去，單顆封頂 16，直到格網讀數收斂。檔案註記：話少、筆尖快；誰踩進扭曲帶，她就用下一個標把誰拽回來。',
+      '裂隙周邊的空間陷阱會拐人視線；她最恨「感覺對了」這種賭法。參謀台把她的格網倍乘寫進火力公式：同一雷旁邊每多一格已佈數字，權重就沿 1→2→4→8… 乘上去，單顆封頂 8，直到格網讀數收斂。檔案註記：話少、筆尖快；誰踩進扭曲帶，她就用下一個標把誰拽回來。',
     ],
     specialties: ['全息格網', '格網倍乘', '扭曲區判讀'],
     personalItems: [
@@ -549,12 +549,15 @@ const LEGACY_HERO_ID: Record<string, string> = {
 
 const STORAGE_KEY = 'md:selectedHero';
 
+/** 幹員切換時由 `setStoredHeroId` 廣播；對局 UI 訂閱以同步頭像／主題 */
+export const HERO_CHANGED_EVENT = 'md:hero-changed';
+
 /** 長官電報同時待辦道數（每回合仍從中選 2 道執行）：一般幹員 3；艾達 4。 */
 export function telegraphHandSlotCount(heroId: string): number {
   return heroId === 'ada' ? 4 : 3;
 }
 
-/** 火力％分子：每顆已揭示雷依「幾格已佈數字與其邏輯相鄰」加權；賽琳娜格網倍乘（n≤1→1，n≥2→min(2^(n−1),16)），其餘 min(n,2) 封頂。 */
+/** 火力％分子：每顆已揭示雷依「幾格已佈數字與其邏輯相鄰」加權；賽琳娜格網倍乘（n≤1→1，n≥2→min(2^(n−1),8)），其餘 min(n,2) 封頂。 */
 export function heroFirepowerDigitWeightMode(heroId: string): FirepowerDigitWeightMode {
   return heroId === 'selina' ? 'convergenceExp' : 'capTwo';
 }
@@ -589,6 +592,7 @@ export function setStoredHeroId(id: string) {
   if (!isHeroIdUnlocked(id)) return;
   try {
     localStorage.setItem(STORAGE_KEY, id);
+    window.dispatchEvent(new CustomEvent(HERO_CHANGED_EVENT, { detail: { id } }));
   } catch {
     /* ignore */
   }

@@ -20,7 +20,7 @@ export function boardCellTooltipText(opts: {
   isDigitOutpost?: boolean;
   /** 僅地雷／廢雷：火力視覺階 1～5 */
   mineCombatTier?: MineBombVisualTier;
-  /** 與目前選中幹員火力加權模式一致（賽琳娜格網倍乘 tooltip 顯示 4／8／16） */
+  /** 與目前選中幹員火力加權模式一致（賽琳娜格網倍乘 tooltip 顯示 2／4／8） */
   fireDigitMode?: FirepowerDigitWeightMode;
 }): string {
   const T = GAME_FIXED.cellTooltip;
@@ -42,13 +42,7 @@ export function boardCellTooltipText(opts: {
   if (placedValue !== undefined) return sub(T.placedDigit, { value: placedValue });
   if (blastPointCountdown !== undefined) return T.blastPoint;
   if (isDigitOutpost) return T.digitOutpost;
-  if (isDynamicMine) {
-    if (fireDigitMode === 'convergenceExp' && tier >= 2) {
-      const w = convergenceFirepowerWeightFromTier(tier);
-      return `${T.dynamicJunkMine}（格網倍乘 火力 ${w}）`;
-    }
-    return tier >= 2 ? `${T.dynamicJunkMine}（火力 2）` : T.dynamicJunkMine;
-  }
+  if (isDynamicMine) return T.dynamicJunkMine;
   if (neutralBonusTarget) return sub(T.bonusTargetMine, { seconds: bonusSeconds });
   if (isMine || lossChainPhase !== 'none') {
     if (isMine && fireDigitMode === 'convergenceExp' && tier >= 2) {

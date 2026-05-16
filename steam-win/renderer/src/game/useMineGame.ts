@@ -45,9 +45,15 @@ import { weightedFirepowerSumAndPct } from './mineCombatVisual';
 import { emit } from '../audio/AudioEngine';
 import { generateHand } from './generateHand';
 import { GAME_FIXED, sub } from './gameFixedMessages';
+import { pickHeroGameStatusLine, pickHeroVictoryStatusLine } from './heroGameStatusLines';
 import { signalJammingDisplayedDigit } from './signalJamming';
 import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
-import { getStoredHeroId, heroFirepowerDigitWeightMode, telegraphHandSlotCount } from '../heroes';
+import {
+  getStoredHeroId,
+  HERO_CHANGED_EVENT,
+  heroFirepowerDigitWeightMode,
+  telegraphHandSlotCount,
+} from '../heroes';
 import type { GameState, MovingSoldierState } from './types';
 
 /**
@@ -80,7 +86,7 @@ function pickDynamicMinePosition(
 }
 
 /**
- * 火力：加權計分／總格（上限 100%）。每顆已確定雷依「與幾格已佈數字邏輯相鄰」加權：capTwo 封頂 2；賽琳娜格網倍乘為 min(2^(n−1),16)（n≥2）。
+ * 火力：加權計分／總格（上限 100%）。每顆已確定雷依「與幾格已佈數字邏輯相鄰」加權：capTwo 封頂 2；賽琳娜格網倍乘為 min(2^(n−1),8)（n≥2）。
  * mineCount 仍為雷格數（副標「地雷 x/y」）。
  */
 export function destructivePowerFromGameState(
@@ -96,7 +102,7 @@ export function destructivePowerFromGameState(
   const totalCells = gs.level.cells.length;
   if (totalCells <= 0)
     return { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0 };
-  const mineKeys = new Set<string>([...gs.revealedMines, ...gs.dynamicMines]);
+  const mineKeys = new Set<string>(gs.revealedMines);
   const digitMode = heroFirepowerDigitWeightMode(heroId);
   const { pct, weightedSum } = weightedFirepowerSumAndPct(
     mineKeys,
@@ -169,7 +175,7 @@ export function useMineGame(initialLevelIndex: number) {
       hand: generateHand(level, [...hints], rng, undefined, telegraphHandSlotCount(getStoredHeroId())),
       placedInTurn: 0,
       status: 'playing',
-      message: GAME_FIXED.gameStatus.initTelegraph,
+      message: pickHeroGameStatusLine(getStoredHeroId(), 'initTelegraph'),
       conflictCells: [],
       explosionMarkCells: [],
       lossSequentialExplosionKeys: [],
@@ -199,6 +205,35 @@ export function useMineGame(initialLevelIndex: number) {
     initGame(currentLevelIndex);
   }, [currentLevelIndex, initGame]);
 
+  /** 開局倒數未啟動前切換幹員：重抽電報手牌並更新開場台詞／老張加固狀態 */
+  useEffect(() => {
+    const onHeroChanged = (e: Event) => {
+      const id = (e as CustomEvent<{ id?: string }>).detail?.id;
+      if (!id) return;
+      setGameState((prev) => {
+        if (!prev || prev.status !== 'playing' || prev.timerStarted) return prev;
+        const rng = createSeededRngFromState(prev.rngState);
+        const hand = generateHand(
+          prev.level,
+          [...prev.placedNumbers],
+          rng,
+          undefined,
+          telegraphHandSlotCount(id),
+        );
+        return {
+          ...prev,
+          rngState: rng.state(),
+          hand,
+          message: pickHeroGameStatusLine(id, 'initTelegraph'),
+          buckEmergencyAvailable: id === 'laozhang',
+        };
+      });
+      setSelectedHandIndex(null);
+    };
+    window.addEventListener(HERO_CHANGED_EVENT, onHeroChanged);
+    return () => window.removeEventListener(HERO_CHANGED_EVENT, onHeroChanged);
+  }, []);
+
   useEffect(
     () => () => {
       for (const t of bonusFxTimeoutsRef.current.values()) {
@@ -227,7 +262,7 @@ export function useMineGame(initialLevelIndex: number) {
         return {
           ...prev,
           status: 'exploding',
-          message: GAME_FIXED.gameStatus.timeUpExplosion,
+          message: pickHeroGameStatusLine(getStoredHeroId(), 'timeUpExplosion'),
           secondsLeft: 0,
           conflictCells: [],
           explosionMarkCells: [],
@@ -323,7 +358,7 @@ export function useMineGame(initialLevelIndex: number) {
             blastPointsCountdown: newCountdown,
             revealedMines: newRevealedMines,
             status: 'exploding',
-            message: GAME_FIXED.gameStatus.digitOutpostRevealedAsMine,
+            message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostRevealedAsMine'),
             conflictCells: ocpCells,
             explosionMarkCells,
             lossSequentialExplosionKeys,
@@ -338,7 +373,7 @@ export function useMineGame(initialLevelIndex: number) {
             ...prev,
             blastPointsCountdown: newCountdown,
             status: 'exploding',
-            message: GAME_FIXED.gameStatus.blastPointExplosion,
+            message: pickHeroGameStatusLine(getStoredHeroId(), 'blastPointExplosion'),
             conflictCells: [],
             explosionMarkCells: [],
             lossSequentialExplosionKeys: timeoutLossExplosionKeys(
@@ -452,7 +487,7 @@ export function useMineGame(initialLevelIndex: number) {
           prev
             ? {
                 ...prev,
-                message: GAME_FIXED.gameStatus.jammingSelectTelegraphFirst,
+                message: pickHeroGameStatusLine(getStoredHeroId(), 'jammingSelectTelegraphFirst'),
               }
             : null,
         );
@@ -542,7 +577,7 @@ export function useMineGame(initialLevelIndex: number) {
             ? {
                 ...prev,
                 status: 'playing',
-                message: GAME_FIXED.gameStatus.buckEmergencySaved,
+                message: pickHeroGameStatusLine(getStoredHeroId(), 'buckEmergencySaved'),
                 buckEmergencyAvailable: false,
                 jammingLockedSlot: null,
               }
@@ -710,7 +745,7 @@ export function useMineGame(initialLevelIndex: number) {
       finalPlacedInTurn = 0;
     }
 
-    const nextMineKeys = new Set<string>([...newRevealedMines, ...newDynamicMines]);
+    const nextMineKeys = new Set<string>(newRevealedMines);
     const firepowerDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
     const firepowerPct = weightedFirepowerSumAndPct(
       nextMineKeys,
@@ -770,7 +805,7 @@ export function useMineGame(initialLevelIndex: number) {
               hand: finalHand,
               placedInTurn: finalPlacedInTurn,
               status: 'exploding',
-              message: GAME_FIXED.gameStatus.digitOutpostRevealedAsMine,
+              message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostRevealedAsMine'),
               conflictCells: ocpCells,
               explosionMarkCells,
               lossSequentialExplosionKeys,
@@ -820,7 +855,7 @@ export function useMineGame(initialLevelIndex: number) {
                 hand: finalHand,
                 placedInTurn: finalPlacedInTurn,
                 status: 'exploding',
-                message: GAME_FIXED.gameStatus.digitOutpostIncomplete,
+                message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostIncomplete'),
                 conflictCells: missing.map(([mx, my]) => ({ x: mx, y: my })),
                 explosionMarkCells,
                 lossSequentialExplosionKeys,
@@ -851,8 +886,10 @@ export function useMineGame(initialLevelIndex: number) {
               status: 'won',
               message:
                 gainedSeconds > 0
-                  ? sub(GAME_FIXED.victoryStatus.withTimeBonus, { seconds: gainedSeconds })
-                  : GAME_FIXED.victoryStatus.plain,
+                  ? sub(pickHeroVictoryStatusLine(getStoredHeroId(), 'withTimeBonus'), {
+                      seconds: gainedSeconds,
+                    })
+                  : pickHeroVictoryStatusLine(getStoredHeroId(), 'plain'),
               secondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
               rewardedMineTargets: nextRewardedMineTargets,
@@ -934,7 +971,7 @@ export function useMineGame(initialLevelIndex: number) {
       return {
         ...prev,
         status: 'won',
-        message: GAME_FIXED.victoryStatus.plain,
+        message: pickHeroVictoryStatusLine(getStoredHeroId(), 'plain'),
         settledMedal: m,
         settledFillPercentage: firepowerPct,
         settledSecondsLeft: prev.secondsLeft,
@@ -954,7 +991,7 @@ export function useMineGame(initialLevelIndex: number) {
       return {
         ...prev,
         status: 'won',
-        message: GAME_FIXED.victoryStatus.plain,
+        message: pickHeroVictoryStatusLine(getStoredHeroId(), 'plain'),
         settledMedal: m,
         settledFillPercentage: firepowerPct,
         settledSecondsLeft: prev.secondsLeft,
