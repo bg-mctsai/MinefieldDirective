@@ -12,6 +12,7 @@ import { adjacentPlacedDigitCount, mineBombVisualTier } from './mineCombatVisual
 import { heroFirepowerDigitWeightMode, getStoredHeroId } from '../heroes';
 import { NeighborBonusPlusOneFlight } from './NeighborBonusPlusOneFlight';
 import { NeighborResonancePlaceOverlay } from './NeighborResonancePlaceOverlay';
+import { BobbyDownshiftFxOverlay, type BobbyDownshiftFxState } from './BobbyDownshiftFxOverlay';
 
 export function GameBoard({
   gameState,
@@ -19,7 +20,9 @@ export function GameBoard({
   onCellClick,
   boardRef,
   bonusFxKeys,
+  bobbyDownshiftFx = null,
   combatHeroId = getStoredHeroId(),
+  placeHintKeys = null,
   align = 'center',
 }: {
   gameState: GameState;
@@ -27,7 +30,10 @@ export function GameBoard({
   onCellClick: (x: number, y: number) => void;
   boardRef: RefObject<HTMLDivElement | null>;
   bonusFxKeys: string[];
+  bobbyDownshiftFx?: BobbyDownshiftFxState | null;
   combatHeroId?: string;
+  /** 波比：選定電碼後亮起可放格 */
+  placeHintKeys?: ReadonlySet<string> | null;
   align?: 'center' | 'left';
 }) {
   const w = gameState.level.width;
@@ -51,6 +57,7 @@ export function GameBoard({
   const digitOutpostKeys = new Set(
     (gameState.level.definition.digitOutposts ?? []).map(([ox, oy]) => `${ox},${oy}`),
   );
+  const hintKeys = placeHintKeys ?? null;
   const boardAlignClass = align === 'left' ? 'mr-auto' : 'mx-auto';
 
   if (isHex) {
@@ -75,6 +82,7 @@ export function GameBoard({
             onCellClick={onCellClick}
             bonusFxKeys={bonusFxKeySet}
             bonusSeconds={bonusSeconds}
+            placeHintKeys={hintKeys}
           />
 
           {cloud && (
@@ -112,6 +120,12 @@ export function GameBoard({
               hexMin={{ x: minX, y: minY }}
             />
           )}
+          <BobbyDownshiftFxOverlay
+            fx={bobbyDownshiftFx}
+            layout="hex"
+            cellSize={r}
+            hexMin={{ x: minX, y: minY }}
+          />
         </div>
       </div>
     );
@@ -211,6 +225,7 @@ export function GameBoard({
               bonusSeconds={bonusSeconds}
               blastPointCountdown={blastPointCountdown}
               isDigitOutpost={digitOutpostKeys.has(key)}
+              isPlaceHint={(hintKeys?.has(key) ?? false) && !isMine && !isDynMine}
               isDynamicMine={isDynMine}
               mineCombatTier={isMine ? mCombat : 1}
               fireDigitMode={fireDigitMode}
@@ -257,6 +272,12 @@ export function GameBoard({
             squareGridMin={squareGridMin}
           />
         )}
+        <BobbyDownshiftFxOverlay
+          fx={bobbyDownshiftFx}
+          layout="square"
+          cellSize={cellSize}
+          squareGridMin={squareGridMin}
+        />
       </div>
     </div>
   );

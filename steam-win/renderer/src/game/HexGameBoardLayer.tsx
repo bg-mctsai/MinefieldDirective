@@ -16,12 +16,13 @@ import {
   placedCommandDigitSvgClassName,
 } from './mineCombatVisual';
 import { MineCellCombatDisplay } from './MineCellCombatDisplay';
+import { PlaceHintOverlay } from './PlaceHintOverlay';
 
 function hexCellOwnsSharedEdge(ax: number, ay: number, bx: number, by: number): boolean {
   return ay < by || (ay === by && ax < bx);
 }
 
-/** 蜂巢外露邊統一線色／寬，避免數字格 amber 邊與其他格 slate 邊視覺粗細不一 */
+/** ?�巢外露?�統一線色／寬，避?�數字格 amber ?��??��???slate ?��?覺�?細�?一 */
 const HEX_OUTWARD_EDGE_STROKE_CLASS = 'stroke-slate-400/32';
 
 export function HexGameBoardLayer({
@@ -34,6 +35,7 @@ export function HexGameBoardLayer({
   onCellClick,
   bonusFxKeys,
   bonusSeconds,
+  placeHintKeys = null,
 }: {
   gameState: GameState;
   r: number;
@@ -44,6 +46,7 @@ export function HexGameBoardLayer({
   onCellClick: (x: number, y: number) => void;
   bonusFxKeys: Set<string>;
   bonusSeconds: number;
+  placeHintKeys?: ReadonlySet<string> | null;
 }) {
   const w = gameState.level.width;
   const h = gameState.level.height;
@@ -133,7 +136,7 @@ export function HexGameBoardLayer({
           (lossChainPhase === 'dead' && postBlast) ||
           (gameState.status === 'lost' && isMine && lossChainPhase === 'none')
         ) {
-          /** 焦痕／餘燼色，避免純黑死格貼在 slate-900 背景上像髒塊 */
+          /** ?��?／�??�色，避?��?黑死?�貼??slate-900 ?�景上�?髒�? */
           fillClass = 'fill-[#2c1518]/92';
         } else if (lossChainPhase === 'popping' && gameState.status === 'exploding') {
           fillClass = 'fill-orange-950/65';
@@ -159,6 +162,13 @@ export function HexGameBoardLayer({
         ) {
           fillClass = 'fill-slate-800';
         }
+        const isPlaceHint =
+          (placeHintKeys?.has(key) ?? false) &&
+          !placed &&
+          !isMine &&
+          !isDynamicMine &&
+          playing &&
+          lossChainPhase === 'none';
         const isDigitOutpostTooltip = Boolean(
           digitOutpostKeys.has(key) && !placed && blastPointCountdown === undefined,
         );
@@ -172,6 +182,7 @@ export function HexGameBoardLayer({
           lossChainPhase,
           bonusSeconds,
           isDigitOutpost: isDigitOutpostTooltip,
+          isPlaceHint,
           mineCombatTier: isMine ? mCombat : 1,
           fireDigitMode,
         });
@@ -234,6 +245,19 @@ export function HexGameBoardLayer({
                 {placed.value}
               </text>
             )}
+            {isPlaceHint && (
+              <foreignObject
+                x={cx - r * 0.92}
+                y={cy - r * 0.92}
+                width={r * 1.84}
+                height={r * 1.84}
+                className="pointer-events-none overflow-visible"
+              >
+                <div className="relative h-full w-full">
+                  <PlaceHintOverlay />
+                </div>
+              </foreignObject>
+            )}
             {!placed &&
               !isDynamicMine &&
               digitOutpostKeys.has(key) &&
@@ -251,7 +275,7 @@ export function HexGameBoardLayer({
                       size={outpostPinSize}
                       className="text-teal-400/95 drop-shadow-[0_0_4px_rgba(20,184,166,0.55)]"
                     />
-                  </motion.div>
+                </motion.div>
                 </foreignObject>
               )}
             {blastPointCountdown !== undefined && !postBlast && (
@@ -279,8 +303,7 @@ export function HexGameBoardLayer({
                     className="leading-none text-slate-400"
                     style={{ fontSize: Math.max(7, Math.round(r * 0.22)) }}
                   >
-                    ⏱
-                  </span>
+                    ??                  </span>
                 </div>
               </foreignObject>
             )}

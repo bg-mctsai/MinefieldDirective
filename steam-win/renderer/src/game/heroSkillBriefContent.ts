@@ -3,7 +3,11 @@ import { getHeroCombatSkills, getHeroDef } from '../heroes';
 export type HeroSkillBriefPanel = { title: string; paragraphs: string[] };
 
 /** 對局內「點頭像」彈層：被動說明；無戰鬥被動時用 skillDetail 或通用句補位 */
-export function getHeroSkillBriefPanels(heroId: string, buckEmergencyAvailable: boolean): HeroSkillBriefPanel[] {
+export function getHeroSkillBriefPanels(
+  heroId: string,
+  buckEmergencyAvailable: boolean,
+  bobbyDownshiftAvailable = true,
+): HeroSkillBriefPanel[] {
   const hero = getHeroDef(heroId);
 
   if (heroId === 'laozhang') {
@@ -19,10 +23,16 @@ export function getHeroSkillBriefPanels(heroId: string, buckEmergencyAvailable: 
 
   const skills = getHeroCombatSkills(hero);
   if (skills.length > 0) {
-    return skills.map((s) => ({
-      title: s.name,
-      paragraphs: [s.detail.trim() || '（無額外說明）'],
-    }));
+    return skills.map((s) => {
+      const detail = s.detail.trim() || '（無額外說明）';
+      if (heroId === 'bobby' && s.name === '緊急降碼') {
+        const statusLine = bobbyDownshiftAvailable
+          ? '本組電報：降碼尚未使用（仍可用 1 次）。'
+          : '本組電報：降碼已用盡。';
+        return { title: s.name, paragraphs: [detail, statusLine] };
+      }
+      return { title: s.name, paragraphs: [detail] };
+    });
   }
 
   const flavor = hero.skillDetail?.trim();

@@ -17,6 +17,7 @@ constraints:
 - 第一關雙路線可直接套用稿：`ref/lv1-tone-pack.md`
 - 是否加更多對話與加在哪：`ref/dialogue-expansion-checklist.md`
 - 章內批量改寫時的口氣規則：`ref/sergeant-tone-rules.md`
+- 各角色個性與說話方式（含長官、全幹員）：`ref/character-voice-profiles.md`
 
 ## 最小交付（每次調整都要做到）
 

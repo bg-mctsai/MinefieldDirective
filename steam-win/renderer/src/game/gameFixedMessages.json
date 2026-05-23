@@ -1,37 +1,4 @@
 {
-  "gameStatus": {
-    "initTelegraph": "收到。先點待辦電碼的數字，再點格。一步一步來，我們把線走通。",
-    "timeUpExplosion": "時限到，陣上還有縫。先撤、吸口氣——下一把節奏我們再抓回來。",
-    "blastPointExplosion": "炸點斷了線，周圍沒讀通。不灰心，我們再排一輪先後。",
-    "digitOutpostIncomplete": "覆蓋夠了，可據點還有人在等。下一盤一個一個，把他們寫滿。",
-    "digitOutpostRevealedAsMine": "戰術據點被推成雷。據點只能填數字。下次先護著據點，我們再改。",
-    "jammingSelectTelegraphFirst": "先點一道電碼，對好當下讀值，再點格。你讀到的那一瞬，就是正確的瞬。",
-    "buckEmergencySaved": "加固把這一連擋下來了。省著用，可心裡有底：還有下一次機會。下一手我們收乾淨。"
-  },
-  "afterPlace": {
-    "newHandArrived": "嘀——新電碼到了。選下一道，繼續走。",
-    "awaitNextTelegraph": "這格讀穩了。先選下一道電碼，再點下一格。不趕。",
-    "mineBonusPrefix": "目標雷格確認，時限 +{seconds} 秒。幹得漂亮。",
-    "dynamicMinePushed": "　⚠ 暗流補進一顆廢雷！別慌，我們照路線清。"
-  },
-  "victoryStatus": {
-    "withTimeBonus": "目標雷格確認，時限 +{seconds} 秒；佈雷完成。辛苦了，任務達成。",
-    "plain": "佈雷完成。任務達成。幹得好。"
-  },
-  "lossCommander": {
-    "adjacentNeighborConflict": "電碼是『{v}』，和鄰格『{other}』打架了。換格或換條路，我們再推一次。",
-    "correctDigitWrongCell": "『{v}』沒讀錯，格不對。重來一著，我等你。",
-    "digitMismatchClue": "要的是『{v}』，盤面『{w}』不認。不氣餒，從有把握的那邊重接。",
-    "genericUnsatisfiable": "照『{v}』佈不回去。我們退一步，從上一步的岔路試。"
-  },
-  "commanderRowHint": {
-    "chainExploding": "！！！連環爆炸中，先停、再看線！！！",
-    "missionOver": "任務結束。不論好壞，休息再來。",
-    "selectTelegraphJammingIdle": "先選一道電碼；讀值會往返輪播，抓好窗口你一定能下。",
-    "selectTelegraphNormal": "先選電碼，再點格佈雷。我在頻道這兒。",
-    "digitLockedPickCell": "數字已鎖定。選好想守的那一格，下。",
-    "pickTargetCellWithDigit": "電碼「{digit}」— 請點目標格。穩一點，就像每次演練。"
-  },
   "cellTooltip": {
     "conflict": "衝突格：此格與周邊雷數矛盾",
     "placedDigit": "已佈署數字 {value}",
@@ -41,6 +8,249 @@
     "mineCounts": "地雷：會計入周圍數字雷數",
     "mineCountsHigh": "地雷（火力 2）：兩個或以上已佈署數字格共同指向此雷",
     "emptyPlaceable": "空格：可放置數字",
-    "digitOutpost": "戰術據點：必須在此格佈署數字；若邏輯上此格為雷亦視同失敗。達覆蓋率仍未填仍引爆。"
+    "digitOutpost": "戰術據點：必須在此格佈署數字；若邏輯上此格為雷亦視同失敗。達覆蓋率仍未填仍引爆。",
+    "placeHint": "可放格：已選電碼放此格不會立刻衝突（上一手鄰格）。"
+  },
+  "byHero": {
+    "xiaoming": {
+      "gameStatus": {
+        "initTelegraph": ["電報來了……先點數字再點格，我、我跟上。"],
+        "timeUpExplosion": ["時間到啦！還有縫——先撤，照片還在就不算輸。"],
+        "blastPointExplosion": ["炸點斷了……下次我先把鄰格看清！"],
+        "digitOutpostIncomplete": ["覆蓋夠了，據點還空欸。下一盤一格格填，別讓人白等。"],
+        "digitOutpostRevealedAsMine": ["據點怎麼變雷了？！那格只能填數字啊……"],
+        "jammingSelectTelegraphFirst": ["干擾在跳……先鎖一道電碼，讀穩再點格！"]
+      },
+      "afterPlace": {
+        "newHandArrived": "嘀——新電碼到了。選下一道，繼續走。",
+        "awaitNextTelegraph": "這格穩了。先選下一道電碼，再點下一格，別慌。",
+        "mineBonusPrefix": "目標雷對了，+{seconds} 秒！欸，這次運氣不錯。",
+        "dynamicMinePushed": "　⚠ 又補進一顆廢雷！別慌，照表清。"
+      },
+      "victoryStatus": {
+        "plain": "收工……我還活著，撤！",
+        "withTimeBonus": "目標雷 +{seconds} 秒——運氣站我這邊，搞定。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "！！！連環炸了，先停、再看線！！！",
+        "missionOver": "這盤結束了。喘口氣再來。",
+        "selectTelegraphJammingIdle": "干擾在跳……先選一道電碼，抓到讀值再下。",
+        "selectTelegraphNormal": "先選電碼，再點格。我、我跟著走。",
+        "digitLockedPickCell": "數字鎖好了。選一格下，穩一點。",
+        "pickTargetCellWithDigit": "電碼「{digit}」——點你想守的那格。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "欸！{v} 跟旁邊 {other} 掐起來了——快換格！",
+        "correctDigitWrongCell": "{v} 數字沒錯，是格踩錯了，換。",
+        "digitMismatchClue": "{v} 跟線索 {w} 對不上……我搞錯了，換格。",
+        "genericUnsatisfiable": "{v} 這手回不去，換條路試試。"
+      }
+    },
+    "ada": {
+      "gameStatus": {
+        "initTelegraph": ["頻道開了。先鎖電碼，格再跟上。"],
+        "timeUpExplosion": ["時間歸零了，陣上還有洞。撤——下把再校。"],
+        "blastPointExplosion": ["炸點斷線，旁邊沒讀通。退回上一步重算。"],
+        "digitOutpostIncomplete": ["覆蓋夠了，據點還沒填滿。收好再走。"],
+        "digitOutpostRevealedAsMine": ["據點被推成雷？這格只能放數字欸。"],
+        "jammingSelectTelegraphFirst": ["先選電碼對讀值；拖久了雜訊會騙你。"]
+      },
+      "afterPlace": {
+        "newHandArrived": "新封到了。選下一道，繼續推。",
+        "awaitNextTelegraph": "這手收乾了。先選下一道電碼，再落格。",
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。波形很漂亮。",
+        "dynamicMinePushed": "　⚠ 雜訊裡補了一顆廢雷。濾掉，照線清。"
+      },
+      "victoryStatus": {
+        "plain": "搞定，收工。",
+        "withTimeBonus": "目標雷 +{seconds} 秒；頻段歸零，收工。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "連環爆！停手，先看頻譜。",
+        "missionOver": "任務結束。下一把重校。",
+        "selectTelegraphJammingIdle": "先選電碼；讀值在輪播，抓窗口再下。",
+        "selectTelegraphNormal": "先鎖電碼，再點格。頻道我在。",
+        "digitLockedPickCell": "讀值鎖了。選格，下。",
+        "pickTargetCellWithDigit": "電碼「{digit}」——點目標格。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "{v}、{other} 鄰格衝突，波形掐住了，換格。",
+        "correctDigitWrongCell": "讀值 {v} 對，座標錯，換。",
+        "digitMismatchClue": "{v} 跟 {w} 對不拍，重算，換格。",
+        "genericUnsatisfiable": "{v} 假設推死了，切下一條。"
+      }
+    },
+    "selina": {
+      "gameStatus": {
+        "initTelegraph": ["格網起了。先點電碼再落格——別用眼睛賭。"],
+        "timeUpExplosion": ["時間卡在稜線上。先退到安全邊，下盤再封。"],
+        "blastPointExplosion": ["炸點旁沒讀通，等高線斷了。這段重畫。"],
+        "digitOutpostIncomplete": ["火力夠了，據點還空。下盤補齊。"],
+        "digitOutpostRevealedAsMine": ["據點變雷？這裡地形上只能是數字。"],
+        "jammingSelectTelegraphFirst": ["干擾在晃。先鎖電碼，讀對再踩。"]
+      },
+      "afterPlace": {
+        "newHandArrived": "新電碼到了。選下一道，沿稜走。",
+        "awaitNextTelegraph": "這格在稜上。先選下一道，再落格。",
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。這格落點漂亮。",
+        "dynamicMinePushed": "　⚠ 盤面補了顆廢雷。別被坡影騙，照線清。"
+      },
+      "victoryStatus": {
+        "plain": "線收好了，這盤我簽了。",
+        "withTimeBonus": "目標雷 +{seconds} 秒；格網收好，收工。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "連環爆！停，等高線先穩。",
+        "missionOver": "這盤收線了。下一把重畫。",
+        "selectTelegraphJammingIdle": "先選電碼；讀值在晃，對準再踩。",
+        "selectTelegraphNormal": "先點電碼，再落格。跟格網走。",
+        "digitLockedPickCell": "數字鎖了。選格下，別賭眼緣。",
+        "pickTargetCellWithDigit": "電碼「{digit}」——點那格。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "{v} 跟 {other} 鄰格掐架，這段地形壞了，換格。",
+        "correctDigitWrongCell": "{v} 沒錯，你踩錯邊了，回去。",
+        "digitMismatchClue": "{v} 跟線索 {w} 對不上稜線，重畫。",
+        "genericUnsatisfiable": "{v} 這步像走斷崖，換路。"
+      }
+    },
+    "bobby": {
+      "gameStatus": {
+        "initTelegraph": ["巴克在聞了。你選電碼，我們一起標。"],
+        "timeUpExplosion": ["時間到！跟味道往外拉——別黏在雷前！"],
+        "blastPointExplosion": ["炸點斷了，周圍味道全亂。重聞一輪再下。"],
+        "digitOutpostIncomplete": ["覆蓋夠，據點還沒填滿。狗鼻子說那幾格還在叫。"],
+        "digitOutpostRevealedAsMine": ["據點變雷？這格只能填數字，巴克也搖頭。"],
+        "jammingSelectTelegraphFirst": ["雜訊太吵。先選電碼，讀穩了再帶狗下格。"],
+        "bobbyDownshiftSaved": ["降一碼，過了。這組電報沒第二次。"]
+      },
+      "afterPlace": {
+        "newHandArrived": "新電碼到了。選下一道，巴克在聞。",
+        "awaitNextTelegraph": "這格味道對了。先選下一道，再標下一格。",
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。狗都點頭。",
+        "dynamicMinePushed": "　⚠ 又補一顆廢雷！重聞一圈再清。"
+      },
+      "victoryStatus": {
+        "plain": "搜救成功，收隊。回去給巴克加肉。",
+        "withTimeBonus": "目標雷 +{seconds} 秒；味道全對，收工。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "連環炸了！停，先聞線索。",
+        "missionOver": "收隊。讓狗喘口氣再來。",
+        "selectTelegraphJammingIdle": "先選電碼；雜訊太吵，讀穩再帶狗下。",
+        "selectTelegraphNormal": "你選電碼，我帶狗標。先選再點格。",
+        "digitLockedPickCell": "電碼鎖了。選格，跟鼻子走。",
+        "pickTargetCellWithDigit": "電碼「{digit}」——點那格，我聞。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "{v} 跟 {other} 鄰格衝突——味道全亂了，重聞換格。",
+        "correctDigitWrongCell": "{v} 沒錯，格錯了，換。",
+        "digitMismatchClue": "{v} 跟 {w} 不對味，巴克也搖頭，換格。",
+        "genericUnsatisfiable": "{v} 這條氣味線走不通，換。"
+      }
+    },
+    "laozhang": {
+      "gameStatus": {
+        "initTelegraph": ["收到。先穩一道電碼，結構我幫你盯。"],
+        "timeUpExplosion": ["時間到，陣上還有縫。先撤——這條線改天再澆實。"],
+        "blastPointExplosion": ["炸點斷了，周邊沒撐住。別灰心，重排先後。"],
+        "digitOutpostIncomplete": ["覆蓋夠了，據點還沒灌漿。下一盤一個一個填滿。"],
+        "digitOutpostRevealedAsMine": ["據點變雷？那格只能放數字，結構不允許。"],
+        "jammingSelectTelegraphFirst": ["先點電碼對讀值，再下格。急不得，也拖不得。"],
+        "buckEmergencySaved": ["加固擋住了。還有一次，下一手收乾淨。"]
+      },
+      "afterPlace": {
+        "newHandArrived": "新電碼到了。選下一道，這線還撐得住。",
+        "awaitNextTelegraph": "這手灌實了。先選下一道，再下格。",
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。穩，就這樣。",
+        "dynamicMinePushed": "　⚠ 又補一顆廢雷。別慌，結構還在，照序清。"
+      },
+      "victoryStatus": {
+        "plain": "沒塌，功勞算你的。收好了。",
+        "withTimeBonus": "目標雷 +{seconds} 秒；佈雷完成，這線撐住了。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "連環爆！停手，線要斷了。",
+        "missionOver": "這盤收工。歇口氣再澆下一條。",
+        "selectTelegraphJammingIdle": "先選電碼，讀值對好再下。別急折在這。",
+        "selectTelegraphNormal": "先穩電碼，再點格。結構我盯著。",
+        "digitLockedPickCell": "數字鎖了。選格下，慢一拍。",
+        "pickTargetCellWithDigit": "電碼「{digit}」——點那格，撐住。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "{v} 跟 {other} 鄰格衝突，連鎖要斷——換格。",
+        "correctDigitWrongCell": "{v} 數字對，格撐不住，換。",
+        "digitMismatchClue": "{v} 跟線索 {w} 對不上，重排這段。",
+        "genericUnsatisfiable": "{v} 這條線佈不回去，換路。"
+      }
+    },
+    "tungsten": {
+      "gameStatus": {
+        "initTelegraph": ["指令接收。電碼鎖定後，執行佈雷序列。"],
+        "timeUpExplosion": ["時限歸零。未覆蓋區域失效。撤回待機點。"],
+        "blastPointExplosion": ["炸點承載斷裂。周邊格未達標，連鎖啟動。"],
+        "digitOutpostIncomplete": ["覆蓋率達標。據點節點仍空——任務未完成。"],
+        "digitOutpostRevealedAsMine": ["據點格判定為雷。邏輯衝突：該格僅允許數字。"],
+        "jammingSelectTelegraphFirst": ["干擾輪播中。先鎖電碼讀值，再執行落格。"]
+      },
+      "afterPlace": {
+        "newHandArrived": "新電碼佇列更新。選下一道，繼續序列。",
+        "awaitNextTelegraph": "落格完成。選下一道電碼，再執行。",
+        "mineBonusPrefix": "目標雷確認。時限 +{seconds} 秒。",
+        "dynamicMinePushed": "　⚠ 廢雷補入。清除序列繼續。"
+      },
+      "victoryStatus": {
+        "plain": "佈雷序列完成。撤回待機。",
+        "withTimeBonus": "目標雷 +{seconds} 秒；覆蓋達標，任務終止。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "連環爆炸中。停止操作。",
+        "missionOver": "任務終止。待機。",
+        "selectTelegraphJammingIdle": "先選電碼。讀值輪播中，鎖定後落格。",
+        "selectTelegraphNormal": "先鎖電碼，再選格。執行。",
+        "digitLockedPickCell": "電碼已鎖。選目標格。",
+        "pickTargetCellWithDigit": "電碼「{digit}」— 指定目標格。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "{v} 與 {other} 鄰格衝突。換格。",
+        "correctDigitWrongCell": "{v}。座標錯誤。換格。",
+        "digitMismatchClue": "{v} 與線索 {w} 不符。換格。",
+        "genericUnsatisfiable": "{v} 無法佈署。換路徑。"
+      }
+    },
+    "claire": {
+      "gameStatus": {
+        "initTelegraph": ["網格對好了。先選電碼，再下格——跟線，別跟慌。"],
+        "timeUpExplosion": ["時間到了，盤面還在發燒。先撤，穩住呼吸再來。"],
+        "blastPointExplosion": ["炸點旁讀數斷了，毒性在靠近。退後重接。"],
+        "digitOutpostIncomplete": ["覆蓋夠了，據點還弱。下一盤一格格寫滿。"],
+        "digitOutpostRevealedAsMine": ["據點變雷？這格在網格上只能是數字。"],
+        "jammingSelectTelegraphFirst": ["干擾在跳。先鎖電碼，讀對再點格。"]
+      },
+      "afterPlace": {
+        "newHandArrived": "新電碼到了。選下一道，網格還穩。",
+        "awaitNextTelegraph": "這格清乾淨了。先選下一道，再下格。",
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。讀數回落了。",
+        "dynamicMinePushed": "　⚠ 又補一顆廢雷。別慌，跟腕上網格清。"
+      },
+      "victoryStatus": {
+        "plain": "網格靜下來了，收工。辛苦了。",
+        "withTimeBonus": "目標雷 +{seconds} 秒；佈雷完成，讀數回落。"
+      },
+      "commanderRowHint": {
+        "chainExploding": "連環爆！停，網格在抖。",
+        "missionOver": "這盤結束。喘口氣，下一手跟線走。",
+        "selectTelegraphJammingIdle": "先選電碼；讀值在跳，對準再點格。",
+        "selectTelegraphNormal": "先選電碼，再下格。看腕上網格。",
+        "digitLockedPickCell": "讀值鎖了。選格，穩住。",
+        "pickTargetCellWithDigit": "電碼「{digit}」——點那格，跟線。"
+      },
+      "lossOperative": {
+        "adjacentNeighborConflict": "{v} 跟 {other} 鄰格衝突，網格在抖——換格，別慌。",
+        "correctDigitWrongCell": "{v} 讀數對，格選錯，換。",
+        "digitMismatchClue": "{v} 跟線索 {w} 對不上，退後重接。",
+        "genericUnsatisfiable": "{v} 這手佈不回去，跟腕上線換路。"
+      }
+    }
   }
 }

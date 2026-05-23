@@ -12,7 +12,7 @@ import {
   type NeighborMode,
   withinForcedRevealZone,
 } from './levelData/gridTopology';
-import { GAME_FIXED, sub } from './game/gameFixedMessages';
+import { pickHeroLossOperativeLine } from './game/heroGameStatusLines';
 
 export type CellStatus = 'empty' | 'number' | 'mine' | 'blocked';
 
@@ -88,13 +88,22 @@ function adjacentConflictDisplayValue(
   return undefined;
 }
 
-/** 敗北台詞：長官斥責——強調電報數字與鄰格線索衝突（如 3 與 5），不報行列 */
+/** 敗北提示用：有鄰焰共振時顯示「電碼+加成」（例 3+3），否則僅落格數字 */
+function lossPlacedDigitLabel(lastPlaced: { value: number; telegramValue?: number }): string {
+  const base = lastPlaced.telegramValue ?? lastPlaced.value;
+  const bonus = lastPlaced.value - base;
+  if (bonus > 0) return `${base}+${bonus}`;
+  return String(lastPlaced.value);
+}
+
+/** 邏輯敗北台詞：出戰幹員口語反應——強調電報數字與鄰格線索衝突，不報行列 */
 export function formatLossExplanation(
   details: ConflictDetail[],
-  lastPlaced: { x: number; y: number; value: number },
-  lossTopology: LossUiTopology
+  lastPlaced: { x: number; y: number; value: number; telegramValue?: number },
+  lossTopology: LossUiTopology,
+  heroId: string,
 ): string {
-  const v = lastPlaced.value;
+  const v = lossPlacedDigitLabel(lastPlaced);
   const other = adjacentConflictDisplayValue(
     details,
     lastPlaced,
@@ -103,19 +112,17 @@ export function formatLossExplanation(
     lossTopology.boardW,
     lossTopology.boardH
   );
-  const L = GAME_FIXED.lossCommander;
   if (other !== undefined) {
-    return sub(L.adjacentNeighborConflict, { v, other });
+    return pickHeroLossOperativeLine(heroId, 'adjacentNeighborConflict', { v, other });
   }
   if (details.length > 0) {
     const w = details[0].displayValue;
-    // 與鄰格無直接對撞、但線索數字與電報相同時，避免聽成「兩個 5 互衝」——改斥座標選錯
-    if (w === v) {
-      return sub(L.correctDigitWrongCell, { v });
+    if (w === lastPlaced.value) {
+      return pickHeroLossOperativeLine(heroId, 'correctDigitWrongCell', { v });
     }
-    return sub(L.digitMismatchClue, { v, w });
+    return pickHeroLossOperativeLine(heroId, 'digitMismatchClue', { v, w });
   }
-  return sub(L.genericUnsatisfiable, { v });
+  return pickHeroLossOperativeLine(heroId, 'genericUnsatisfiable', { v });
 }
 
 const cellKey = (c: { x: number; y: number }) => `${c.x},${c.y}`;

@@ -4,14 +4,17 @@ import { getHeroCombatSkills, getHeroDef } from '../heroes';
 import type { HeroCombatTheme } from './heroCombatTheme';
 import { heroSkillHudLucideIcon } from './heroSkillHudIcons';
 
-/** 對局右上角：列出幹員被動技能名；詳情以原生 title（tooltip）顯示。老張另保留「加固模組」狀態 UI。 */
+/** 對局棋盤右側：幹員被動技能（圖示左、名稱右）；詳情以原生 title（tooltip）顯示。老張另保留「加固模組」狀態 UI。 */
 export function HeroSkillHud({
   heroId,
   buckEmergencyAvailable,
+  bobbyDownshiftAvailable = true,
   theme,
 }: {
   heroId: string;
   buckEmergencyAvailable: boolean;
+  /** 波比「緊急降碼」本組電報是否仍可用 */
+  bobbyDownshiftAvailable?: boolean;
   theme: HeroCombatTheme;
 }) {
   if (heroId === 'laozhang') {
@@ -65,28 +68,43 @@ export function HeroSkillHud({
   const skills = getHeroCombatSkills(getHeroDef(heroId));
   if (skills.length === 0) return null;
 
+  const shellClass = `flex min-w-[5.75rem] w-max shrink-0 flex-col items-stretch gap-1 rounded-lg border-2 px-1.5 py-1.5 shadow-md sm:min-w-[6.25rem] sm:gap-1.5 sm:rounded-xl sm:px-2 sm:py-2 sm:shadow-lg md:min-w-[6.75rem] md:rounded-2xl md:shadow-xl ${theme.telegraphWrap}`;
+
   return (
-    <div
-      className={`flex max-w-[min(100vw-8rem,20rem)] flex-wrap items-center justify-end gap-1 rounded-xl border-2 px-1.5 py-1 shadow-md sm:gap-1.5 sm:px-2 sm:py-1.5 ${theme.telegraphWrap}`}
-      role="group"
-      aria-label="幹員被動技能"
-    >
+    <motion.div className={shellClass} role="group" aria-label="幹員被動技能">
       {skills.map((s) => {
         const tip = s.detail.trim() || s.name;
+        const title = `${s.name}：${tip}`;
         const Icon = heroSkillHudLucideIcon(s.hudIcon);
+        const iconClass =
+          heroId === 'bobby' ? 'text-teal-400/95' : 'text-[#F59E0B]/90';
+        const downshiftSpent = heroId === 'bobby' && s.name === '緊急降碼' && !bobbyDownshiftAvailable;
+        const spentTitle = downshiftSpent ? `${title}（本組電報已用）` : title;
         return (
           <button
             key={s.name}
             type="button"
-            title={tip}
-            aria-label={`${s.name}。${tip}`}
-            className="flex max-w-[6.25rem] cursor-help items-center gap-1 rounded-lg border border-slate-600/85 bg-slate-950/80 px-1 py-0.5 text-left text-[9px] font-black leading-none text-slate-200 transition-colors hover:border-[#F59E0B]/55 hover:text-[#F59E0B] sm:max-w-[6.75rem] sm:gap-1.5 sm:px-1.5 sm:py-1 sm:text-[10px]"
+            title={spentTitle}
+            aria-label={spentTitle}
+            className={`flex w-full cursor-help flex-row items-center gap-1.5 rounded-md px-1 py-1.5 text-left transition-colors hover:bg-slate-800/50 sm:gap-2 sm:px-1.5 sm:py-2 ${
+              downshiftSpent ? 'opacity-45' : ''
+            }`}
           >
-            <Icon className="h-3.5 w-3.5 shrink-0 text-[#F59E0B]/90 sm:h-4 sm:w-4" strokeWidth={2.25} aria-hidden />
-            <span className="min-w-0 flex-1 tracking-tight">{s.name}</span>
+            <Icon
+              className={`h-5 w-5 shrink-0 sm:h-6 sm:w-6 ${downshiftSpent ? 'text-slate-600' : iconClass}`}
+              strokeWidth={2.25}
+              aria-hidden
+            />
+            <span
+              className={`min-w-0 flex-1 text-[11px] font-black leading-tight sm:text-xs md:text-sm ${
+                downshiftSpent ? 'text-slate-600 line-through' : 'text-white'
+              }`}
+            >
+              {s.name}
+            </span>
           </button>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

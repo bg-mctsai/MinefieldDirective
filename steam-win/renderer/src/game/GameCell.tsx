@@ -10,6 +10,7 @@ import {
   type MineBombVisualTier,
 } from './mineCombatVisual';
 import { MineCellCombatDisplay } from './MineCellCombatDisplay';
+import { PlaceHintOverlay } from './PlaceHintOverlay';
 
 export interface GameCellProps {
   x: number;
@@ -33,6 +34,8 @@ export interface GameCellProps {
   blastPointCountdown?: number;
   /** 戰術據點：必須佈署數字（levels.json digitOutposts） */
   isDigitOutpost?: boolean;
+  /** 波比：選定電碼後的可放格提示 */
+  isPlaceHint?: boolean;
   /** 深海要塞：動態新增的地雷（與 forcedMine 邏輯相同，視覺以青色區分） */
   isDynamicMine?: boolean;
   /** 火力視覺階 1～5（格網倍乘） */
@@ -60,6 +63,7 @@ const GameCellComponent = ({
   bonusSeconds = 5,
   blastPointCountdown,
   isDigitOutpost = false,
+  isPlaceHint = false,
   isDynamicMine = false,
   mineCombatTier: mineCombatTierProp = 1,
   fireDigitMode = 'capTwo',
@@ -92,6 +96,7 @@ const GameCellComponent = ({
     lossChainPhase,
     bonusSeconds,
     isDigitOutpost: Boolean(isDigitOutpost && !placed && blastPointCountdown === undefined),
+    isPlaceHint: Boolean(isPlaceHint && !placed && status === 'playing'),
     mineCombatTier: combatTier,
     fireDigitMode,
   });
@@ -125,10 +130,13 @@ const GameCellComponent = ({
                         ? 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
                         : isDigitOutpost && !placed
                           ? 'border border-teal-600/55 bg-slate-800 hover:border-teal-400/50'
-                          : 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
+                          : isPlaceHint && !placed
+                            ? 'border border-slate-700 bg-slate-800 hover:border-teal-400/55'
+                            : 'border border-slate-700 bg-slate-800 hover:border-amber-500/50'
         }
     `}
     >
+      {isPlaceHint && !placed && !isDynamicMine && status === 'playing' && <PlaceHintOverlay />}
       {!placed && !isDynamicMine && isDigitOutpost && blastPointCountdown === undefined && (
         <motion.div
           className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center"

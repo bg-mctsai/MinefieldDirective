@@ -6,9 +6,13 @@ export function maxDigitForGrid(gs: GridSystem): number {
   return 8;
 }
 
-/** 輪播上限 = maxDigit + 1，讓玩家有機會選到不能放的數字（增加干擾感） */
+/**
+ * 輪播上限：方格 = maxDigit+1（可閃過 8 作干擾假數）；六角僅 1～6，不出 7、8。
+ */
 function jammingCeil(gs: GridSystem): number {
-  return Math.min(maxDigitForGrid(gs) + 1, 8);
+  const max = maxDigitForGrid(gs);
+  if (gs === 'HEXAGON') return max;
+  return Math.min(max + 1, 8);
 }
 
 /** 依 maxDigit 產生 1→max→…→2 pingpong（不含尾端重複 1） */

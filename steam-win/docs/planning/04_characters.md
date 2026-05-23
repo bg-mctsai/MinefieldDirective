@@ -4,6 +4,7 @@
 
 - 幹員定義（姓名、職能、技能、呼號、序號、`background[]`、`barrage`、`missionBrief*`）：[../../renderer/src/heroes.ts](../../renderer/src/heroes.ts) 內 `HEROES` 陣列。
 - 快速查表（表格式）：[../characters.md](../characters.md)。
+- **個性與口氣依據**：[07_character_voice_profiles.md](07_character_voice_profiles.md)（完整版見 emotion-route-balance skill ref）。
 
 本頁為企劃備查；**遊戲內顯示**以 `heroes.ts` 為準（已寫入代號、背景、物件與 `missionMapHook`）。
 

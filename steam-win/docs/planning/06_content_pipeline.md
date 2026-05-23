@@ -7,7 +7,8 @@
 | 關卡本體（計時、機制開關、`chapter`、`mapLayout` 等） | [../../renderer/src/levelData/levels.json](../../renderer/src/levelData/levels.json) | 企劃欄位說明見 [../../renderer/src/levelData/plannerFieldDocs.ts](../../renderer/src/levelData/plannerFieldDocs.ts) |
 | 關卡進場長官簡報（集中編修） | [../../renderer/src/levelData/chapterEntryBriefings.json](../../renderer/src/levelData/chapterEntryBriefings.json) | 鍵為字串化 `levelId`；值可為字串陣列或 `{ chapterTone?, levelBriefing? }` |
 | 章通關後檔案／戰地通訊 | [../../renderer/src/levelData/dossierPostChapter10Briefings.json](../../renderer/src/levelData/dossierPostChapter10Briefings.json) | `byCompletedChapter` |
-| 幹員設定與戰鬥台詞 | [../../renderer/src/heroes.ts](../../renderer/src/heroes.ts) | `HEROES`、`telegraphHandSlotCount` 等 |
+| 幹員設定與 bark | [../../renderer/src/heroes.ts](../../renderer/src/heroes.ts) | `HEROES`、`barrage`、`missionBrief*` |
+| 對局戰鬥台詞（依幹員） | [../../renderer/src/game/gameFixedMessages.json](../../renderer/src/game/gameFixedMessages.json) | `byHero`：開局／落格／勝敗／提示列／敗北；`cellTooltip` 仍為中性機制 |
 | 戰役機制總綱（企劃） | [../world_map_design.md](../world_map_design.md) | 與 `levels.json` 需一致 |
 | 匯出／驗證關卡 JSON | [../../package.json](../../package.json) `scripts` | `npm run export-levels-json`（[../../scripts/export-levels-json.ts](../../scripts/export-levels-json.ts)） |
 
@@ -34,7 +35,8 @@
 2. 改進場敘事／長官口氣 → 編 `chapterEntryBriefings.json`，對照 [05_dialogue_voice_guide.md](05_dialogue_voice_guide.md)。
 3. 改章末通訊 → 編 `dossierPostChapter10Briefings.json`。
 4. 改幹員檔案與 bark → 編 `heroes.ts`。
-5. 存檔後執行 `npm run export-levels-json`（於 `steam-win` 目錄）驗證並更新匯出產物（若你們流程依賴該指令）。
+5. 改對局內狀態／落格／勝敗／電報提示列台詞 → 編 `gameFixedMessages.json` 的 `byHero`（見 [07_character_voice_profiles.md](07_character_voice_profiles.md)）。
+6. 存檔後執行 `npm run export-levels-json`（於 `steam-win` 目錄）驗證並更新匯出產物（若你們流程依賴該指令）。
 
 ---
 

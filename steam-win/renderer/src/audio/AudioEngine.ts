@@ -51,6 +51,7 @@ const SYNTH_LOADERS: Record<string, () => Promise<{ default: SynthModule } | Syn
   gameCountdownTick: () => import('./synths/gameCountdownTick'),
   gameTimeUp: () => import('./synths/gameTimeUp'),
   gamePlaceNumber: () => import('./synths/gamePlaceNumber'),
+  gameBobbyDownshift: () => import('./synths/gameBobbyDownshift'),
   gameExplosionPop: () => import('./synths/gameExplosionPop'),
   bgmBaseAmbience: () => import('./synths/bgmBaseAmbience'),
   bgmCombatLoop: () => import('./synths/bgmCombatLoop'),

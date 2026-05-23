@@ -5,7 +5,8 @@
 ## 實裝與規範來源
 
 - Cursor skill（長官語氣、嚴厲／關懷、JSON 交付）：[../../../.cursor/skills/emotion-route-balance/SKILL.md](../../../.cursor/skills/emotion-route-balance/SKILL.md)
-- 同 skill 下細則與檢查清單：`ref/sergeant-tone-rules.md`、`ref/dialogue-expansion-checklist.md`、`ref/lv1-tone-pack.md`（路徑在該 skill 目錄內）。
+- 同 skill 下細則與檢查清單：`ref/sergeant-tone-rules.md`、`ref/dialogue-expansion-checklist.md`、`ref/lv1-tone-pack.md`、**`ref/character-voice-profiles.md`**（路徑在該 skill 目錄內）。
+- 各角色個性與說話方式速查：[07_character_voice_profiles.md](07_character_voice_profiles.md)
 
 本頁為**給非 Cursor 协作者**的濃縮版；改關鍵規則時以 **skill 與 ref** 為準，並回來更新本頁摘要。
 

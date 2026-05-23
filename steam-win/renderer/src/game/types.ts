@@ -69,6 +69,8 @@ export interface GameState {
   blastPointsCountdown: Map<string, number>;
   /** 老張「加固模組」（每局一次）：solver 放錯抵銷後為 false；非老張幹員固定 false */
   buckEmergencyAvailable: boolean;
+  /** 波比「緊急降碼」（每組電報一次）：本回合降碼已用或已耗盡為 false；非波比固定 false */
+  bobbyDownshiftAvailable: boolean;
   /** 結算當下的勳章（status === 'won' 時寫入）；非過關狀態為 null */
   settledMedal: Medal | null;
   /** 結算當下覆蓋率（0～100）；非過關狀態為 null */

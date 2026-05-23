@@ -63,7 +63,11 @@ const PROGRESS_THEME_BY_MEDAL: Record<
 
 /** 與火力進度卡一致的外觀；兩卡並排時用 flex-1 拉成同寬（邊框／底色由 heroTheme 覆寫） */
 export const GAME_HEADER_CARD_CLASS =
-  'flex flex-1 min-h-[2.65rem] min-w-0 flex-col justify-center rounded-lg border-2 p-2 shadow-md sm:min-h-[2.85rem] sm:flex-row sm:items-center sm:gap-2 sm:rounded-xl sm:p-2.5 sm:shadow-lg md:rounded-2xl md:shadow-xl';
+  'flex h-full min-h-[2.65rem] min-w-0 flex-1 flex-col justify-center rounded-lg border-2 p-2 shadow-md sm:min-h-[2.85rem] sm:flex-row sm:items-center sm:gap-2 sm:rounded-xl sm:p-2.5 sm:shadow-lg md:rounded-2xl md:shadow-xl';
+
+/** 角色訊息卡：與火力卡同高，內容恆為橫向（頭像＋台詞） */
+export const GAME_HEADER_MESSAGE_CARD_CLASS =
+  'flex h-full min-h-[2.65rem] min-w-0 flex-1 flex-row items-center gap-2 rounded-lg border-2 p-2 shadow-md sm:min-h-[2.85rem] sm:gap-2.5 sm:rounded-xl sm:p-2.5 sm:shadow-lg md:rounded-2xl md:shadow-xl';
 
 export function GameHeader({
   destructivePowerPercentage,
@@ -85,7 +89,7 @@ export function GameHeader({
   countdownStarted,
   guideButton,
   testCompleteButton,
-  telegraphPanel,
+  statusMessagePanel,
   heroTheme: heroThemeProp,
 }: {
   /** 火力 0～100：加權分子／總格；進度條與勳章刻度與此對齊 */
@@ -118,8 +122,8 @@ export function GameHeader({
   guideButton?: ReactNode;
   /** 測試捷徑按鈕（例如：測試完成） */
   testCompleteButton?: ReactNode;
-  /** 第二行與火力卡並排：長官電報列 */
-  telegraphPanel?: ReactNode;
+  /** 第二行與火力卡並排：角色訊息列 */
+  statusMessagePanel?: ReactNode;
   /** 依幹員切換的戰鬥主題色 */
   heroTheme?: HeroCombatTheme;
 }) {
@@ -179,7 +183,7 @@ export function GameHeader({
       <motion.div
         initial={{ x: 12, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex w-full min-w-0 flex-col gap-1 sm:flex-row sm:items-stretch sm:gap-2"
+        className="grid w-full min-w-0 grid-cols-1 gap-1 sm:grid-cols-2 sm:items-stretch sm:gap-2"
       >
         <div className={progressCardClass}>
           <div className="flex w-full min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 md:gap-2.5">
@@ -280,8 +284,8 @@ export function GameHeader({
           </div>
         </div>
 
-        {telegraphPanel != null && (
-          <div className="flex min-h-[2.4rem] min-w-0 flex-1 flex-col sm:min-h-[2.55rem] md:min-h-[2.75rem]">{telegraphPanel}</div>
+        {statusMessagePanel != null && (
+          <div className="flex min-h-0 min-w-0 self-stretch">{statusMessagePanel}</div>
         )}
       </motion.div>
     </div>

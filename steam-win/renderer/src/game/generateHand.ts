@@ -1,14 +1,17 @@
 import { MineSolver, mergeTopologyWithDynamicMines, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
 import type { SeededRng } from './seededRng';
 import { shuffleWithRng } from './seededRng';
+import { maxDigitForGrid } from './signalJamming';
 
 function allowedValuesFromCommands(level: Level): number[] {
   const w = level.definition.commands.weights;
+  const cap = maxDigitForGrid(level.definition.gridSystem);
   const nums = Object.entries(w)
     .filter(([, wt]) => wt > 0)
     .map(([k]) => parseInt(k, 10))
-    .filter((n) => n >= 1 && n <= 8);
-  return nums.length ? nums : [3, 4, 5, 6];
+    .filter((n) => n >= 1 && n <= cap);
+  const fallback = cap <= 6 ? [3, 4, 5, 6].filter((n) => n <= cap) : [3, 4, 5, 6, 7, 8];
+  return nums.length ? nums : fallback;
 }
 
 function randomWeightedFromWeights(level: Level, rng: SeededRng): number {

@@ -22,6 +22,8 @@ export function boardCellTooltipText(opts: {
   mineCombatTier?: MineBombVisualTier;
   /** 與目前選中幹員火力加權模式一致（賽琳娜格網倍乘 tooltip 顯示 2／4／8） */
   fireDigitMode?: FirepowerDigitWeightMode;
+  /** 波比：選定電碼後的可放格 */
+  isPlaceHint?: boolean;
 }): string {
   const T = GAME_FIXED.cellTooltip;
   const {
@@ -36,9 +38,11 @@ export function boardCellTooltipText(opts: {
     isDigitOutpost,
     mineCombatTier,
     fireDigitMode = 'capTwo',
+    isPlaceHint = false,
   } = opts;
   const tier = mineCombatTier ?? 1;
   if (isConflict) return T.conflict;
+  if (isPlaceHint) return T.placeHint;
   if (placedValue !== undefined) return sub(T.placedDigit, { value: placedValue });
   if (blastPointCountdown !== undefined) return T.blastPoint;
   if (isDigitOutpost) return T.digitOutpost;

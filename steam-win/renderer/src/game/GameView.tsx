@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LEVELS as GAME_LEVELS } from '../gameLogic';
 import { useMineGame } from './useMineGame';
 import { resolveMedalThresholds } from './medalThresholds';
@@ -6,6 +6,8 @@ import { GameHeader } from './GameHeader';
 import { GameBoard } from './GameBoard';
 import { GameStatusMessageBar, GameStatusPanel } from './GameStatusPanel';
 import { CommanderTelegraphRow } from './CommanderPanel';
+import { HeroSkillHud } from './HeroSkillHud';
+import { computeBobbyPlaceHints, isBobbySniffTurn } from './bobbyScentMark';
 import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
@@ -74,6 +76,7 @@ export default function GameView({
     destructivePowerTotalCells,
     destructivePowerOverlapExtra,
     bonusFxKeys,
+    bobbyDownshiftFx,
     medalThresholds,
     projectedMedal,
     canEarlySettle,
@@ -157,6 +160,56 @@ export default function GameView({
     lastRecordedWinGameId.current = gameState.gameId;
   }, [gameState?.status, gameState?.gameId, gameState?.level.levelKey, gameState?.level.stage, gameState?.settledMedal, clearedLevelKeys, _onClearedLevelKeysChange]);
 
+  const bobbyPlaceHintKeys = useMemo(() => {
+    if (combatHeroId !== 'bobby' || selectedHandIndex === null || !gameState) return null;
+    if (gameState.status !== 'playing') return null;
+    if (!isBobbySniffTurn(gameState.placedInTurn)) return null;
+
+    const jamActive =
+      Boolean(gameState.level.definition.commandSlotReceiveJamming) &&
+      gameState.jammingEpochMs > 0;
+    let telegramValue: number;
+    if (jamActive) {
+      const lock = gameState.jammingLockedSlot;
+      if (!lock || lock.slotIndex !== selectedHandIndex) return new Set<string>();
+      telegramValue = lock.value;
+    } else {
+      telegramValue = gameState.hand[selectedHandIndex];
+    }
+    if (telegramValue === undefined) return new Set<string>();
+
+    const placed = gameState.placedNumbers;
+    if (placed.length === 0) return new Set<string>();
+    const last = placed[placed.length - 1];
+    const blastKeys = new Set(
+      (gameState.level.definition.blastPoints ?? []).map((bp) => `${bp.pos[0]},${bp.pos[1]}`),
+    );
+    const hints = computeBobbyPlaceHints(
+      last.x,
+      last.y,
+      telegramValue,
+      gameState.level,
+      placed,
+      gameState.revealedMines,
+      gameState.dynamicMines,
+      blastKeys,
+    );
+    return new Set(hints.map((c) => `${c.x},${c.y}`));
+  }, [
+    combatHeroId,
+    selectedHandIndex,
+    gameState?.gameId,
+    gameState?.status,
+    gameState?.placedNumbers,
+    gameState?.revealedMines,
+    gameState?.dynamicMines,
+    gameState?.level,
+    gameState?.hand,
+    gameState?.jammingLockedSlot,
+    gameState?.jammingEpochMs,
+    gameState?.placedInTurn,
+  ]);
+
   if (!gameState) return null;
 
   const levelBriefingLines =
@@ -225,14 +278,15 @@ export default function GameView({
             <LevelStrategyGuideTrigger onClick={() => setStrategyGuideOpen(true)} />
           </div>
         }
-        telegraphPanel={
-          <CommanderTelegraphRow
+        statusMessagePanel={
+          <GameStatusMessageBar
             gameState={gameState}
-            selectedHandIndex={selectedHandIndex}
-            movingSoldier={movingSoldier}
-            onSelectHand={selectHand}
-            heroTheme={combatTheme}
-            combatHeroId={combatHeroId}
+            statusBarFrameClass={combatTheme.statusBarWrap}
+            speakerHeroId={combatHeroId}
+            buckEmergencyAvailable={gameState.buckEmergencyAvailable}
+            bobbyDownshiftAvailable={gameState.bobbyDownshiftAvailable}
+            allowPreBattleHeroSwitch={gameState.status === 'playing' && !gameState.timerStarted}
+            placement="header"
           />
         }
       />
@@ -245,24 +299,36 @@ export default function GameView({
       />
 
       <div className="flex w-full max-w-7xl flex-1 flex-col items-stretch min-h-[75dvh]">
-        <GameStatusMessageBar
-          gameState={gameState}
-          statusBarFrameClass={combatTheme.statusBarWrap}
-          speakerHeroId={combatHeroId}
-          buckEmergencyAvailable={gameState.buckEmergencyAvailable}
-          allowPreBattleHeroSwitch={gameState.status === 'playing' && !gameState.timerStarted}
-        />
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 py-0.5 sm:gap-1.5 sm:py-1">
-          <div className="min-w-0 w-full">
-            <GameBoard
-              boardRef={boardRef}
-              gameState={gameState}
-              movingSoldier={movingSoldier}
-              onCellClick={handleCellClick}
-              bonusFxKeys={bonusFxKeys}
-              combatHeroId={combatHeroId}
-              align="center"
-            />
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-1 py-0.5 sm:gap-1.5 sm:py-1">
+          <div className="flex w-full min-w-0 justify-center">
+            <div className="inline-flex max-w-full items-start gap-0.5 sm:gap-1">
+              <CommanderTelegraphRow
+                layout="column"
+                gameState={gameState}
+                selectedHandIndex={selectedHandIndex}
+                movingSoldier={movingSoldier}
+                onSelectHand={selectHand}
+                heroTheme={combatTheme}
+                combatHeroId={combatHeroId}
+              />
+              <GameBoard
+                boardRef={boardRef}
+                gameState={gameState}
+                movingSoldier={movingSoldier}
+                onCellClick={handleCellClick}
+                bonusFxKeys={bonusFxKeys}
+                bobbyDownshiftFx={bobbyDownshiftFx}
+                combatHeroId={combatHeroId}
+                placeHintKeys={bobbyPlaceHintKeys}
+                align="left"
+              />
+              <HeroSkillHud
+                heroId={combatHeroId}
+                buckEmergencyAvailable={gameState.buckEmergencyAvailable}
+                bobbyDownshiftAvailable={gameState.bobbyDownshiftAvailable}
+                theme={combatTheme}
+              />
+            </div>
           </div>
         </div>
         <GameStatusPanel

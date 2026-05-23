@@ -24,8 +24,10 @@ import {
   NEIGHBOR_PLACED_BONUS_AFTER_LAND_MS,
   NEIGHBOR_PLACED_BONUS_FLIGHT_MS,
   NEIGHBOR_PLACED_BONUS_HOLD_BASE_MS,
+  BOBBY_DOWNSHIFT_FX_MS,
   SOLDIER_MOVE_MS,
 } from './constants';
+import type { BobbyDownshiftFxState } from './BobbyDownshiftFxOverlay';
 import {
   fallbackLossExplosionCellsFromRevealedKeys,
   sortLossExplosionCells,
@@ -43,9 +45,10 @@ function mergeExplosionMarkCells(
 import { judgeMedal, resolveMedalThresholds, type Medal } from './medalThresholds';
 import { weightedFirepowerSumAndPct } from './mineCombatVisual';
 import { emit } from '../audio/AudioEngine';
+import { bobbyDownshiftResolvedValue, canAttemptBobbyDownshift } from './bobbyDownshift';
 import { generateHand } from './generateHand';
-import { GAME_FIXED, sub } from './gameFixedMessages';
-import { pickHeroGameStatusLine, pickHeroVictoryStatusLine } from './heroGameStatusLines';
+import { pickHeroAfterPlaceLine, pickHeroGameStatusLine, pickHeroVictoryStatusLine } from './heroGameStatusLines';
+import { sub } from './gameFixedMessages';
 import { signalJammingDisplayedDigit } from './signalJamming';
 import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
 import {
@@ -150,6 +153,7 @@ export function useMineGame(initialLevelIndex: number) {
   const [selectedHandIndex, setSelectedHandIndex] = useState<number | null>(null);
   const [movingSoldier, setMovingSoldier] = useState<MovingSoldierState | null>(null);
   const [bonusFxKeys, setBonusFxKeys] = useState<string[]>([]);
+  const [bobbyDownshiftFx, setBobbyDownshiftFx] = useState<BobbyDownshiftFxState | null>(null);
   const bonusFxTimeoutsRef = useRef<Map<string, number>>(new Map());
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -188,6 +192,7 @@ export function useMineGame(initialLevelIndex: number) {
       jammingLockedSlot: null,
       blastPointsCountdown: initBlastCountdown,
       buckEmergencyAvailable: getStoredHeroId() === 'laozhang',
+      bobbyDownshiftAvailable: getStoredHeroId() === 'bobby',
       settledMedal: null,
       settledFillPercentage: null,
       settledSecondsLeft: null,
@@ -197,6 +202,7 @@ export function useMineGame(initialLevelIndex: number) {
     }
     bonusFxTimeoutsRef.current.clear();
     setBonusFxKeys([]);
+    setBobbyDownshiftFx(null);
     setSelectedHandIndex(null);
     setMovingSoldier(null);
   }, []);
@@ -226,6 +232,7 @@ export function useMineGame(initialLevelIndex: number) {
           hand,
           message: pickHeroGameStatusLine(id, 'initTelegraph'),
           buckEmergencyAvailable: id === 'laozhang',
+          bobbyDownshiftAvailable: id === 'bobby',
         };
       });
       setSelectedHandIndex(null);
@@ -558,7 +565,8 @@ export function useMineGame(initialLevelIndex: number) {
       }
     }
 
-    const newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: newValue }];
+    let placementValue = newValue;
+    let newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: placementValue }];
     const rng = createSeededRngFromState(gameState.rngState);
     const baseTopo = mineSolverTopologyFromLevel(gameState.level);
     const mineTopo = mergeTopologyWithDynamicMines(baseTopo, gameState.dynamicMines);
@@ -567,11 +575,15 @@ export function useMineGame(initialLevelIndex: number) {
       ...mineTopo,
       forcedMineKeys: new Set<string>([...(mineTopo.forcedMineKeys ?? new Set<string>()), ...allBlastPointKeys]),
     };
-    const solver = new MineSolver(gameState.level.cells, newPlacedNumbers, topoWithBlastPoints);
-    const conflictDetails = solver.getConflicts();
+    const placementSolver = new MineSolver(gameState.level.cells, newPlacedNumbers, topoWithBlastPoints);
+    let conflictDetails = placementSolver.getConflicts();
+
+    let bobbyDownshiftConsumed = false;
+    let bobbyDownshiftSaved = false;
+    const heroId = getStoredHeroId();
 
     if (conflictDetails) {
-      if (getStoredHeroId() === 'laozhang' && gameState.buckEmergencyAvailable) {
+      if (heroId === 'laozhang' && gameState.buckEmergencyAvailable) {
         setGameState((prev) =>
           prev
             ? {
@@ -587,37 +599,96 @@ export function useMineGame(initialLevelIndex: number) {
         return;
       }
 
-      const lossTopo = lossUiTopologyFromLevel(gameState.level);
-      const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
-      let explosionMarkCells = lossExplosionMarkCells(
-        gameState.level.cells,
-        gameState.placedNumbers,
-        { x, y },
-        lossTopo
-      );
-      explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, gameState.revealedMines, { x, y });
-      const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
-      const message = formatLossExplanation(conflictDetails, { x, y, value: newValue }, lossTopo);
-      setGameState((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: 'exploding',
-              message,
-              placedNumbers: newPlacedNumbers,
-              conflictCells,
-              explosionMarkCells,
-              lossSequentialExplosionKeys,
-              lossExplosionWaveIndex: -1,
-            }
-          : null
-      );
+      if (
+        heroId === 'bobby' &&
+        gameState.bobbyDownshiftAvailable &&
+        canAttemptBobbyDownshift(placementValue)
+      ) {
+        const reduced = bobbyDownshiftResolvedValue(
+          gameState.level.cells,
+          gameState.placedNumbers,
+          x,
+          y,
+          placementValue,
+          topoWithBlastPoints,
+        );
+        bobbyDownshiftConsumed = true;
+        if (reduced !== null) {
+          placementValue = reduced;
+          newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: placementValue }];
+          conflictDetails = null;
+          bobbyDownshiftSaved = true;
+        } else {
+          placementValue -= 1;
+          newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: placementValue }];
+          conflictDetails = new MineSolver(
+            gameState.level.cells,
+            newPlacedNumbers,
+            topoWithBlastPoints,
+          ).getConflicts();
+        }
+      }
 
-      setMovingSoldier(null);
-      return;
+      if (conflictDetails) {
+        const lossTopo = lossUiTopologyFromLevel(gameState.level);
+        const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
+        let explosionMarkCells = lossExplosionMarkCells(
+          gameState.level.cells,
+          gameState.placedNumbers,
+          { x, y },
+          lossTopo,
+        );
+        explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, gameState.revealedMines, { x, y });
+        const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
+        const message = formatLossExplanation(
+          conflictDetails,
+          { x, y, value: placementValue, telegramValue },
+          lossTopo,
+          heroId,
+        );
+        setGameState((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: 'exploding',
+                message,
+                placedNumbers: newPlacedNumbers,
+                conflictCells,
+                explosionMarkCells,
+                lossSequentialExplosionKeys,
+                lossExplosionWaveIndex: -1,
+                bobbyDownshiftAvailable: bobbyDownshiftConsumed ? false : prev.bobbyDownshiftAvailable,
+              }
+            : null,
+        );
+
+        setMovingSoldier(null);
+        return;
+      }
     }
 
-    emit('game.number.place', { value: newValue });
+    const nextBobbyDownshiftAvailable = (finalPlacedInTurn: number) => {
+      if (getStoredHeroId() !== 'bobby') return false;
+      if (finalPlacedInTurn === 0) return true;
+      if (bobbyDownshiftConsumed) return false;
+      return gameState.bobbyDownshiftAvailable;
+    };
+
+    if (bobbyDownshiftSaved) {
+      setBobbyDownshiftFx({ x, y, fromValue: newValue, toValue: placementValue });
+      setMovingSoldier((prev) => {
+        if (!prev || prev.x !== x || prev.y !== y) return prev;
+        if (prev.phase === 'resonance') {
+          return { ...prev, value: placementValue, resonanceShown: placementValue };
+        }
+        return prev;
+      });
+      emit('game.bobby.downshift', { fromValue: newValue, toValue: placementValue });
+      await new Promise((resolve) => setTimeout(resolve, BOBBY_DOWNSHIFT_FX_MS));
+      setBobbyDownshiftFx(null);
+    }
+
+    emit('game.number.place', { value: placementValue });
 
     // 所有紅雷/空白揭示都只採「玩家可見」邏輯：炸點為可見已知地雷，隱藏 forcedMineCells 不納入。
     // 之前有同時跑一份含隱藏先驗的 solver.findForced，但其結果最終都會被 logicOnly 過濾掉，
@@ -817,6 +888,7 @@ export function useMineGame(initialLevelIndex: number) {
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
+              bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
             }
           : null,
       );
@@ -867,6 +939,7 @@ export function useMineGame(initialLevelIndex: number) {
                 jammingLockedSlot: null,
                 blastPointsCountdown: newBlastCountdown,
                 rngState: rng.state(),
+                bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
               }
             : null,
         );
@@ -901,15 +974,25 @@ export function useMineGame(initialLevelIndex: number) {
               settledFillPercentage: firepowerPct,
               settledSecondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
+              bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
             }
           : null,
       );
     } else {
-      const P = GAME_FIXED.afterPlace;
+      const P = {
+        dynamicMinePushed: pickHeroAfterPlaceLine(heroId, 'dynamicMinePushed'),
+        newHandArrived: pickHeroAfterPlaceLine(heroId, 'newHandArrived'),
+        awaitNextTelegraph: pickHeroAfterPlaceLine(heroId, 'awaitNextTelegraph'),
+        mineBonusPrefix: (seconds: number) =>
+          pickHeroAfterPlaceLine(heroId, 'mineBonusPrefix', { seconds }),
+      };
       const dynamicMineMsg =
         newDynamicMines.size > gameState.dynamicMines.size ? P.dynamicMinePushed : '';
-      const mid =
-        finalPlacedInTurn === 0 ? P.newHandArrived : P.awaitNextTelegraph;
+      const mid = finalPlacedInTurn === 0 ? P.newHandArrived : P.awaitNextTelegraph;
+      const statusAfterPlace =
+        gainedSeconds > 0
+          ? `${P.mineBonusPrefix(gainedSeconds)}${mid}${dynamicMineMsg}`
+          : `${mid}${dynamicMineMsg}`;
       setGameState((prev) =>
         prev
           ? {
@@ -926,10 +1009,10 @@ export function useMineGame(initialLevelIndex: number) {
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
-              message:
-                gainedSeconds > 0
-                  ? `${sub(P.mineBonusPrefix, { seconds: gainedSeconds })}${mid}${dynamicMineMsg}`
-                  : `${mid}${dynamicMineMsg}`,
+              bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
+              message: bobbyDownshiftSaved
+                ? pickHeroGameStatusLine(heroId, 'bobbyDownshiftSaved')
+                : statusAfterPlace,
             }
           : null
       );
@@ -1019,6 +1102,7 @@ export function useMineGame(initialLevelIndex: number) {
     destructivePowerTotalCells: destructivePower.totalCells,
     destructivePowerOverlapExtra: destructivePower.overlapExtra,
     bonusFxKeys,
+    bobbyDownshiftFx,
     medalThresholds,
     projectedMedal,
     canEarlySettle,

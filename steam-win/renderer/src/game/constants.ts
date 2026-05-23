@@ -10,6 +10,9 @@ export const BOARD_PADDING_PX = 32;
 /** 與 GameBoard `p-3` 一致，小兵／疊圖座標需加此偏移對齊內容區 */
 export const GAME_BOARD_FRAME_PAD_PX = 12;
 
+/** 波比「緊急降碼」觸發：棋盤特效＋數字校正停留 */
+export const BOBBY_DOWNSHIFT_FX_MS = 720;
+
 /** 盤面外框上限：提高桌機可視尺寸，仍保留極端盤面的自動縮放 */
 export const BOARD_MAX_OUTER_W_PX = 860;
 export const BOARD_MAX_OUTER_H_PX = 700;

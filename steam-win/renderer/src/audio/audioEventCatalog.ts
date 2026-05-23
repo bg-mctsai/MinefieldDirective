@@ -113,6 +113,12 @@ export const AUDIO_EVENT_CATALOG = {
     ],
     note: '單顆地雷爆炸；params.stepIndex 影響頻率',
   },
+  'game.bobby.downshift': {
+    synthId: 'gameBobbyDownshift',
+    bus: 'sfx',
+    priority: 'high',
+    note: '波比緊急降碼；fromValue / toValue 影響音高',
+  },
 
   // BGM（合成式循環骨架；之後可替換為真素材）
   'bgm.base.ambience': {
@@ -158,6 +164,7 @@ export type AudioEventParamsMap = {
   'game.time.up': void;
   'game.number.place': { value: number };
   'game.mine.explode': { stepIndex: number };
+  'game.bobby.downshift': { fromValue: number; toValue: number };
   'bgm.base.ambience': void;
   'bgm.mission.map': void;
   'bgm.combat.loop': void;

@@ -9,6 +9,7 @@ import { HEROES, getHeroDef, setStoredHeroId } from '../heroes';
 import { loadUnlockedHeroIds } from './heroUnlockedStorage';
 import { getHeroSkillBriefPanels } from './heroSkillBriefContent';
 import { TeletypeInline } from '../teletype';
+import { GAME_HEADER_MESSAGE_CARD_CLASS } from './GameHeader';
 
 const SKILL_BRIEF_AVATAR_SIZE = 168;
 
@@ -24,13 +25,15 @@ function messageCaretClass(status: GameState['status']): string {
   return 'bg-slate-400/85';
 }
 
-/** 地圖上方狀態台詞：單行、極窄寬時可橫向捲動（動態幹員台詞併入此列） */
+/** 角色訊息：header 與火力並排（預留兩行）；或舊版地圖上方單行 */
 export function GameStatusMessageBar({
   gameState,
   statusBarFrameClass = 'border-slate-700/90 bg-slate-900/95',
   speakerHeroId,
   buckEmergencyAvailable = true,
+  bobbyDownshiftAvailable = true,
   allowPreBattleHeroSwitch = false,
+  placement = 'header',
 }: {
   gameState: GameState;
   /** 狀態訊息外框（依幹員主題） */
@@ -39,9 +42,14 @@ export function GameStatusMessageBar({
   speakerHeroId?: string;
   /** 老張「加固模組」是否仍可用（僅 laozhang 時有意義） */
   buckEmergencyAvailable?: boolean;
+  /** 波比「緊急降碼」本組電報是否仍可用 */
+  bobbyDownshiftAvailable?: boolean;
   /** 倒數未啟動前：技能說明彈層可左右切換已解鎖幹員 */
   allowPreBattleHeroSwitch?: boolean;
+  /** header：右上與火力並排；above-board：地圖上方（單行橫捲） */
+  placement?: 'header' | 'above-board';
 }) {
+  const inHeader = placement === 'header';
   const { openPortrait } = useHeroPortraitLightbox();
   const dynamicBarrage = useDynamicHeroBarrage(gameState);
   const [skillBriefOpen, setSkillBriefOpen] = useState(false);
@@ -101,7 +109,7 @@ export function GameStatusMessageBar({
   const displaySpeakerId = dynamicBarrage?.heroId ?? speakerHeroId;
   const skillPanels =
     displaySpeakerId != null
-      ? getHeroSkillBriefPanels(displaySpeakerId, buckEmergencyAvailable)
+      ? getHeroSkillBriefPanels(displaySpeakerId, buckEmergencyAvailable, bobbyDownshiftAvailable)
       : [];
   const speakerName = displaySpeakerId != null ? getHeroDef(displaySpeakerId).name : '';
   const statusMessage = dynamicBarrage?.text ?? gameState.message ?? '';
@@ -129,7 +137,9 @@ export function GameStatusMessageBar({
   );
 
   return (
-    <div className="relative mb-1 w-full max-w-7xl shrink-0 sm:mb-1.5">
+    <div
+      className={`relative w-full ${inHeader ? 'h-full min-h-0' : 'mb-1 max-w-7xl shrink-0 sm:mb-1.5'}`}
+    >
       {skillBriefOpen && displaySpeakerId != null && (
         <>
           <div role="presentation" className="fixed inset-0 z-[100] bg-black/50" onClick={closeSkillBrief} />
@@ -210,6 +220,7 @@ export function GameStatusMessageBar({
           )}
         </>
       )}
+      <div className={inHeader ? 'h-full w-full' : undefined}>
       <AnimatePresence mode="wait">
         <motion.div
           key={statusMsgKey}
@@ -217,35 +228,45 @@ export function GameStatusMessageBar({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.12 }}
-          className="w-full"
+          className={inHeader ? 'h-full w-full' : 'w-full'}
         >
-          <div className={`rounded-xl border px-4 py-2 shadow-md ${statusBarFrameClass}`}>
+          <motion.div
+            className={
+              inHeader
+                ? `${GAME_HEADER_MESSAGE_CARD_CLASS} ${statusBarFrameClass}`
+                : `rounded-xl border px-4 py-2 shadow-md ${statusBarFrameClass}`
+            }
+          >
             <div
-              className={`flex min-w-0 items-center gap-2.5 sm:gap-3 ${displaySpeakerId ? 'pb-2' : ''} ${displaySpeakerId ? '' : 'justify-center'}`}
+              className={`flex min-h-0 min-w-0 flex-1 ${inHeader ? 'flex-row items-center gap-2 sm:gap-2.5' : ''} ${!inHeader && displaySpeakerId ? 'items-center gap-2.5 pb-2 sm:gap-3' : ''} ${!inHeader && !displaySpeakerId ? 'justify-center' : ''}`}
             >
               {displaySpeakerId ? (
                 <button
                   ref={avatarSkillBtnRef}
                   type="button"
                   title="查看大頭像與被動／作戰說明"
-                  className="relative shrink-0 self-center cursor-pointer rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/80"
+                  className={`relative shrink-0 cursor-pointer rounded-2xl outline-none ring-offset-2 ring-offset-slate-900 focus-visible:ring-2 focus-visible:ring-amber-500/80 ${inHeader ? '' : 'self-center'}`}
                   aria-expanded={skillBriefOpen}
                   aria-haspopup="dialog"
                   aria-label={`查看${speakerName}大頭像與被動／作戰說明`}
                   onClick={() => setSkillBriefOpen((v) => !v)}
                 >
-                  <HeroAvatarSilhouette heroId={displaySpeakerId} size={48} />
+                  <HeroAvatarSilhouette heroId={displaySpeakerId} size={inHeader ? 104 : 48} />
                   <span
-                    className="pointer-events-none absolute -bottom-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-amber-500/40 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40"
+                    className={`pointer-events-none absolute -bottom-1 -right-1 flex items-center justify-center rounded-full border border-amber-500/40 bg-slate-950/95 text-amber-400 shadow-md ring-1 ring-black/40 ${
+                      inHeader ? 'h-7 w-7' : 'h-[18px] w-[18px]'
+                    }`}
                     aria-hidden
                   >
-                    <span className="text-[11px] font-black leading-none">+</span>
+                    <span className={`font-black leading-none ${inHeader ? 'text-xs' : 'text-[11px]'}`}>+</span>
                   </span>
                 </button>
               ) : null}
-              <div className="min-w-0 flex-1 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+              <div
+                className={`min-w-0 flex-1 ${inHeader ? 'flex items-center' : 'overflow-x-auto [-webkit-overflow-scrolling:touch]'}`}
+              >
                 <p
-                  className={`whitespace-nowrap text-base font-bold leading-snug sm:text-lg ${displaySpeakerId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
+                  className={`font-bold ${inHeader ? 'min-h-[2.35em] text-sm leading-snug sm:min-h-[2.5em] sm:text-base' : 'whitespace-nowrap text-base leading-snug sm:text-lg'} ${displaySpeakerId ? 'text-left' : 'text-center'} ${messageColorClass(gameState.status)}`}
                 >
                   <TeletypeInline
                     full={statusMessage}
@@ -255,9 +276,10 @@ export function GameStatusMessageBar({
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
