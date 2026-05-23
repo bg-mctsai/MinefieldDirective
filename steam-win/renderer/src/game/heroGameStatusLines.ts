@@ -32,8 +32,12 @@ export type HeroLossOperativeKey =
   | 'digitMismatchClue'
   | 'genericUnsatisfiable';
 
-export function pickHeroGameStatusLine(heroId: string, key: HeroGameStatusKey): string {
-  return pickHeroCombatLine(heroId, 'gameStatus', key);
+export function pickHeroGameStatusLine(
+  heroId: string,
+  key: HeroGameStatusKey,
+  vars?: Record<string, string | number>,
+): string {
+  return pickHeroCombatLine(heroId, 'gameStatus', key, vars);
 }
 
 export function pickHeroVictoryStatusLine(heroId: string, key: HeroVictoryStatusKey): string {

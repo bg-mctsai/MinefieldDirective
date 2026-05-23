@@ -90,17 +90,19 @@ export function isHeroIdUnlocked(heroId: string): boolean {
 
 /**
  * 通關第 chapter 章整章（剛通關該章第 8 關且勝利）時，合併企劃表解鎖的幹員 id。可重入、冪等。
+ * @returns 本次新解鎖的幹員 id（供戰後對話等；重玩已解鎖章節時為空陣列）
  */
-export function mergeUnlockedOnChapterCleared(chapter: number): void {
+export function mergeUnlockedOnChapterCleared(chapter: number): string[] {
   const extra = heroIdsUnlockedOnChapterCleared(chapter);
-  if (extra.length === 0) return;
+  if (extra.length === 0) return [];
   const cur = new Set(loadUnlockedHeroIds());
-  let ch = false;
+  const newly: string[] = [];
   for (const id of extra) {
     if (isValidId(id) && !cur.has(id)) {
       cur.add(id);
-      ch = true;
+      newly.push(id);
     }
   }
-  if (ch) saveUnlocked([...cur]);
+  if (newly.length > 0) saveUnlocked([...cur]);
+  return newly;
 }

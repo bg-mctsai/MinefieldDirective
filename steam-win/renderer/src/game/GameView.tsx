@@ -17,7 +17,9 @@ import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
 import { useCombatHeroId } from './useCombatHeroId';
+import { HeroUnlockDialogueOverlay } from './HeroUnlockDialogueOverlay';
 import { mergeUnlockedOnChapterCleared } from './heroUnlockedStorage';
+import { filterHeroIdsWithUnlockDialogue } from '../levelData/heroUnlockDialogue';
 import { getHeroCombatTheme } from './heroCombatTheme';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './chapterStage';
 import { AudioEngine } from '../audio/AudioEngine';
@@ -88,12 +90,17 @@ export default function GameView({
   const [strategyGuideOpen, setStrategyGuideOpen] = useState(false);
   /** 與 gameId 對齊：按「確定」關閉過關畫面後才顯示內嵌操作列 */
   const [dismissedWinCelebrationGameId, setDismissedWinCelebrationGameId] = useState<number | null>(null);
+  /** 本章末剛解鎖、待戰後通話的幹員（勝利慶祝關閉後播放） */
+  const [pendingUnlockHeroIds, setPendingUnlockHeroIds] = useState<string[]>([]);
+  const [unlockDialogueDismissed, setUnlockDialogueDismissed] = useState(false);
 
   useEffect(() => {
     if (gameState?.gameId == null) return;
     setChapterBriefingDismissed(false);
     setStrategyGuideOpen(false);
     setDismissedWinCelebrationGameId(null);
+    setPendingUnlockHeroIds([]);
+    setUnlockDialogueDismissed(false);
   }, [gameState?.gameId]);
 
   const lastRecordedWinGameId = useRef<number | null>(null);
@@ -148,7 +155,12 @@ export default function GameView({
     const clearedLevelKey = gameState.level.levelKey;
     const ch = gameState.level.definition.chapter;
     if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(gameState.level.stage) === LEVELS_PER_CHAPTER) {
-      mergeUnlockedOnChapterCleared(ch);
+      const newly = mergeUnlockedOnChapterCleared(ch);
+      const withDialogue = filterHeroIdsWithUnlockDialogue(newly);
+      if (withDialogue.length > 0) {
+        setPendingUnlockHeroIds(withDialogue);
+        setUnlockDialogueDismissed(false);
+      }
     }
     const nextClearedLevelKeys = Array.from(new Set([...clearedLevelKeys, clearedLevelKey]));
     if (gameState.settledMedal != null) {
@@ -227,8 +239,12 @@ export default function GameView({
   const isLastLevel = currentLevelIndex >= levelList.length - 1;
   const showVictoryCelebration =
     gameState.status === 'won' && dismissedWinCelebrationGameId !== gameState.gameId;
-  const winInlineActionsUnlocked =
+  const winCelebrationDismissed =
     gameState.status === 'won' && dismissedWinCelebrationGameId === gameState.gameId;
+  const hasPendingUnlockDialogue =
+    pendingUnlockHeroIds.length > 0 && !unlockDialogueDismissed;
+  const showHeroUnlockDialogue = winCelebrationDismissed && hasPendingUnlockDialogue;
+  const winInlineActionsUnlocked = winCelebrationDismissed && !hasPendingUnlockDialogue;
 
   const isChapterFinalStage =
     gameState.status === 'won' &&
@@ -284,7 +300,7 @@ export default function GameView({
             statusBarFrameClass={combatTheme.statusBarWrap}
             speakerHeroId={combatHeroId}
             buckEmergencyAvailable={gameState.buckEmergencyAvailable}
-            bobbyDownshiftAvailable={gameState.bobbyDownshiftAvailable}
+            bobbyDownshiftRemaining={gameState.bobbyDownshiftRemaining}
             allowPreBattleHeroSwitch={gameState.status === 'playing' && !gameState.timerStarted}
             placement="header"
           />
@@ -325,7 +341,7 @@ export default function GameView({
               <HeroSkillHud
                 heroId={combatHeroId}
                 buckEmergencyAvailable={gameState.buckEmergencyAvailable}
-                bobbyDownshiftAvailable={gameState.bobbyDownshiftAvailable}
+                bobbyDownshiftRemaining={gameState.bobbyDownshiftRemaining}
                 theme={combatTheme}
               />
             </div>
@@ -342,6 +358,12 @@ export default function GameView({
           onReplayFinalLevel={() => initGame(currentLevelIndex)}
         />
       </div>
+
+      <HeroUnlockDialogueOverlay
+        visible={showHeroUnlockDialogue}
+        heroIds={pendingUnlockHeroIds}
+        onComplete={() => setUnlockDialogueDismissed(true)}
+      />
 
       <VictoryCelebrationOverlay
         visible={showVictoryCelebration}

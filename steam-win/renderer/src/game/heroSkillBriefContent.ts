@@ -1,3 +1,4 @@
+import { BOBBY_DOWNSHIFT_CHARGES_PER_LEVEL } from './bobbyDownshift';
 import { getHeroCombatSkills, getHeroDef } from '../heroes';
 
 export type HeroSkillBriefPanel = { title: string; paragraphs: string[] };
@@ -6,7 +7,7 @@ export type HeroSkillBriefPanel = { title: string; paragraphs: string[] };
 export function getHeroSkillBriefPanels(
   heroId: string,
   buckEmergencyAvailable: boolean,
-  bobbyDownshiftAvailable = true,
+  bobbyDownshiftRemaining = 0,
 ): HeroSkillBriefPanel[] {
   const hero = getHeroDef(heroId);
 
@@ -26,9 +27,10 @@ export function getHeroSkillBriefPanels(
     return skills.map((s) => {
       const detail = s.detail.trim() || '（無額外說明）';
       if (heroId === 'bobby' && s.name === '緊急降碼') {
-        const statusLine = bobbyDownshiftAvailable
-          ? '本組電報：降碼尚未使用（仍可用 1 次）。'
-          : '本組電報：降碼已用盡。';
+        const statusLine =
+          bobbyDownshiftRemaining > 0
+            ? `本關狀態：緊急降碼剩 ${bobbyDownshiftRemaining} 次（共 ${BOBBY_DOWNSHIFT_CHARGES_PER_LEVEL} 次）。`
+            : '本關狀態：緊急降碼已用盡。';
         return { title: s.name, paragraphs: [detail, statusLine] };
       }
       return { title: s.name, paragraphs: [detail] };

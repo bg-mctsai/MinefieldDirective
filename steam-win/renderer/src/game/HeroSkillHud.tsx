@@ -8,13 +8,13 @@ import { heroSkillHudLucideIcon } from './heroSkillHudIcons';
 export function HeroSkillHud({
   heroId,
   buckEmergencyAvailable,
-  bobbyDownshiftAvailable = true,
+  bobbyDownshiftRemaining = 0,
   theme,
 }: {
   heroId: string;
   buckEmergencyAvailable: boolean;
-  /** 波比「緊急降碼」本組電報是否仍可用 */
-  bobbyDownshiftAvailable?: boolean;
+  /** 波比「緊急降碼」本關剩餘次數 */
+  bobbyDownshiftRemaining?: number;
   theme: HeroCombatTheme;
 }) {
   if (heroId === 'laozhang') {
@@ -78,14 +78,17 @@ export function HeroSkillHud({
         const Icon = heroSkillHudLucideIcon(s.hudIcon);
         const iconClass =
           heroId === 'bobby' ? 'text-teal-400/95' : 'text-[#F59E0B]/90';
-        const downshiftSpent = heroId === 'bobby' && s.name === '緊急降碼' && !bobbyDownshiftAvailable;
-        const spentTitle = downshiftSpent ? `${title}（本組電報已用）` : title;
+        const isDownshift = heroId === 'bobby' && s.name === '緊急降碼';
+        const downshiftSpent = isDownshift && bobbyDownshiftRemaining <= 0;
+        const chargeTitle = isDownshift
+          ? `${title}（本關剩 ${bobbyDownshiftRemaining} 次）`
+          : title;
         return (
           <button
             key={s.name}
             type="button"
-            title={spentTitle}
-            aria-label={spentTitle}
+            title={chargeTitle}
+            aria-label={chargeTitle}
             className={`flex w-full cursor-help flex-row items-center gap-1.5 rounded-md px-1 py-1.5 text-left transition-colors hover:bg-slate-800/50 sm:gap-2 sm:px-1.5 sm:py-2 ${
               downshiftSpent ? 'opacity-45' : ''
             }`}
@@ -101,6 +104,9 @@ export function HeroSkillHud({
               }`}
             >
               {s.name}
+              {isDownshift ? (
+                <span className={downshiftSpent ? '' : 'text-teal-300/90'}> ×{bobbyDownshiftRemaining}</span>
+              ) : null}
             </span>
           </button>
         );

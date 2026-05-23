@@ -45,7 +45,11 @@ function mergeExplosionMarkCells(
 import { judgeMedal, resolveMedalThresholds, type Medal } from './medalThresholds';
 import { weightedFirepowerSumAndPct } from './mineCombatVisual';
 import { emit } from '../audio/AudioEngine';
-import { bobbyDownshiftResolvedValue, canAttemptBobbyDownshift } from './bobbyDownshift';
+import {
+  bobbyDownshiftResolvedValue,
+  canAttemptBobbyDownshift,
+  initialBobbyDownshiftRemaining,
+} from './bobbyDownshift';
 import { generateHand } from './generateHand';
 import { pickHeroAfterPlaceLine, pickHeroGameStatusLine, pickHeroVictoryStatusLine } from './heroGameStatusLines';
 import { sub } from './gameFixedMessages';
@@ -192,7 +196,7 @@ export function useMineGame(initialLevelIndex: number) {
       jammingLockedSlot: null,
       blastPointsCountdown: initBlastCountdown,
       buckEmergencyAvailable: getStoredHeroId() === 'laozhang',
-      bobbyDownshiftAvailable: getStoredHeroId() === 'bobby',
+      bobbyDownshiftRemaining: initialBobbyDownshiftRemaining(getStoredHeroId()),
       settledMedal: null,
       settledFillPercentage: null,
       settledSecondsLeft: null,
@@ -232,7 +236,7 @@ export function useMineGame(initialLevelIndex: number) {
           hand,
           message: pickHeroGameStatusLine(id, 'initTelegraph'),
           buckEmergencyAvailable: id === 'laozhang',
-          bobbyDownshiftAvailable: id === 'bobby',
+          bobbyDownshiftRemaining: initialBobbyDownshiftRemaining(id),
         };
       });
       setSelectedHandIndex(null);
@@ -601,7 +605,7 @@ export function useMineGame(initialLevelIndex: number) {
 
       if (
         heroId === 'bobby' &&
-        gameState.bobbyDownshiftAvailable &&
+        gameState.bobbyDownshiftRemaining > 0 &&
         canAttemptBobbyDownshift(placementValue)
       ) {
         const reduced = bobbyDownshiftResolvedValue(
@@ -657,7 +661,9 @@ export function useMineGame(initialLevelIndex: number) {
                 explosionMarkCells,
                 lossSequentialExplosionKeys,
                 lossExplosionWaveIndex: -1,
-                bobbyDownshiftAvailable: bobbyDownshiftConsumed ? false : prev.bobbyDownshiftAvailable,
+                bobbyDownshiftRemaining: bobbyDownshiftConsumed
+                  ? Math.max(0, prev.bobbyDownshiftRemaining - 1)
+                  : prev.bobbyDownshiftRemaining,
               }
             : null,
         );
@@ -666,13 +672,6 @@ export function useMineGame(initialLevelIndex: number) {
         return;
       }
     }
-
-    const nextBobbyDownshiftAvailable = (finalPlacedInTurn: number) => {
-      if (getStoredHeroId() !== 'bobby') return false;
-      if (finalPlacedInTurn === 0) return true;
-      if (bobbyDownshiftConsumed) return false;
-      return gameState.bobbyDownshiftAvailable;
-    };
 
     if (bobbyDownshiftSaved) {
       setBobbyDownshiftFx({ x, y, fromValue: newValue, toValue: placementValue });
@@ -816,6 +815,10 @@ export function useMineGame(initialLevelIndex: number) {
       finalPlacedInTurn = 0;
     }
 
+    const nextBobbyDownshiftRemaining = bobbyDownshiftConsumed
+      ? Math.max(0, gameState.bobbyDownshiftRemaining - 1)
+      : gameState.bobbyDownshiftRemaining;
+
     const nextMineKeys = new Set<string>(newRevealedMines);
     const firepowerDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
     const firepowerPct = weightedFirepowerSumAndPct(
@@ -888,7 +891,7 @@ export function useMineGame(initialLevelIndex: number) {
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
-              bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
+              bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
             }
           : null,
       );
@@ -939,7 +942,7 @@ export function useMineGame(initialLevelIndex: number) {
                 jammingLockedSlot: null,
                 blastPointsCountdown: newBlastCountdown,
                 rngState: rng.state(),
-                bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
+                bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
               }
             : null,
         );
@@ -974,7 +977,7 @@ export function useMineGame(initialLevelIndex: number) {
               settledFillPercentage: firepowerPct,
               settledSecondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
-              bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
+              bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
             }
           : null,
       );
@@ -1009,9 +1012,11 @@ export function useMineGame(initialLevelIndex: number) {
               jammingLockedSlot: null,
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
-              bobbyDownshiftAvailable: nextBobbyDownshiftAvailable(finalPlacedInTurn),
+              bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
               message: bobbyDownshiftSaved
-                ? pickHeroGameStatusLine(heroId, 'bobbyDownshiftSaved')
+                ? pickHeroGameStatusLine(heroId, 'bobbyDownshiftSaved', {
+                    remaining: nextBobbyDownshiftRemaining,
+                  })
                 : statusAfterPlace,
             }
           : null

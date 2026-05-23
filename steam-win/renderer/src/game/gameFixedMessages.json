@@ -122,7 +122,7 @@
         "digitOutpostIncomplete": ["覆蓋夠，據點還沒填滿。狗鼻子說那幾格還在叫。"],
         "digitOutpostRevealedAsMine": ["據點變雷？這格只能填數字，巴克也搖頭。"],
         "jammingSelectTelegraphFirst": ["雜訊太吵。先選電碼，讀穩了再帶狗下格。"],
-        "bobbyDownshiftSaved": ["降一碼，過了。這組電報沒第二次。"]
+        "bobbyDownshiftSaved": ["降一碼，過了。本關還剩 {remaining} 次。"]
       },
       "afterPlace": {
         "newHandArrived": "新電碼到了。選下一道，巴克在聞。",

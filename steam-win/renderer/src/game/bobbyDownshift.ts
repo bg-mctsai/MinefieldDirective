@@ -5,6 +5,13 @@ type Placed = { x: number; y: number; value: number };
 
 export type BobbyDownshiftTopo = Parameters<typeof MineSolver>[2];
 
+/** 波比緊急降碼：每關可用次數 */
+export const BOBBY_DOWNSHIFT_CHARGES_PER_LEVEL = 2;
+
+export function initialBobbyDownshiftRemaining(heroId: string): number {
+  return heroId === 'bobby' ? BOBBY_DOWNSHIFT_CHARGES_PER_LEVEL : 0;
+}
+
 /** 波比緊急降碼：僅當落點值 > 0 時可嘗試 −1 */
 export function canAttemptBobbyDownshift(placementValue: number): boolean {
   return placementValue > 0;
