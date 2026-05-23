@@ -299,7 +299,7 @@ export default function GameView({
             gameState={gameState}
             statusBarFrameClass={combatTheme.statusBarWrap}
             speakerHeroId={combatHeroId}
-            buckEmergencyAvailable={gameState.buckEmergencyAvailable}
+            laozhangFortifyRemaining={gameState.laozhangFortifyRemaining}
             bobbyDownshiftRemaining={gameState.bobbyDownshiftRemaining}
             allowPreBattleHeroSwitch={gameState.status === 'playing' && !gameState.timerStarted}
             placement="header"
@@ -340,7 +340,7 @@ export default function GameView({
               />
               <HeroSkillHud
                 heroId={combatHeroId}
-                buckEmergencyAvailable={gameState.buckEmergencyAvailable}
+                laozhangFortifyRemaining={gameState.laozhangFortifyRemaining}
                 bobbyDownshiftRemaining={gameState.bobbyDownshiftRemaining}
                 theme={combatTheme}
               />

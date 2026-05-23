@@ -8,6 +8,8 @@ export type HeroGameStatusKey =
   | 'digitOutpostRevealedAsMine'
   | 'jammingSelectTelegraphFirst'
   | 'buckEmergencySaved'
+  | 'laozhangFortifySaved'
+  | 'laozhangFortifyLast'
   | 'bobbyDownshiftSaved';
 
 export type HeroVictoryStatusKey = 'plain' | 'withTimeBonus';

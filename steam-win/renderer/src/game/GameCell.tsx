@@ -4,11 +4,14 @@ import { Bomb, MapPin } from 'lucide-react';
 import type { LossChainPhase } from './lossExplosionChain';
 import { boardCellTooltipText } from './boardCellTooltipText';
 import {
+  fortifyFirepowerDigitClassName,
+  mineFirepowerDigitFontPx,
   placedCommandDigitClassName,
   placedCommandDigitFontPx,
   type FirepowerDigitWeightMode,
   type MineBombVisualTier,
 } from './mineCombatVisual';
+import type { PlacedNumber } from './types';
 import { MineCellCombatDisplay } from './MineCellCombatDisplay';
 import { PlaceHintOverlay } from './PlaceHintOverlay';
 
@@ -17,7 +20,7 @@ export interface GameCellProps {
   y: number;
   /** 棋格邊長（px），預設 40 */
   cellSizePx?: number;
-  placed?: { value: number };
+  placed?: Pick<PlacedNumber, 'value' | 'fortifyFirepower'>;
   isMine: boolean;
   isConflict: boolean;
   /** 邏輯敗北：放錯前八鄰已強制的雷，畫 X 標出引爆關聯 */
@@ -74,6 +77,8 @@ const GameCellComponent = ({
 }: GameCellProps) => {
   const postBlast = status === 'exploding' || status === 'lost';
   const commandDigitFont = placedCommandDigitFontPx(cellSizePx);
+  const fortifyDigitFont = mineFirepowerDigitFontPx(cellSizePx);
+  const isFortifyFirepower = Boolean(placed?.fortifyFirepower);
   const iconSize = Math.max(14, Math.round(cellSizePx * 0.45));
   /** 加秒目標格（未佈數字、無衝突）：空白目標格可疊白炸彈預覽；已揭示雷仍走紅雷樣式 */
   const neutralBonusTarget = Boolean(isBonusTarget && !placed && !isConflict);
@@ -99,6 +104,7 @@ const GameCellComponent = ({
     isPlaceHint: Boolean(isPlaceHint && !placed && status === 'playing'),
     mineCombatTier: combatTier,
     fireDigitMode,
+    fortifyFirepower: isFortifyFirepower,
   });
   return (
     <motion.div
@@ -111,7 +117,9 @@ const GameCellComponent = ({
       ${isConflict
           ? 'z-10 animate-pulse border-2 border-white bg-red-600 shadow-lg ring-4 ring-red-500/50'
           : placed
-            ? 'border-2 border-amber-500 bg-amber-900/40'
+            ? isFortifyFirepower
+              ? 'z-[5] border-2 border-orange-400 bg-orange-950/60 shadow-[0_0_14px_rgba(251,146,60,0.45)] ring-2 ring-amber-300/55'
+              : 'border-2 border-amber-500 bg-amber-900/40'
             : isDynamicMine
               ? 'border border-cyan-700 bg-cyan-950/50'
               : chainDeadStone || (status === 'lost' && isMine && lossChainPhase === 'none')
@@ -149,14 +157,27 @@ const GameCellComponent = ({
         </motion.div>
       )}
       {placed && (
-        <motion.span
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          style={{ fontSize: commandDigitFont }}
-          className={placedCommandDigitClassName(isConflict)}
+          className={`flex flex-col items-center justify-center leading-none ${isFortifyFirepower ? 'gap-px' : ''}`}
         >
-          {placed.value}
-        </motion.span>
+          <span
+            style={{ fontSize: isFortifyFirepower ? fortifyDigitFont : commandDigitFont }}
+            className={
+              isFortifyFirepower
+                ? fortifyFirepowerDigitClassName(placed.value)
+                : placedCommandDigitClassName(isConflict)
+            }
+          >
+            {placed.value}
+          </span>
+          {isFortifyFirepower && (
+            <span className="text-[7px] font-black uppercase tracking-widest text-amber-200/95 sm:text-[8px]">
+              火力
+            </span>
+          )}
+        </motion.div>
       )}
       {isDynamicMine && !placed && (
         <MineCellCombatDisplay

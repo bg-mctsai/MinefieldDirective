@@ -1,4 +1,6 @@
 import { MineSolver, mergeTopologyWithDynamicMines, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
+import { placementsForSolver } from './laozhangFortify';
+import type { PlacedNumber } from './types';
 import type { SeededRng } from './seededRng';
 import { shuffleWithRng } from './seededRng';
 import { maxDigitForGrid } from './signalJamming';
@@ -40,7 +42,7 @@ function handSize(level: Level): number {
 /** 產生下一組「長官電報」待辦電碼（含輕量解題採樣，避免全盤暴力） */
 export function generateHand(
   level: Level,
-  placedNumbers: { x: number; y: number; value: number }[],
+  placedNumbers: PlacedNumber[],
   rng: SeededRng,
   dynamicMines?: Set<string>,
   /** 若傳入則覆寫關卡 JSON 的 commands.maxHand（例：艾達 4 選 2） */
@@ -48,6 +50,7 @@ export function generateHand(
 ): number[] {
   const allowed = allowedValuesFromCommands(level);
   const validNumbers = new Set<number>();
+  const solverPlaced = placementsForSolver(placedNumbers);
   const emptyCells = level.cells.filter((c) => !placedNumbers.some((p) => p.x === c.x && p.y === c.y));
   const sampleCells = shuffleWithRng(emptyCells, rng).slice(0, 8);
 
@@ -63,7 +66,7 @@ export function generateHand(
 
   for (const cell of sampleCells) {
     for (const v of shuffledAllowed) {
-      const testPlaced = [...placedNumbers, { x: cell.x, y: cell.y, value: v }];
+      const testPlaced = [...solverPlaced, { x: cell.x, y: cell.y, value: v }];
       const solver = new MineSolver(level.cells, testPlaced, mineTopo);
       if (solver.isValid()) {
         validNumbers.add(v);

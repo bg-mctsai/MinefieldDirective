@@ -30,7 +30,7 @@ export function GameStatusMessageBar({
   gameState,
   statusBarFrameClass = 'border-slate-700/90 bg-slate-900/95',
   speakerHeroId,
-  buckEmergencyAvailable = true,
+  laozhangFortifyRemaining = 0,
   bobbyDownshiftRemaining = 0,
   allowPreBattleHeroSwitch = false,
   placement = 'header',
@@ -40,8 +40,8 @@ export function GameStatusMessageBar({
   statusBarFrameClass?: string;
   /** 顯示在訊息左側的幹員頭像（對白） */
   speakerHeroId?: string;
-  /** 老張「加固模組」是否仍可用（僅 laozhang 時有意義） */
-  buckEmergencyAvailable?: boolean;
+  /** 老張「加固模組」本關剩餘次數（僅 laozhang 時有意義） */
+  laozhangFortifyRemaining?: number;
   /** 波比「緊急降碼」本關剩餘次數 */
   bobbyDownshiftRemaining?: number;
   /** 倒數未啟動前：技能說明彈層可左右切換已解鎖幹員 */
@@ -109,7 +109,7 @@ export function GameStatusMessageBar({
   const displaySpeakerId = dynamicBarrage?.heroId ?? speakerHeroId;
   const skillPanels =
     displaySpeakerId != null
-      ? getHeroSkillBriefPanels(displaySpeakerId, buckEmergencyAvailable, bobbyDownshiftRemaining)
+      ? getHeroSkillBriefPanels(displaySpeakerId, laozhangFortifyRemaining, bobbyDownshiftRemaining)
       : [];
   const speakerName = displaySpeakerId != null ? getHeroDef(displaySpeakerId).name : '';
   const statusMessage = dynamicBarrage?.text ?? gameState.message ?? '';

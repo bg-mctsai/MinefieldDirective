@@ -11,10 +11,13 @@ import { neighborModeForGridSystem } from '../levelData/gridTopology';
 import { hexOffsetForEdge } from '../levelData/hexGrid';
 import {
   adjacentPlacedDigitCount,
+  fortifyFirepowerDigitSvgClassName,
   mineBombVisualTier,
+  mineFirepowerDigitFontPx,
   placedCommandDigitFontPx,
   placedCommandDigitSvgClassName,
 } from './mineCombatVisual';
+import { isFortifyFirepowerPlacement } from './laozhangFortify';
 import { MineCellCombatDisplay } from './MineCellCombatDisplay';
 import { PlaceHintOverlay } from './PlaceHintOverlay';
 
@@ -129,7 +132,9 @@ export function HexGameBoardLayer({
         if (isConflict) {
           fillClass = 'fill-red-600';
         } else if (placed) {
-          fillClass = 'fill-amber-950/90';
+          fillClass = isFortifyFirepowerPlacement(placed)
+            ? 'fill-orange-950/88'
+            : 'fill-amber-950/90';
         } else if (isDynamicMine) {
           fillClass = 'fill-cyan-950/55';
         } else if (
@@ -185,6 +190,7 @@ export function HexGameBoardLayer({
           isPlaceHint,
           mineCombatTier: isMine ? mCombat : 1,
           fireDigitMode,
+          fortifyFirepower: isFortifyFirepowerPlacement(placed),
         });
 
         return (
@@ -228,22 +234,42 @@ export function HexGameBoardLayer({
               })}
             </g>
             {placed && (
-              <text
-                x={cx}
-                y={cy}
-                textAnchor="middle"
-                dominantBaseline="central"
-                className={placedCommandDigitSvgClassName(isConflict)}
-                style={{
-                  fontSize: commandDigitFont,
-                  fontWeight: 900,
-                  paintOrder: 'stroke fill',
-                  stroke: 'rgba(0,0,0,0.55)',
-                  strokeWidth: Math.max(0.6, r * 0.04),
-                }}
-              >
-                {placed.value}
-              </text>
+              <>
+                <text
+                  x={cx}
+                  y={cy - (isFortifyFirepowerPlacement(placed) ? r * 0.1 : 0)}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className={
+                    isFortifyFirepowerPlacement(placed)
+                      ? fortifyFirepowerDigitSvgClassName
+                      : placedCommandDigitSvgClassName(isConflict)
+                  }
+                  style={{
+                    fontSize: isFortifyFirepowerPlacement(placed)
+                      ? mineFirepowerDigitFontPx(r)
+                      : commandDigitFont,
+                    fontWeight: 900,
+                    paintOrder: 'stroke fill',
+                    stroke: 'rgba(0,0,0,0.55)',
+                    strokeWidth: Math.max(0.6, r * 0.04),
+                  }}
+                >
+                  {placed.value}
+                </text>
+                {isFortifyFirepowerPlacement(placed) && (
+                  <text
+                    x={cx}
+                    y={cy + r * 0.38}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    className="pointer-events-none fill-amber-200/95 font-black"
+                    style={{ fontSize: Math.max(7, r * 0.22), fontWeight: 900 }}
+                  >
+                    火力
+                  </text>
+                )}
+              </>
             )}
             {isPlaceHint && (
               <foreignObject

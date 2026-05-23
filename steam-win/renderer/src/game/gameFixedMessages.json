@@ -2,6 +2,7 @@
   "cellTooltip": {
     "conflict": "衝突格：此格與周邊雷數矛盾",
     "placedDigit": "已佈署數字 {value}",
+    "fortifyFirepower": "加固火力格：錯格不爆，數值 {value} 計入火力",
     "blastPoint": "計時地雷：倒數結束前必須將周圍所有格填滿，否則引爆",
     "dynamicJunkMine": "廢雷：會佔格，但不計入任何鄰格雷數",
     "bonusTargetMine": "目標地雷：確認可獲得 +{seconds} 秒",
@@ -157,7 +158,9 @@
         "digitOutpostIncomplete": ["覆蓋夠了，據點還沒灌漿。下一盤一個一個填滿。"],
         "digitOutpostRevealedAsMine": ["據點變雷？那格只能放數字，結構不允許。"],
         "jammingSelectTelegraphFirst": ["先點電碼對讀值，再下格。急不得，也拖不得。"],
-        "buckEmergencySaved": ["加固擋住了。還有一次，下一手收乾淨。"]
+        "buckEmergencySaved": ["加固擋住了。還有一次，下一手收乾淨。"],
+        "laozhangFortifySaved": ["錯格不爆。這格當火力算，還有一次加固。"],
+        "laozhangFortifyLast": ["最後一次加固。這格入火力，別再賭結構。"]
       },
       "afterPlace": {
         "newHandArrived": "新電碼到了。選下一道，這線還撐得住。",

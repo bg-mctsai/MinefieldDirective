@@ -24,6 +24,7 @@ export function boardCellTooltipText(opts: {
   fireDigitMode?: FirepowerDigitWeightMode;
   /** 波比：選定電碼後的可放格 */
   isPlaceHint?: boolean;
+  fortifyFirepower?: boolean;
 }): string {
   const T = GAME_FIXED.cellTooltip;
   const {
@@ -39,11 +40,15 @@ export function boardCellTooltipText(opts: {
     mineCombatTier,
     fireDigitMode = 'capTwo',
     isPlaceHint = false,
+    fortifyFirepower = false,
   } = opts;
   const tier = mineCombatTier ?? 1;
   if (isConflict) return T.conflict;
   if (isPlaceHint) return T.placeHint;
-  if (placedValue !== undefined) return sub(T.placedDigit, { value: placedValue });
+  if (placedValue !== undefined) {
+    if (fortifyFirepower) return sub(T.fortifyFirepower, { value: placedValue });
+    return sub(T.placedDigit, { value: placedValue });
+  }
   if (blastPointCountdown !== undefined) return T.blastPoint;
   if (isDigitOutpost) return T.digitOutpost;
   if (isDynamicMine) return T.dynamicJunkMine;

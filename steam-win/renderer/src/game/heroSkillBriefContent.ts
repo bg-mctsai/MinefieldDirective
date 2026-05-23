@@ -6,14 +6,17 @@ export type HeroSkillBriefPanel = { title: string; paragraphs: string[] };
 /** 對局內「點頭像」彈層：被動說明；無戰鬥被動時用 skillDetail 或通用句補位 */
 export function getHeroSkillBriefPanels(
   heroId: string,
-  buckEmergencyAvailable: boolean,
+  laozhangFortifyRemaining: number,
   bobbyDownshiftRemaining = 0,
 ): HeroSkillBriefPanel[] {
   const hero = getHeroDef(heroId);
 
   if (heroId === 'laozhang') {
     const detail = (hero.skillDetail ?? '').trim();
-    const statusLine = buckEmergencyAvailable ? '本關狀態：抵銷尚未使用（仍可用 1 次）。' : '本關狀態：抵銷已耗盡。';
+    const statusLine =
+      laozhangFortifyRemaining > 0
+        ? `本關狀態：加固剩 ${laozhangFortifyRemaining} 次（錯格不爆，該格計入火力）。`
+        : '本關狀態：加固已耗盡。';
     return [
       {
         title: '加固模組',

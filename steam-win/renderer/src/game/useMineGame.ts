@@ -50,6 +50,10 @@ import {
   canAttemptBobbyDownshift,
   initialBobbyDownshiftRemaining,
 } from './bobbyDownshift';
+import {
+  initialLaozhangFortifyRemaining,
+  placementsForSolver,
+} from './laozhangFortify';
 import { generateHand } from './generateHand';
 import { pickHeroAfterPlaceLine, pickHeroGameStatusLine, pickHeroVictoryStatusLine } from './heroGameStatusLines';
 import { sub } from './gameFixedMessages';
@@ -195,7 +199,7 @@ export function useMineGame(initialLevelIndex: number) {
       jammingEpochMs: level.definition.commandSlotReceiveJamming ? Date.now() : 0,
       jammingLockedSlot: null,
       blastPointsCountdown: initBlastCountdown,
-      buckEmergencyAvailable: getStoredHeroId() === 'laozhang',
+      laozhangFortifyRemaining: initialLaozhangFortifyRemaining(getStoredHeroId()),
       bobbyDownshiftRemaining: initialBobbyDownshiftRemaining(getStoredHeroId()),
       settledMedal: null,
       settledFillPercentage: null,
@@ -235,7 +239,7 @@ export function useMineGame(initialLevelIndex: number) {
           rngState: rng.state(),
           hand,
           message: pickHeroGameStatusLine(id, 'initTelegraph'),
-          buckEmergencyAvailable: id === 'laozhang',
+          laozhangFortifyRemaining: initialLaozhangFortifyRemaining(id),
           bobbyDownshiftRemaining: initialBobbyDownshiftRemaining(id),
         };
       });
@@ -306,11 +310,12 @@ export function useMineGame(initialLevelIndex: number) {
         );
         const baseTopo = mineSolverTopologyFromLevel(prev.level);
         const topo = mergeTopologyWithDynamicMines(baseTopo, prev.dynamicMines);
-        const logicSolver = new MineSolver(prev.level.cells, prev.placedNumbers, {
+        const intervalSolverPlaced = placementsForSolver(prev.placedNumbers);
+        const logicSolver = new MineSolver(prev.level.cells, intervalSolverPlaced, {
           ...topo,
           forcedMineKeys: intervalBlastKeys, // 炸點為可見已知地雷
         });
-        const logicForced = logicSolver.findForced(prev.placedNumbers);
+        const logicForced = logicSolver.findForced(intervalSolverPlaced);
         const forcedMinesSet = new Set(logicForced.mines);
         const forcedClearSet = new Set(logicForced.clear);
         const validKeysSet = new Set(prev.level.cells.map((c) => `${c.x},${c.y}`));
@@ -584,23 +589,17 @@ export function useMineGame(initialLevelIndex: number) {
 
     let bobbyDownshiftConsumed = false;
     let bobbyDownshiftSaved = false;
+    let laozhangFortifyApplied = false;
     const heroId = getStoredHeroId();
 
     if (conflictDetails) {
-      if (heroId === 'laozhang' && gameState.buckEmergencyAvailable) {
-        setGameState((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: 'playing',
-                message: pickHeroGameStatusLine(getStoredHeroId(), 'buckEmergencySaved'),
-                buckEmergencyAvailable: false,
-                jammingLockedSlot: null,
-              }
-            : null,
-        );
-        setMovingSoldier(null);
-        return;
+      if (heroId === 'laozhang' && gameState.laozhangFortifyRemaining > 0) {
+        newPlacedNumbers = [
+          ...gameState.placedNumbers,
+          { x, y, value: placementValue, fortifyFirepower: true },
+        ];
+        conflictDetails = null;
+        laozhangFortifyApplied = true;
       }
 
       if (
@@ -689,14 +688,22 @@ export function useMineGame(initialLevelIndex: number) {
 
     emit('game.number.place', { value: placementValue });
 
+    const solverPlacedNumbers = placementsForSolver(newPlacedNumbers);
+    const laozhangFortifyMessage = laozhangFortifyApplied
+      ? pickHeroGameStatusLine(
+          heroId,
+          gameState.laozhangFortifyRemaining > 1 ? 'laozhangFortifySaved' : 'laozhangFortifyLast',
+        )
+      : null;
+
     // 所有紅雷/空白揭示都只採「玩家可見」邏輯：炸點為可見已知地雷，隱藏 forcedMineCells 不納入。
     // 之前有同時跑一份含隱藏先驗的 solver.findForced，但其結果最終都會被 logicOnly 過濾掉，
     // 徒增一次完整 SAT 回溯；統一用 logicOnly 即可。
-    const logicOnlySolver = new MineSolver(gameState.level.cells, newPlacedNumbers, {
+    const logicOnlySolver = new MineSolver(gameState.level.cells, solverPlacedNumbers, {
       ...topoWithBlastPoints,
       forcedMineKeys: allBlastPointKeys,
     });
-    const logicOnlyForced = logicOnlySolver.findForced(newPlacedNumbers);
+    const logicOnlyForced = logicOnlySolver.findForced(solverPlacedNumbers);
     const logicOnlyForcedMines = new Set(logicOnlyForced.mines);
     const logicOnlyForcedClear = new Set(logicOnlyForced.clear);
     const bonusTargetKeys = effectiveBonusTargetKeys(gameState.level);
@@ -818,6 +825,9 @@ export function useMineGame(initialLevelIndex: number) {
     const nextBobbyDownshiftRemaining = bobbyDownshiftConsumed
       ? Math.max(0, gameState.bobbyDownshiftRemaining - 1)
       : gameState.bobbyDownshiftRemaining;
+    const nextLaozhangFortifyRemaining = laozhangFortifyApplied
+      ? Math.max(0, gameState.laozhangFortifyRemaining - 1)
+      : gameState.laozhangFortifyRemaining;
 
     const nextMineKeys = new Set<string>(newRevealedMines);
     const firepowerDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
@@ -892,6 +902,7 @@ export function useMineGame(initialLevelIndex: number) {
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
               bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
+              laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
             }
           : null,
       );
@@ -943,6 +954,7 @@ export function useMineGame(initialLevelIndex: number) {
                 blastPointsCountdown: newBlastCountdown,
                 rngState: rng.state(),
                 bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
+                laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
               }
             : null,
         );
@@ -978,6 +990,7 @@ export function useMineGame(initialLevelIndex: number) {
               settledSecondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
               bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
+              laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
             }
           : null,
       );
@@ -1013,11 +1026,14 @@ export function useMineGame(initialLevelIndex: number) {
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
               bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
-              message: bobbyDownshiftSaved
-                ? pickHeroGameStatusLine(heroId, 'bobbyDownshiftSaved', {
-                    remaining: nextBobbyDownshiftRemaining,
-                  })
-                : statusAfterPlace,
+              laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
+              message: laozhangFortifyMessage
+                ? laozhangFortifyMessage
+                : bobbyDownshiftSaved
+                  ? pickHeroGameStatusLine(heroId, 'bobbyDownshiftSaved', {
+                      remaining: nextBobbyDownshiftRemaining,
+                    })
+                  : statusAfterPlace,
             }
           : null
       );

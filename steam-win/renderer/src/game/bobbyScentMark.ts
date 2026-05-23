@@ -8,6 +8,7 @@ import {
   mergeTopologyWithDynamicMines,
   mineSolverTopologyFromLevel,
 } from '../gameLogic';
+import { placementsForSolver } from './laozhangFortify';
 import type { GameState } from './types';
 
 export type BobbyPlaceHintCell = { x: number; y: number };
@@ -154,7 +155,7 @@ export function computeBobbyPlaceHints(
     }
     const [x, y] = key.split(',').map(Number);
     const value = placementValueForCell(x, y, telegramValue, level, placedNumbers);
-    const testPlaced = [...placedNumbers, { x, y, value }];
+    const testPlaced = [...placementsForSolver(placedNumbers), { x, y, value }];
     const solver = new MineSolver(level.cells, testPlaced, topo);
     if (!solver.isValid()) continue;
     marks.push({ x, y });

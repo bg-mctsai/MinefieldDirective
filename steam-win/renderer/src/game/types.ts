@@ -29,6 +29,14 @@ export type MovingSoldierState =
       flightFrom: { x: number; y: number } | null;
     };
 
+/** 棋格已佈數字；`fortifyFirepower` 為老張加固轉火力格 */
+export type PlacedNumber = {
+  x: number;
+  y: number;
+  value: number;
+  fortifyFirepower?: boolean;
+};
+
 export interface GameState {
   gameId: number;
   /** 同局重現用：同 level + runSeed 必須得到同一隨機流程 */
@@ -36,7 +44,7 @@ export interface GameState {
   /** seeded RNG 內部狀態（uint32） */
   rngState: number;
   level: Level;
-  placedNumbers: { x: number; y: number; value: number }[];
+  placedNumbers: PlacedNumber[];
   revealedMines: Set<string>;
   revealedClear: Set<string>;
   hand: number[];
@@ -67,8 +75,8 @@ export interface GameState {
    * 非引爆危機關卡為空 Map。
    */
   blastPointsCountdown: Map<string, number>;
-  /** 老張「加固模組」（每局一次）：solver 放錯抵銷後為 false；非老張幹員固定 false */
-  buckEmergencyAvailable: boolean;
+  /** 老張「加固模組」本關剩餘次數（非老張為 0） */
+  laozhangFortifyRemaining: number;
   /** 波比「緊急降碼」本關剩餘次數（開局 2；非波比為 0） */
   bobbyDownshiftRemaining: number;
   /** 結算當下的勳章（status === 'won' 時寫入）；非過關狀態為 null */

@@ -7,24 +7,28 @@ import { heroSkillHudLucideIcon } from './heroSkillHudIcons';
 /** 對局棋盤右側：幹員被動技能（圖示左、名稱右）；詳情以原生 title（tooltip）顯示。老張另保留「加固模組」狀態 UI。 */
 export function HeroSkillHud({
   heroId,
-  buckEmergencyAvailable,
+  laozhangFortifyRemaining = 0,
   bobbyDownshiftRemaining = 0,
   theme,
 }: {
   heroId: string;
-  buckEmergencyAvailable: boolean;
+  laozhangFortifyRemaining?: number;
   /** 波比「緊急降碼」本關剩餘次數 */
   bobbyDownshiftRemaining?: number;
   theme: HeroCombatTheme;
 }) {
   if (heroId === 'laozhang') {
-    const spent = !buckEmergencyAvailable;
+    const spent = laozhangFortifyRemaining <= 0;
     return (
       <div
         className={`flex shrink-0 items-center gap-1.5 rounded-xl border-2 px-2 py-1.5 shadow-md sm:gap-2 sm:px-2.5 sm:py-2 ${
           spent ? 'border-slate-700 bg-slate-900/80' : `${theme.telegraphWrap}`
         }`}
-        title={spent ? '加固模組已耗盡' : '加固模組：每關可抵銷一次放錯導致的爆炸'}
+        title={
+          spent
+            ? '加固模組已耗盡'
+            : `加固模組：放錯不爆，該格改算火力（本關剩 ${laozhangFortifyRemaining} 次）`
+        }
       >
         <div className="relative">
           <ShieldOff
@@ -58,7 +62,7 @@ export function HeroSkillHud({
             加固模組
           </div>
           <div className={`text-[9px] font-bold ${spent ? 'text-slate-600 line-through' : 'text-slate-400'}`}>
-            {spent ? '已耗盡' : '每關 1 次'}
+            {spent ? '已耗盡' : `剩 ${laozhangFortifyRemaining} 次`}
           </div>
         </div>
       </div>

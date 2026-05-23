@@ -1,3 +1,4 @@
+import type { PlacedNumber } from './types';
 import type { GridSystem } from '../levelData/types';
 import { logicNeighborKeys, neighborModeForGridSystem, type NeighborMode } from '../levelData/gridTopology';
 
@@ -96,6 +97,15 @@ export const placedCommandDigitClassName = (isConflict: boolean): string =>
     ? 'font-black tabular-nums leading-none tracking-tight text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.95),0_0_8px_rgba(255,255,255,0.35)]'
     : 'font-black tabular-nums leading-none tracking-tight text-amber-300 drop-shadow-[0_1px_0_rgba(0,0,0,0.92),0_0_14px_rgba(251,191,36,0.65)]';
 
+/** 老張加固：錯格轉火力，與長官電碼琥珀色區隔 */
+export function fortifyFirepowerDigitClassName(value: number): string {
+  const w = Math.min(Math.max(1, value), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
+  return `font-black tabular-nums leading-none tracking-tight ${mineFirepowerDigitTextClass(w, 'red')}`;
+}
+
+export const fortifyFirepowerDigitSvgClassName =
+  'pointer-events-none fill-yellow-50 font-black tabular-nums';
+
 /** 蜂巢 SVG `<text>`：僅 fill／字重，描邊由 stroke 屬性處理。 */
 export const placedCommandDigitSvgClassName = (isConflict: boolean): string =>
   isConflict ? 'pointer-events-none fill-white' : 'pointer-events-none fill-amber-300';
@@ -121,7 +131,7 @@ export function mineFirepowerDigitTextClass(
  */
 export function weightedFirepowerSumAndPct(
   mineKeys: Iterable<string>,
-  placedNumbers: ReadonlyArray<{ x: number; y: number; value: number }>,
+  placedNumbers: ReadonlyArray<PlacedNumber>,
   levelCells: ReadonlyArray<{ x: number; y: number }>,
   gridSystem: GridSystem,
   boardW: number,
@@ -141,6 +151,9 @@ export function weightedFirepowerSumAndPct(
     if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
     const n = adjacentPlacedDigitCount(x, y, placedByKey, validKeys, mode, boardW, boardH);
     weightedSum += firepowerWeightForAdjacentDigitCount(n, digitWeightMode);
+  }
+  for (const p of placedNumbers) {
+    if (p.fortifyFirepower) weightedSum += Math.max(1, p.value);
   }
   return {
     weightedSum,

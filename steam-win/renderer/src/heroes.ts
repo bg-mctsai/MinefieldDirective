@@ -431,7 +431,7 @@ export const HEROES: HeroDef[] = [
     name: '老張',
     role: '結構工程師',
     skillName: '加固模組',
-    skillDetail: '錯誤發生時可抵銷一次爆炸並移除出錯的雷。每關限一次。',
+    skillDetail: '每關 2 次：放錯不爆炸，該格改算火力（亮橙火力字，數值計入火力％）。',
     missionMapHook:
       '甲面上噬星者抓過的痕與焊補邊緣一樣清楚——乾谷據點他曾澆過最後一車漿，也親眼看裂隙把它啃穿。',
     codename: '城牆',
