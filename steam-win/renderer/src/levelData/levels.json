@@ -1650,7 +1650,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_5",
       "coverageGoal": 0.81,
-      "timeLimit": 57,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
@@ -1664,6 +1664,12 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
+      "digitOutposts": [
+        [
+          5,
+          5
+        ]
+      ],
       "rewards": {},
       "mapRef": "7_5"
     },
@@ -1672,7 +1678,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_6",
       "coverageGoal": 0.8,
-      "timeLimit": 63,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L66-ch7-f5d69fa9",
       "commands": {
         "maxHand": 3,
@@ -1689,6 +1695,12 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
+      "digitOutposts": [
+        [
+          4,
+          4
+        ]
+      ],
       "rewards": {},
       "mapRef": "7_6"
     },
@@ -1697,7 +1709,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_7",
       "coverageGoal": 0.81,
-      "timeLimit": 65,
+      "timeLimit": 87,
       "initialSeed": "minefield-campaign-v1-L67-ch7-28d0d8ae",
       "commands": {
         "maxHand": 3,
@@ -1711,6 +1723,17 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          5,
+          4
+        ],
+        [
+          11,
+          7
+        ]
+      ],
       "rewards": {},
       "mapRef": "7_7"
     },
@@ -1719,7 +1742,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_8",
       "coverageGoal": 0.8,
-      "timeLimit": 59,
+      "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L68-ch7-68d7b054",
       "commands": {
         "maxHand": 3,
@@ -1738,6 +1761,17 @@
       "events": [],
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 280,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          4,
+          5
+        ],
+        [
+          9,
+          11
+        ]
+      ],
       "rewards": {},
       "mapRef": "7_8"
     },

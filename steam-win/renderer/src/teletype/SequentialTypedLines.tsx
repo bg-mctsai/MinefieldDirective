@@ -15,6 +15,8 @@ type SeqProps = {
   /** 進行中那一行的游標顏色 */
   activeCaretClassName?: string;
   pace?: TeletypePace;
+  /** 遞增時立刻顯示全文（仍觸發 onAllLinesDone） */
+  skipSignal?: number;
 };
 
 /**
@@ -30,15 +32,24 @@ export function SequentialTypedLines({
   onAllLinesDone,
   activeCaretClassName = 'bg-emerald-400/80',
   pace,
+  skipSignal = 0,
 }: SeqProps) {
   const [idx, setIdx] = useState(0);
+  const [skipped, setSkipped] = useState(false);
   const linesFingerprint = useMemo(() => lines.join('\u0001'), [lines]);
   const prevAllDoneRef = useRef(false);
 
   useEffect(() => {
     setIdx(0);
+    setSkipped(false);
     prevAllDoneRef.current = false;
   }, [resetKey, linesFingerprint]);
+
+  useEffect(() => {
+    if (skipSignal <= 0) return;
+    setSkipped(true);
+    setIdx(Math.max(0, lines.length - 1));
+  }, [skipSignal, lines.length]);
 
   const safeLen = lines.length;
   const clampedIdx = safeLen === 0 ? 0 : Math.min(idx, safeLen - 1);
@@ -53,7 +64,7 @@ export function SequentialTypedLines({
     }
   }, [done, idx, safeLen]);
 
-  const allTyped = safeLen > 0 && idx === safeLen - 1 && done;
+  const allTyped = skipped || (safeLen > 0 && idx === safeLen - 1 && done);
   useEffect(() => {
     if (!allTyped || !onAllLinesDone || prevAllDoneRef.current) return;
     prevAllDoneRef.current = true;
@@ -64,6 +75,18 @@ export function SequentialTypedLines({
 
   const C = Container as ElementType;
   const I = Item as ElementType;
+
+  if (skipped) {
+    return (
+      <C className={className}>
+        {lines.map((line, i) => (
+          <I key={`skip-${i}`} className={itemClassName}>
+            {line}
+          </I>
+        ))}
+      </C>
+    );
+  }
 
   const nodes: ReactNode[] = [];
   for (let i = 0; i < idx; i += 1) {

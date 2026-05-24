@@ -73,15 +73,21 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
   const [phase, setPhase] = useState<GatePhase>('commander');
   const [encDone, setEncDone] = useState(false);
   const [hazardDone, setHazardDone] = useState(false);
+  const [encSkipSignal, setEncSkipSignal] = useState(0);
+  const [hazardSkipSignal, setHazardSkipSignal] = useState(0);
 
   useEffect(() => {
     setPhase('commander');
     setEncDone(c.encouragement.length === 0);
     setHazardDone(c.nextHazard.length === 0);
+    setEncSkipSignal(0);
+    setHazardSkipSignal(0);
   }, [dossierReset, c.encouragement.length, c.nextHazard.length]);
 
   const onEncDone = useCallback(() => setEncDone(true), []);
   const onHazardDone = useCallback(() => setHazardDone(true), []);
+  const skipEncTyping = useCallback(() => setEncSkipSignal((n) => n + 1), []);
+  const skipHazardTyping = useCallback(() => setHazardSkipSignal((n) => n + 1), []);
   const showPenBlock = showPen;
 
   return (
@@ -172,6 +178,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                           itemAs="li"
                           lines={c.encouragement}
                           resetKey={`${dossierReset}-enc`}
+                          skipSignal={encSkipSignal}
                           className={`min-w-0 list-none text-left text-lg font-semibold text-slate-100 ${
                             showPen ? 'flex-1 md:min-w-0' : 'w-full'
                           }`}
@@ -196,14 +203,25 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                     </section>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setPhase('hazard')}
-                    disabled={!encDone}
-                    className="dossier-signal-btn w-full rounded-xl border border-cyan-400/25 bg-gradient-to-b from-cyan-600/95 to-cyan-800/90 py-4 text-lg font-black text-slate-950 [text-shadow:0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:from-cyan-500/95 hover:to-cyan-700/90 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    確定
-                  </button>
+                  <div className="mt-5 flex items-stretch gap-2 sm:gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPhase('hazard')}
+                      disabled={!encDone}
+                      className="dossier-signal-btn min-w-0 flex-1 rounded-xl border border-cyan-400/25 bg-gradient-to-b from-cyan-600/95 to-cyan-800/90 py-4 text-lg font-black text-slate-950 [text-shadow:0_1px_0_rgba(255,255,255,0.2)] transition-colors hover:from-cyan-500/95 hover:to-cyan-700/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      確定
+                    </button>
+                    {!encDone && c.encouragement.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={skipEncTyping}
+                        className="shrink-0 rounded-xl border border-slate-500/40 bg-slate-900/80 px-4 py-4 text-sm font-bold text-slate-300 transition-colors hover:border-slate-400/50 hover:bg-slate-800/90 hover:text-slate-100"
+                      >
+                        跳過
+                      </button>
+                    ) : null}
+                  </div>
                 </>
               ) : (
                 <section
@@ -243,6 +261,7 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                       itemAs="li"
                       lines={c.nextHazard}
                       resetKey={`${dossierReset}-haz`}
+                      skipSignal={hazardSkipSignal}
                       className="mt-4 list-none text-left text-lg font-semibold text-red-100"
                       itemClassName="border-l-2 border-red-400/60 pl-3 leading-relaxed [text-shadow:0_1px_0_rgba(0,0,0,0.45)] not-last:mb-2.5"
                       pace="slow"
@@ -250,14 +269,25 @@ export default function DossierPostChapter10Gate({ completedChapter, onConfirm, 
                       onAllLinesDone={onHazardDone}
                     />
 
-                    <button
-                      type="button"
-                      onClick={onConfirm}
-                      disabled={!hazardDone}
-                      className="dossier-hazard-btn mt-5 w-full rounded-xl border border-red-400/30 bg-gradient-to-b from-red-500/90 to-red-700/90 py-4 text-lg font-black text-red-50 transition-colors hover:from-red-400/95 hover:to-red-600/90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      確定
-                    </button>
+                    <div className="mt-5 flex items-stretch gap-2 sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={onConfirm}
+                        disabled={!hazardDone}
+                        className="dossier-hazard-btn min-w-0 flex-1 rounded-xl border border-red-400/30 bg-gradient-to-b from-red-500/90 to-red-700/90 py-4 text-lg font-black text-red-50 transition-colors hover:from-red-400/95 hover:to-red-600/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        確定
+                      </button>
+                      {!hazardDone && c.nextHazard.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={skipHazardTyping}
+                          className="shrink-0 rounded-xl border border-red-400/35 bg-red-950/70 px-4 py-4 text-sm font-bold text-red-200/90 transition-colors hover:border-red-300/45 hover:bg-red-900/80 hover:text-red-50"
+                        >
+                          跳過
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </section>
               )}
