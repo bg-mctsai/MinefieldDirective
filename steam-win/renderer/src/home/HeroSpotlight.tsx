@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { HEROES, getHeroCombatSkills } from '../heroes';
 import type { HeroDef } from '../heroes';
-import { loadUnlockedHeroIds } from '../game/heroUnlockedStorage';
+import { useEffectiveUnlockedHeroIds } from '../game/heroUnlockedStorage';
 import { TeletypeInline } from '../teletype';
 import { HeroPortraitZoomButton } from './HeroPortraitZoomButton';
 
@@ -22,11 +22,12 @@ export function HeroSpotlight({
 }) {
   const quoteLine = hero.lines[quoteIdx % hero.lines.length] ?? '';
   const quoteKey = `${hero.id}-${quoteIdx}`;
+  const effectiveUnlockedIds = useEffectiveUnlockedHeroIds();
   const pickableHeroes = useMemo(() => {
-    const unlockedHeroIds = new Set(loadUnlockedHeroIds());
+    const unlockedHeroIds = new Set(effectiveUnlockedIds);
     const unlocked = HEROES.filter((h) => unlockedHeroIds.has(h.id));
     return unlocked.length > 0 ? unlocked : [HEROES[0]];
-  }, []);
+  }, [effectiveUnlockedIds]);
   const combatSkills = useMemo(() => getHeroCombatSkills(hero), [hero]);
   const currentIndex = Math.max(
     0,

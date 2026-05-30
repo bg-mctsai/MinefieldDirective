@@ -6,7 +6,7 @@ import { useDynamicHeroBarrage } from './useDynamicHeroBarrage';
 import { HeroAvatarSilhouette } from '../home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from '../home/HeroPortraitLightbox';
 import { HEROES, getHeroDef, setStoredHeroId } from '../heroes';
-import { loadUnlockedHeroIds } from './heroUnlockedStorage';
+import { useEffectiveUnlockedHeroIds } from './heroUnlockedStorage';
 import { getHeroSkillBriefPanels } from './heroSkillBriefContent';
 import { TeletypeInline } from '../teletype';
 import { GAME_HEADER_MESSAGE_CARD_CLASS } from './GameHeader';
@@ -30,7 +30,9 @@ export function GameStatusMessageBar({
   gameState,
   statusBarFrameClass = 'border-slate-700/90 bg-slate-900/95',
   speakerHeroId,
-  laozhangFortifyRemaining = 0,
+  fortifyRemaining = 0,
+  laozhangCopiedValue = null,
+  laozhangCopiedUsesRemaining = 0,
   bobbyDownshiftRemaining = 0,
   allowPreBattleHeroSwitch = false,
   placement = 'header',
@@ -40,8 +42,10 @@ export function GameStatusMessageBar({
   statusBarFrameClass?: string;
   /** 顯示在訊息左側的幹員頭像（對白） */
   speakerHeroId?: string;
-  /** 老張「加固模組」本關剩餘次數（僅 laozhang 時有意義） */
-  laozhangFortifyRemaining?: number;
+  /** 堡壘-09「加固模組」本關剩餘次數（僅 tungsten 時有意義） */
+  fortifyRemaining?: number;
+  laozhangCopiedValue?: number | null;
+  laozhangCopiedUsesRemaining?: number;
   /** 波比「緊急降碼」本關剩餘次數 */
   bobbyDownshiftRemaining?: number;
   /** 倒數未啟動前：技能說明彈層可左右切換已解鎖幹員 */
@@ -109,17 +113,24 @@ export function GameStatusMessageBar({
   const displaySpeakerId = dynamicBarrage?.heroId ?? speakerHeroId;
   const skillPanels =
     displaySpeakerId != null
-      ? getHeroSkillBriefPanels(displaySpeakerId, laozhangFortifyRemaining, bobbyDownshiftRemaining)
+      ? getHeroSkillBriefPanels(
+          displaySpeakerId,
+          fortifyRemaining,
+          bobbyDownshiftRemaining,
+          laozhangCopiedValue,
+          laozhangCopiedUsesRemaining,
+        )
       : [];
   const speakerName = displaySpeakerId != null ? getHeroDef(displaySpeakerId).name : '';
   const statusMessage = dynamicBarrage?.text ?? gameState.message ?? '';
   const statusMsgKey = `${gameState.gameId}|||${statusMessage}`;
 
+  const effectiveUnlockedIds = useEffectiveUnlockedHeroIds();
   const pickableHeroes = useMemo(() => {
-    const unlockedHeroIds = new Set(loadUnlockedHeroIds());
+    const unlockedHeroIds = new Set(effectiveUnlockedIds);
     const unlocked = HEROES.filter((h) => unlockedHeroIds.has(h.id));
     return unlocked.length > 0 ? unlocked : [HEROES[0]];
-  }, []);
+  }, [effectiveUnlockedIds]);
   const briefHeroIndex = Math.max(
     0,
     displaySpeakerId != null ? pickableHeroes.findIndex((h) => h.id === displaySpeakerId) : 0,

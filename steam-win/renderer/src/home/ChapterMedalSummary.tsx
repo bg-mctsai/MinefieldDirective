@@ -1,52 +1,82 @@
 import { useMemo } from 'react';
 import { getAllBestMedals } from '../game/gameProgressStorage';
 import { type Medal } from '../game/medalThresholds';
-import hexGold from '../assets/mission-hex-badges/hex-gold.png';
-import hexSilver from '../assets/mission-hex-badges/hex-silver.png';
-import hexBronze from '../assets/mission-hex-badges/hex-bronze.png';
 
-const MEDAL_TONE: Record<Medal, string> = {
-  bronze: 'text-amber-400/95',
-  silver: 'text-slate-50',
-  gold: 'text-amber-200',
-};
-
-const MEDAL_HEX: Record<Medal, string> = {
-  gold: hexGold,
-  silver: hexSilver,
-  bronze: hexBronze,
-};
+const MEDAL_ORDER: Medal[] = ['gold', 'silver', 'bronze'];
 
 const MEDAL_LABEL: Record<Medal, string> = {
-  gold: '金勳章',
-  silver: '銀勳章',
-  bronze: '銅勳章',
+  gold: '金',
+  silver: '銀',
+  bronze: '銅',
+};
+
+const MEDAL_FULL: Record<Medal, string> = {
+  gold: '金級',
+  silver: '銀級',
+  bronze: '銅級',
+};
+
+const TIER_STYLE: Record<
+  Medal,
+  {
+    chip: string;
+    chipText: string;
+    count: string;
+  }
+> = {
+  gold: {
+    chip: 'border-yellow-400/55 bg-gradient-to-br from-yellow-700/95 via-amber-400/90 to-yellow-200 shadow-[0_0_10px_rgba(253,224,71,0.28)]',
+    chipText: 'text-yellow-950',
+    count: 'text-yellow-200',
+  },
+  silver: {
+    chip: 'border-slate-300/50 bg-gradient-to-br from-slate-700 via-slate-300 to-slate-100 shadow-[0_0_8px_rgba(226,232,240,0.18)]',
+    chipText: 'text-slate-900',
+    count: 'text-slate-100',
+  },
+  bronze: {
+    chip: 'border-amber-600/55 bg-gradient-to-br from-amber-900 via-amber-600 to-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.22)]',
+    chipText: 'text-amber-950',
+    count: 'text-amber-300',
+  },
 };
 
 function medalTooltip(medal: Medal, count: number): string {
-  const name = MEDAL_LABEL[medal];
-  if (count <= 0) return `${name}：0 關 — 尚無關卡以該評級作為最佳成績`;
-  return `${name}：${count} 關 — 各關最佳成績達「${name.replace('勳章', '')}級」門檻`;
+  const tier = MEDAL_FULL[medal];
+  if (count <= 0) return `${tier}評級：0 關 — 尚無關卡以該評級作為最佳成績`;
+  return `${tier}評級：${count} 關 — 各關最佳火力達 ${tier} 門檻`;
 }
 
-const MEDAL_GLOW: Record<Medal, string> = {
-  gold: 'drop-shadow-[0_0_10px_rgba(251,191,36,0.45)]',
-  silver: 'drop-shadow-[0_0_8px_rgba(226,232,240,0.25)]',
-  bronze: 'drop-shadow-[0_0_8px_rgba(251,146,60,0.35)]',
-};
-
-function MedalHexBadge({ medal }: { medal: Medal }) {
+function TierRankChip({ medal }: { medal: Medal }) {
+  const style = TIER_STYLE[medal];
   return (
-    <img
-      src={MEDAL_HEX[medal]}
-      alt=""
-      className={`h-9 w-9 object-contain sm:h-10 sm:w-10 ${MEDAL_GLOW[medal]}`}
-      draggable={false}
-    />
+    <span
+      className={`inline-flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-[3px] border text-[9px] font-black leading-none sm:h-5 sm:w-5 sm:rounded sm:text-[10px] ${style.chip} ${style.chipText}`}
+      aria-hidden
+    >
+      {MEDAL_LABEL[medal]}
+    </span>
   );
 }
 
-/** 首頁戰役卡右上：緊湊勳章帶（不占高、仍保留儀表質感） */
+function TierStat({ medal, count }: { medal: Medal; count: number }) {
+  const style = TIER_STYLE[medal];
+  const dimmed = count <= 0;
+  return (
+    <div
+      title={medalTooltip(medal, count)}
+      className={`flex items-center gap-1 px-1 sm:gap-1.5 sm:px-1.5 ${dimmed ? 'opacity-40' : ''}`}
+      aria-label={`${MEDAL_FULL[medal]} ${count} 關`}
+    >
+      <TierRankChip medal={medal} />
+      <span className={`text-sm font-black tabular-nums leading-none sm:text-base ${style.count}`}>
+        {count}
+      </span>
+    </div>
+  );
+}
+
+/** 首頁戰役卡右上：火力評級戰術讀數（無 PNG 徽章，與作戰 HUD 語彙一致） */
 export function ChapterMedalSummary({ className }: { className?: string } = {}) {
   const totals = useMemo(() => {
     const bestMap = getAllBestMedals();
@@ -62,23 +92,13 @@ export function ChapterMedalSummary({ className }: { className?: string } = {}) 
 
   return (
     <div className={['shrink-0', className].filter(Boolean).join(' ')}>
-      <div className="rounded-xl border border-slate-500/40 bg-gradient-to-b from-slate-800/95 via-[#0b1018] to-slate-950/95 px-1 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_2px_14px_rgba(0,0,0,0.4)] ring-1 ring-amber-500/15 sm:px-1.5 sm:py-1.5">
-        <div className="flex items-stretch divide-x divide-slate-600/35">
-          {(['gold', 'silver', 'bronze'] as const).map((medal) => (
-            <div
-              key={medal}
-              title={medalTooltip(medal, totals[medal])}
-              className="flex min-w-[2.35rem] flex-col items-center justify-center gap-0.5 px-1 sm:min-w-[2.65rem] sm:px-1.5"
-              aria-label={`${MEDAL_LABEL[medal]} ${totals[medal]} 枚`}
-            >
-              <MedalHexBadge medal={medal} />
-              <div
-                className={`text-sm font-black tabular-nums leading-none sm:text-base ${MEDAL_TONE[medal]}`}
-                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.75)' }}
-              >
-                {totals[medal]}
-              </div>
-            </div>
+      <div className="rounded-lg border border-slate-600/45 bg-slate-950/75 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_16px_rgba(0,0,0,0.25)] sm:rounded-xl sm:px-2.5">
+        <div className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+          火力評級
+        </div>
+        <div className="flex items-center divide-x divide-slate-600/35">
+          {MEDAL_ORDER.map((medal) => (
+            <TierStat key={medal} medal={medal} count={totals[medal]} />
           ))}
         </div>
       </div>

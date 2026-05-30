@@ -51,9 +51,16 @@ import {
   initialBobbyDownshiftRemaining,
 } from './bobbyDownshift';
 import {
-  initialLaozhangFortifyRemaining,
+  initialFortifyRemaining,
   placementsForSolver,
-} from './laozhangFortify';
+  solverConstraintsForPlacement,
+} from './fortifyModule';
+import {
+  initialLaozhangCopiedUsesRemaining,
+  initialLaozhangCopiedValue,
+  LAOZHANG_COPY_USES_PER_COPY,
+  resolveHandTelegramValue,
+} from './laozhangCopyCommand';
 import { generateHand } from './generateHand';
 import { pickHeroAfterPlaceLine, pickHeroGameStatusLine, pickHeroVictoryStatusLine } from './heroGameStatusLines';
 import { sub } from './gameFixedMessages';
@@ -138,6 +145,17 @@ function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
   return new Set(effectiveBonusTargets.map(([tx, ty]) => `${tx},${ty}`));
 }
 
+/** 戰術據點格皆已佈署數字（含開局 initialHints）。無據點關卡恆為 true。 */
+function areDigitOutpostsFilled(
+  placedNumbers: { x: number; y: number }[],
+  digitOutposts: [number, number][] | undefined,
+): boolean {
+  const outs = digitOutposts ?? [];
+  if (outs.length === 0) return true;
+  const placedKeySet = new Set(placedNumbers.map((p) => `${p.x},${p.y}`));
+  return outs.every(([ox, oy]) => placedKeySet.has(`${ox},${oy}`));
+}
+
 /** 據點格不得為已揭示地雷或動態廢雷（畫面上皆為「炸彈」）。 */
 function resolveDigitOutpostMineViolation(
   revealedMines: Set<string>,
@@ -155,10 +173,39 @@ function resolveDigitOutpostMineViolation(
   return { anchor: conflictCells[0], conflictCells };
 }
 
+/** 戰術據點未填滿而敗北：以 anchor 為連鎖原點，進入 exploding。 */
+function buildDigitOutpostIncompleteLossState(
+  prev: GameState,
+  anchor: { x: number; y: number },
+): GameState {
+  const outposts = prev.level.definition.digitOutposts ?? [];
+  const placedKeySet = new Set(prev.placedNumbers.map((p) => `${p.x},${p.y}`));
+  const missing = outposts.filter(([ox, oy]) => !placedKeySet.has(`${ox},${oy}`));
+  const lossTopo = lossUiTopologyFromLevel(prev.level);
+  let explosionMarkCells = lossExplosionMarkCells(
+    prev.level.cells,
+    prev.placedNumbers,
+    anchor,
+    lossTopo,
+  );
+  explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, prev.revealedMines, anchor);
+  const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, anchor);
+  return {
+    ...prev,
+    status: 'exploding',
+    message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostIncomplete'),
+    conflictCells: missing.map(([mx, my]) => ({ x: mx, y: my })),
+    explosionMarkCells,
+    lossSequentialExplosionKeys,
+    lossExplosionWaveIndex: -1,
+  };
+}
+
 export function useMineGame(initialLevelIndex: number) {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(() => initialLevelIndex);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedHandIndex, setSelectedHandIndex] = useState<number | null>(null);
+  const [laozhangCopySlotSelected, setLaozhangCopySlotSelected] = useState(false);
   const [movingSoldier, setMovingSoldier] = useState<MovingSoldierState | null>(null);
   const [bonusFxKeys, setBonusFxKeys] = useState<string[]>([]);
   const [bobbyDownshiftFx, setBobbyDownshiftFx] = useState<BobbyDownshiftFxState | null>(null);
@@ -199,7 +246,9 @@ export function useMineGame(initialLevelIndex: number) {
       jammingEpochMs: level.definition.commandSlotReceiveJamming ? Date.now() : 0,
       jammingLockedSlot: null,
       blastPointsCountdown: initBlastCountdown,
-      laozhangFortifyRemaining: initialLaozhangFortifyRemaining(getStoredHeroId()),
+      fortifyRemaining: initialFortifyRemaining(getStoredHeroId()),
+      laozhangCopiedValue: initialLaozhangCopiedValue(getStoredHeroId()),
+      laozhangCopiedUsesRemaining: initialLaozhangCopiedUsesRemaining(getStoredHeroId()),
       bobbyDownshiftRemaining: initialBobbyDownshiftRemaining(getStoredHeroId()),
       settledMedal: null,
       settledFillPercentage: null,
@@ -212,6 +261,7 @@ export function useMineGame(initialLevelIndex: number) {
     setBonusFxKeys([]);
     setBobbyDownshiftFx(null);
     setSelectedHandIndex(null);
+    setLaozhangCopySlotSelected(false);
     setMovingSoldier(null);
   }, []);
 
@@ -219,7 +269,7 @@ export function useMineGame(initialLevelIndex: number) {
     initGame(currentLevelIndex);
   }, [currentLevelIndex, initGame]);
 
-  /** 開局倒數未啟動前切換幹員：重抽電報手牌並更新開場台詞／老張加固狀態 */
+  /** 開局倒數未啟動前切換幹員：重抽電報手牌並更新開場台詞／技能狀態 */
   useEffect(() => {
     const onHeroChanged = (e: Event) => {
       const id = (e as CustomEvent<{ id?: string }>).detail?.id;
@@ -239,11 +289,14 @@ export function useMineGame(initialLevelIndex: number) {
           rngState: rng.state(),
           hand,
           message: pickHeroGameStatusLine(id, 'initTelegraph'),
-          laozhangFortifyRemaining: initialLaozhangFortifyRemaining(id),
+          fortifyRemaining: initialFortifyRemaining(id),
+          laozhangCopiedValue: initialLaozhangCopiedValue(id),
+          laozhangCopiedUsesRemaining: initialLaozhangCopiedUsesRemaining(id),
           bobbyDownshiftRemaining: initialBobbyDownshiftRemaining(id),
         };
       });
       setSelectedHandIndex(null);
+      setLaozhangCopySlotSelected(false);
     };
     window.addEventListener(HERO_CHANGED_EVENT, onHeroChanged);
     return () => window.removeEventListener(HERO_CHANGED_EVENT, onHeroChanged);
@@ -450,6 +503,7 @@ export function useMineGame(initialLevelIndex: number) {
       if (selectedHandIndex === index) return;
 
       setSelectedHandIndex(index);
+      setLaozhangCopySlotSelected(false);
       setGameState((prev) => {
         if (!prev) return prev;
         const jam = Boolean(prev.level.definition.commandSlotReceiveJamming && prev.jammingEpochMs > 0);
@@ -479,8 +533,63 @@ export function useMineGame(initialLevelIndex: number) {
     [selectedHandIndex],
   );
 
+  const selectLaozhangCopySlot = useCallback(() => {
+    if (!gameState || gameState.status !== 'playing' || movingSoldier) return;
+    const heroId = getStoredHeroId();
+    if (heroId !== 'laozhang') return;
+
+    if (selectedHandIndex !== null) {
+      const value = resolveHandTelegramValue(gameState, selectedHandIndex, heroId);
+      if (value === null) {
+        setGameState((prev) =>
+          prev
+            ? {
+                ...prev,
+                message: pickHeroGameStatusLine(heroId, 'jammingSelectTelegraphFirst'),
+              }
+            : null,
+        );
+        return;
+      }
+      setGameState((prev) =>
+        prev
+          ? {
+              ...prev,
+              laozhangCopiedValue: value,
+              laozhangCopiedUsesRemaining: LAOZHANG_COPY_USES_PER_COPY,
+              message: pickHeroGameStatusLine(heroId, 'laozhangCopyDone', { digit: value }),
+            }
+          : null,
+      );
+      setSelectedHandIndex(null);
+      setLaozhangCopySlotSelected(true);
+      return;
+    }
+
+    if (laozhangCopySlotSelected) return;
+
+    if (gameState.laozhangCopiedUsesRemaining <= 0 || gameState.laozhangCopiedValue === null) {
+      setGameState((prev) =>
+        prev
+          ? {
+              ...prev,
+              message: pickHeroGameStatusLine(heroId, 'laozhangCopyEmpty'),
+            }
+          : null,
+      );
+      return;
+    }
+
+    setLaozhangCopySlotSelected(true);
+    setSelectedHandIndex(null);
+  }, [gameState, movingSoldier, selectedHandIndex, laozhangCopySlotSelected]);
+
   const handleCellClick = async (x: number, y: number) => {
-    if (!gameState || gameState.status !== 'playing' || selectedHandIndex === null || movingSoldier) return;
+    if (!gameState || gameState.status !== 'playing' || movingSoldier) return;
+
+    const heroId = getStoredHeroId();
+    const usingLaozhangCopy = heroId === 'laozhang' && laozhangCopySlotSelected;
+    if (!usingLaozhangCopy && selectedHandIndex === null) return;
 
     const selectedIndex = selectedHandIndex;
     const cellKey = `${x},${y}`;
@@ -496,7 +605,10 @@ export function useMineGame(initialLevelIndex: number) {
     const jamActive =
       Boolean(gameState.level.definition.commandSlotReceiveJamming) && gameState.jammingEpochMs > 0;
     let telegramValue: number;
-    if (jamActive) {
+    if (usingLaozhangCopy) {
+      if (gameState.laozhangCopiedUsesRemaining <= 0 || gameState.laozhangCopiedValue === null) return;
+      telegramValue = gameState.laozhangCopiedValue;
+    } else if (jamActive) {
       const lock = gameState.jammingLockedSlot;
       if (!lock || lock.slotIndex !== selectedIndex) {
         setGameState((prev) =>
@@ -511,10 +623,10 @@ export function useMineGame(initialLevelIndex: number) {
       }
       telegramValue = lock.value;
     } else {
-      telegramValue = gameState.hand[selectedIndex];
+      telegramValue = gameState.hand[selectedIndex!];
     }
 
-    // 落點已經提交，先清掉頂部選中態，避免動畫期間看起來像還卡著同一封電報。
+    // 落點已經提交，先清掉電報選中態；壓箱槽選中則保留至次數用盡。
     setSelectedHandIndex(null);
 
     // 僅讀關卡 JSON 的 neighborPlacedDigitBonus，不依章節或關卡號硬編碼
@@ -584,22 +696,26 @@ export function useMineGame(initialLevelIndex: number) {
       ...mineTopo,
       forcedMineKeys: new Set<string>([...(mineTopo.forcedMineKeys ?? new Set<string>()), ...allBlastPointKeys]),
     };
-    const placementSolver = new MineSolver(gameState.level.cells, newPlacedNumbers, topoWithBlastPoints);
+    const placementSolver = new MineSolver(
+      gameState.level.cells,
+      solverConstraintsForPlacement(gameState.placedNumbers, { x, y, value: placementValue }),
+      topoWithBlastPoints,
+    );
     let conflictDetails = placementSolver.getConflicts();
 
     let bobbyDownshiftConsumed = false;
     let bobbyDownshiftSaved = false;
-    let laozhangFortifyApplied = false;
-    const heroId = getStoredHeroId();
+    let fortifyApplied = false;
+    let laozhangCopyConsumed = usingLaozhangCopy;
 
     if (conflictDetails) {
-      if (heroId === 'laozhang' && gameState.laozhangFortifyRemaining > 0) {
+      if (heroId === 'tungsten' && gameState.fortifyRemaining > 0) {
         newPlacedNumbers = [
           ...gameState.placedNumbers,
           { x, y, value: placementValue, fortifyFirepower: true },
         ];
         conflictDetails = null;
-        laozhangFortifyApplied = true;
+        fortifyApplied = true;
       }
 
       if (
@@ -626,7 +742,7 @@ export function useMineGame(initialLevelIndex: number) {
           newPlacedNumbers = [...gameState.placedNumbers, { x, y, value: placementValue }];
           conflictDetails = new MineSolver(
             gameState.level.cells,
-            newPlacedNumbers,
+            solverConstraintsForPlacement(gameState.placedNumbers, { x, y, value: placementValue }),
             topoWithBlastPoints,
           ).getConflicts();
         }
@@ -637,7 +753,7 @@ export function useMineGame(initialLevelIndex: number) {
         const conflictCells = lossConflictHighlightCells(conflictDetails, { x, y });
         let explosionMarkCells = lossExplosionMarkCells(
           gameState.level.cells,
-          gameState.placedNumbers,
+          placementsForSolver(gameState.placedNumbers),
           { x, y },
           lossTopo,
         );
@@ -663,6 +779,9 @@ export function useMineGame(initialLevelIndex: number) {
                 bobbyDownshiftRemaining: bobbyDownshiftConsumed
                   ? Math.max(0, prev.bobbyDownshiftRemaining - 1)
                   : prev.bobbyDownshiftRemaining,
+                laozhangCopiedUsesRemaining: laozhangCopyConsumed
+                  ? Math.max(0, prev.laozhangCopiedUsesRemaining - 1)
+                  : prev.laozhangCopiedUsesRemaining,
               }
             : null,
         );
@@ -689,10 +808,10 @@ export function useMineGame(initialLevelIndex: number) {
     emit('game.number.place', { value: placementValue });
 
     const solverPlacedNumbers = placementsForSolver(newPlacedNumbers);
-    const laozhangFortifyMessage = laozhangFortifyApplied
+    const fortifyMessage = fortifyApplied
       ? pickHeroGameStatusLine(
           heroId,
-          gameState.laozhangFortifyRemaining > 1 ? 'laozhangFortifySaved' : 'laozhangFortifyLast',
+          gameState.fortifyRemaining > 1 ? 'fortifySaved' : 'fortifyLast',
         )
       : null;
 
@@ -778,7 +897,9 @@ export function useMineGame(initialLevelIndex: number) {
     }
 
     const newHand = [...gameState.hand];
-    newHand.splice(selectedIndex, 1);
+    if (!usingLaozhangCopy && selectedIndex !== null) {
+      newHand.splice(selectedIndex, 1);
+    }
 
     let nextPlacedInTurn = gameState.placedInTurn + 1;
     let finalHand = newHand;
@@ -825,9 +946,12 @@ export function useMineGame(initialLevelIndex: number) {
     const nextBobbyDownshiftRemaining = bobbyDownshiftConsumed
       ? Math.max(0, gameState.bobbyDownshiftRemaining - 1)
       : gameState.bobbyDownshiftRemaining;
-    const nextLaozhangFortifyRemaining = laozhangFortifyApplied
-      ? Math.max(0, gameState.laozhangFortifyRemaining - 1)
-      : gameState.laozhangFortifyRemaining;
+    const nextFortifyRemaining = fortifyApplied
+      ? Math.max(0, gameState.fortifyRemaining - 1)
+      : gameState.fortifyRemaining;
+    const nextLaozhangCopiedUsesRemaining = laozhangCopyConsumed
+      ? Math.max(0, gameState.laozhangCopiedUsesRemaining - 1)
+      : gameState.laozhangCopiedUsesRemaining;
 
     const nextMineKeys = new Set<string>(newRevealedMines);
     const firepowerDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
@@ -902,7 +1026,8 @@ export function useMineGame(initialLevelIndex: number) {
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
               bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
-              laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
+              fortifyRemaining: nextFortifyRemaining,
+              laozhangCopiedUsesRemaining: nextLaozhangCopiedUsesRemaining,
             }
           : null,
       );
@@ -913,39 +1038,22 @@ export function useMineGame(initialLevelIndex: number) {
 
     const medalThresholds = resolveMedalThresholds(gameState.level.definition);
     const goldPct = medalThresholds.gold * 100;
-    const outposts = gameState.level.definition.digitOutposts ?? [];
-    const placedKeySetForOutpost = new Set(newPlacedNumbers.map((p) => `${p.x},${p.y}`));
-    const outpostsIncomplete =
-      outposts.length > 0 &&
-      outposts.some(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
+    const outpostsIncomplete = !areDigitOutpostsFilled(
+      newPlacedNumbers,
+      gameState.level.definition.digitOutposts,
+    );
 
     if (firepowerPct >= goldPct) {
       if (outpostsIncomplete) {
-        const lossTopo = lossUiTopologyFromLevel(gameState.level);
-        const missing = outposts.filter(([ox, oy]) => !placedKeySetForOutpost.has(`${ox},${oy}`));
-        let explosionMarkCells = lossExplosionMarkCells(
-          gameState.level.cells,
-          gameState.placedNumbers,
-          { x, y },
-          lossTopo,
-        );
-        explosionMarkCells = mergeExplosionMarkCells(explosionMarkCells, newRevealedMines, { x, y });
-        const lossSequentialExplosionKeys = sortLossExplosionCells(explosionMarkCells, { x, y });
         setGameState((prev) =>
           prev
             ? {
-                ...prev,
+                ...buildDigitOutpostIncompleteLossState(prev, { x, y }),
                 placedNumbers: newPlacedNumbers,
                 revealedMines: newRevealedMines,
                 revealedClear: newRevealedClear,
                 hand: finalHand,
                 placedInTurn: finalPlacedInTurn,
-                status: 'exploding',
-                message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostIncomplete'),
-                conflictCells: missing.map(([mx, my]) => ({ x: mx, y: my })),
-                explosionMarkCells,
-                lossSequentialExplosionKeys,
-                lossExplosionWaveIndex: -1,
                 secondsLeft:
                   prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
                 rewardedMineTargets: nextRewardedMineTargets,
@@ -954,7 +1062,8 @@ export function useMineGame(initialLevelIndex: number) {
                 blastPointsCountdown: newBlastCountdown,
                 rngState: rng.state(),
                 bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
-                laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
+                fortifyRemaining: nextFortifyRemaining,
+                laozhangCopiedUsesRemaining: nextLaozhangCopiedUsesRemaining,
               }
             : null,
         );
@@ -990,7 +1099,8 @@ export function useMineGame(initialLevelIndex: number) {
               settledSecondsLeft:
                 prev.secondsLeft === null ? null : Math.max(0, prev.secondsLeft + gainedSeconds),
               bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
-              laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
+              fortifyRemaining: nextFortifyRemaining,
+              laozhangCopiedUsesRemaining: nextLaozhangCopiedUsesRemaining,
             }
           : null,
       );
@@ -1026,9 +1136,10 @@ export function useMineGame(initialLevelIndex: number) {
               blastPointsCountdown: newBlastCountdown,
               rngState: rng.state(),
               bobbyDownshiftRemaining: nextBobbyDownshiftRemaining,
-              laozhangFortifyRemaining: nextLaozhangFortifyRemaining,
-              message: laozhangFortifyMessage
-                ? laozhangFortifyMessage
+              fortifyRemaining: nextFortifyRemaining,
+              laozhangCopiedUsesRemaining: nextLaozhangCopiedUsesRemaining,
+              message: fortifyMessage
+                ? fortifyMessage
                 : bobbyDownshiftSaved
                   ? pickHeroGameStatusLine(heroId, 'bobbyDownshiftSaved', {
                       remaining: nextBobbyDownshiftRemaining,
@@ -1041,6 +1152,7 @@ export function useMineGame(initialLevelIndex: number) {
 
     setMovingSoldier(null);
     setSelectedHandIndex(null);
+    setLaozhangCopySlotSelected(usingLaozhangCopy && nextLaozhangCopiedUsesRemaining > 0);
   };
 
   const fillPercentage = gameState
@@ -1064,10 +1176,17 @@ export function useMineGame(initialLevelIndex: number) {
   const canEarlySettle =
     gameState != null && gameState.status === 'playing' && projectedMedal != null;
 
-  /** 玩家主動「撤離」：達銅以上即可結算，醒目顯示當下勳章。 */
+  /** 玩家主動「撤離」：達銅可結算；戰術據點未填滿則引爆敗北。 */
   const requestEarlySettle = useCallback(() => {
     setGameState((prev) => {
       if (!prev || prev.status !== 'playing') return prev;
+      const outposts = prev.level.definition.digitOutposts ?? [];
+      if (outposts.length > 0 && !areDigitOutpostsFilled(prev.placedNumbers, outposts)) {
+        const placedKeySet = new Set(prev.placedNumbers.map((p) => `${p.x},${p.y}`));
+        const missing = outposts.filter(([ox, oy]) => !placedKeySet.has(`${ox},${oy}`));
+        const anchor = { x: missing[0]![0], y: missing[0]![1] };
+        return buildDigitOutpostIncompleteLossState(prev, anchor);
+      }
       const firepowerPct = destructivePowerFromGameState(prev).pct;
       const t = resolveMedalThresholds(prev.level.definition);
       const m = judgeMedal(firepowerPct, t);
@@ -1083,6 +1202,7 @@ export function useMineGame(initialLevelIndex: number) {
     });
     setMovingSoldier(null);
     setSelectedHandIndex(null);
+    setLaozhangCopySlotSelected(false);
   }, []);
 
   /** 測試捷徑：直接將當前對局標記為過關，便於驗證章節流轉與對話。 */
@@ -1103,6 +1223,7 @@ export function useMineGame(initialLevelIndex: number) {
     });
     setMovingSoldier(null);
     setSelectedHandIndex(null);
+    setLaozhangCopySlotSelected(false);
   }, []);
 
   return {
@@ -1113,6 +1234,8 @@ export function useMineGame(initialLevelIndex: number) {
     gameState,
     selectedHandIndex,
     selectHand,
+    laozhangCopySlotSelected,
+    selectLaozhangCopySlot,
     movingSoldier,
     initGame,
     handleCellClick,

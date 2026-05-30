@@ -8,7 +8,7 @@ import {
   mergeTopologyWithDynamicMines,
   mineSolverTopologyFromLevel,
 } from '../gameLogic';
-import { placementsForSolver } from './laozhangFortify';
+import { placementsForSolver } from './fortifyModule';
 import type { GameState } from './types';
 
 export type BobbyPlaceHintCell = { x: number; y: number };

@@ -8,8 +8,11 @@ export type HeroGameStatusKey =
   | 'digitOutpostRevealedAsMine'
   | 'jammingSelectTelegraphFirst'
   | 'buckEmergencySaved'
-  | 'laozhangFortifySaved'
-  | 'laozhangFortifyLast'
+  | 'fortifySaved'
+  | 'fortifyLast'
+  | 'laozhangCopyDone'
+  | 'laozhangCopySelectHandFirst'
+  | 'laozhangCopyEmpty'
   | 'bobbyDownshiftSaved';
 
 export type HeroVictoryStatusKey = 'plain' | 'withTimeBonus';
@@ -26,7 +29,9 @@ export type HeroCommanderRowHintKey =
   | 'selectTelegraphJammingIdle'
   | 'selectTelegraphNormal'
   | 'digitLockedPickCell'
-  | 'pickTargetCellWithDigit';
+  | 'pickTargetCellWithDigit'
+  | 'pickTargetCellWithCopyDigit'
+  | 'copySlotReadyToPaste';
 
 export type HeroLossOperativeKey =
   | 'adjacentNeighborConflict'

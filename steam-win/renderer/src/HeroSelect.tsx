@@ -21,7 +21,7 @@ import { TerminalBackdrop } from './ui/TerminalBackdrop';
 import { HeroAvatarSilhouette, getHeroPortraitUrl } from './home/HeroAvatarSilhouette';
 import { heroSkillHudLucideIcon } from './game/heroSkillHudIcons';
 import { emit } from './audio/AudioEngine';
-import { loadUnlockedHeroIds } from './game/heroUnlockedStorage';
+import { useEffectiveUnlockedHeroIds } from './game/heroUnlockedStorage';
 import { requiredCompletedChapterForHero } from './game/heroUnlockByChapter';
 
 function ConfidentialStamp({ className = '' }: { className?: string }) {
@@ -394,11 +394,8 @@ export default function HeroSelect({
   };
 }) {
   const [selected, setSelected] = useState(() => getStoredHeroId());
-  const devUnlockAllHeroes = devHeroUnlockToggle?.unlockAllActive ?? false;
-  const unlocked = useMemo(() => {
-    if (devUnlockAllHeroes) return new Set(HEROES.map((h) => h.id));
-    return new Set(loadUnlockedHeroIds());
-  }, [devUnlockAllHeroes]);
+  const effectiveUnlockedIds = useEffectiveUnlockedHeroIds();
+  const unlocked = useMemo(() => new Set(effectiveUnlockedIds), [effectiveUnlockedIds]);
   const hero = useMemo(() => HEROES.find((h) => h.id === selected) ?? HEROES[0], [selected]);
   const heroUnlocked = unlocked.has(hero.id);
   const deployedHeroId = getStoredHeroId();

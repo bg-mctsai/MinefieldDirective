@@ -14,6 +14,7 @@ function telegraphHint(
   gameState: GameState,
   selectedHandIndex: number | null,
   combatHeroId: string,
+  laozhangCopySlotSelected: boolean,
 ): string {
   if (gameState.status === 'exploding') {
     return pickHeroCommanderRowHint(combatHeroId, 'chainExploding');
@@ -22,7 +23,20 @@ function telegraphHint(
     return pickHeroCommanderRowHint(combatHeroId, 'missionOver');
   }
   const jam = Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
+  if (laozhangCopySlotSelected && gameState.laozhangCopiedValue !== null) {
+    return pickHeroCommanderRowHint(combatHeroId, 'pickTargetCellWithCopyDigit', {
+      digit: gameState.laozhangCopiedValue,
+      uses: gameState.laozhangCopiedUsesRemaining,
+    });
+  }
   if (selectedHandIndex === null) {
+    if (
+      combatHeroId === 'laozhang' &&
+      gameState.laozhangCopiedUsesRemaining > 0 &&
+      gameState.laozhangCopiedValue !== null
+    ) {
+      return pickHeroCommanderRowHint(combatHeroId, 'copySlotReadyToPaste');
+    }
     return pickHeroCommanderRowHint(
       combatHeroId,
       jam ? 'selectTelegraphJammingIdle' : 'selectTelegraphNormal',
@@ -45,6 +59,8 @@ export function CommanderTelegraphRow({
   heroTheme: heroThemeProp,
   combatHeroId = 'xiaoming',
   layout = 'column',
+  laozhangCopySlotSelected = false,
+  onLaozhangCopySlotClick,
 }: {
   gameState: GameState;
   selectedHandIndex: number | null;
@@ -54,9 +70,11 @@ export function CommanderTelegraphRow({
   /** 用於信號干擾輪播節奏（艾達較慢） */
   combatHeroId?: string;
   layout?: 'row' | 'column';
+  laozhangCopySlotSelected?: boolean;
+  onLaozhangCopySlotClick?: () => void;
 }) {
   const heroTheme = heroThemeProp ?? getHeroCombatTheme('xiaoming');
-  const hint = telegraphHint(gameState, selectedHandIndex, combatHeroId);
+  const hint = telegraphHint(gameState, selectedHandIndex, combatHeroId, laozhangCopySlotSelected);
   const n = gameState.hand.length;
   const jamming =
     gameState.status === 'playing' &&
@@ -178,6 +196,47 @@ export function CommanderTelegraphRow({
             </motion.button>
           );
         })}
+        {combatHeroId === 'laozhang' && onLaozhangCopySlotClick ? (
+          <motion.button
+            type="button"
+            whileHover={gameState.status === 'playing' ? { y: -1, scale: 1.02 } : {}}
+            whileTap={gameState.status === 'playing' ? { scale: 0.95 } : {}}
+            disabled={gameState.status !== 'playing' || movingSoldier !== null}
+            onClick={onLaozhangCopySlotClick}
+            className={`${digitBtnClass} relative mt-0.5 border-dashed
+              ${
+                laozhangCopySlotSelected
+                  ? heroTheme.telegraphDigitSelected
+                  : selectedHandIndex !== null
+                    ? 'border-orange-400/80 bg-orange-950/40 text-orange-200 hover:bg-orange-900/50'
+                    : gameState.laozhangCopiedUsesRemaining > 0
+                      ? heroTheme.telegraphDigitIdle
+                      : 'border-slate-700 bg-slate-900 text-slate-500 hover:border-orange-500/50 hover:text-orange-300'
+              }
+              ${
+                gameState.status !== 'playing' || movingSoldier !== null ? 'cursor-not-allowed opacity-40' : ''
+              }
+            `}
+            title={
+              selectedHandIndex !== null
+                ? '點此壓箱已選電碼（可用 3 次）'
+                : gameState.laozhangCopiedUsesRemaining > 0
+                  ? `壓箱槽：${gameState.laozhangCopiedValue}（剩 ${gameState.laozhangCopiedUsesRemaining} 次）`
+                  : '壓箱槽：先選電碼再點此壓箱'
+            }
+          >
+            {gameState.laozhangCopiedUsesRemaining > 0 && gameState.laozhangCopiedValue !== null ? (
+              <span className="flex flex-col items-center leading-none">
+                <span className="font-black tabular-nums">{gameState.laozhangCopiedValue}</span>
+                <span className="text-[8px] font-bold text-orange-300/90 sm:text-[9px]">
+                  ×{gameState.laozhangCopiedUsesRemaining}
+                </span>
+              </span>
+            ) : (
+              <span className="text-[10px] font-black tracking-wider sm:text-xs">壓箱</span>
+            )}
+          </motion.button>
+        ) : null}
       </div>
     </motion.div>
   );

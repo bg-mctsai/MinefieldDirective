@@ -4,7 +4,7 @@ import { Activity, Users } from 'lucide-react';
 import { campaignHomeContinueLabels } from '../game/campaignLevelUi';
 import { LEVELS } from '../gameLogic';
 import { loadGameProgress, nextPlayableLevelKey } from '../game/gameProgressStorage';
-import { loadUnlockedHeroIds } from '../game/heroUnlockedStorage';
+import { useEffectiveUnlockedHeroIds } from '../game/heroUnlockedStorage';
 import { HEROES } from '../heroes';
 import type { HomeNavigateHandler } from './types';
 import { ChapterMedalSummary } from './ChapterMedalSummary';
@@ -14,6 +14,7 @@ function pct(n: number) {
 }
 
 export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandler }) {
+  const effectiveUnlockedIds = useEffectiveUnlockedHeroIds();
   const report = useMemo(() => {
     const progress = loadGameProgress();
     const cleared = new Set(progress.clearedLevelKeys);
@@ -25,7 +26,7 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
     const chapterLevels = LEVELS.filter((level) => level.definition.chapter === chapter);
     const chapterCleared = chapterLevels.filter((level) => cleared.has(level.levelKey)).length;
     const chapterTotal = Math.max(1, chapterLevels.length);
-    const unlockedHeroCount = loadUnlockedHeroIds().length;
+    const unlockedHeroCount = effectiveUnlockedIds.length;
 
     return {
       clearedCount: cleared.size,
@@ -37,7 +38,7 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
       chapterProgress: chapterCleared / chapterTotal,
       unlockedHeroCount,
     };
-  }, []);
+  }, [effectiveUnlockedIds]);
 
   const nextLevel = report.nextLevel;
   const continueLabels = nextLevel ? campaignHomeContinueLabels(nextLevel) : null;

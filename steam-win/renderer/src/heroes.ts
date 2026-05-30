@@ -1,5 +1,6 @@
 import type { FirepowerDigitWeightMode } from './game/mineCombatVisual';
-import { isHeroIdUnlocked, loadUnlockedHeroIds } from './game/heroUnlockedStorage';
+import type { HeroSkillHudIconId } from './game/heroSkillHudIcons';
+import { isHeroIdUnlocked, getEffectiveUnlockedHeroIds } from './game/heroUnlockedStorage';
 
 /** 工兵動態台詞觸發類型 */
 export type HeroBarrageTrigger =
@@ -23,8 +24,8 @@ export interface HeroPersonalItem {
 export interface HeroCombatSkill {
   name: string;
   detail: string;
-  /** 對局 HUD／整備：圖示鍵，見 `game/heroSkillHudIcons.tsx` */
-  hudIcon?: 'mails' | 'activity';
+  /** 對局 HUD／整備：圖示鍵，見 `game/heroSkillHudIcons.tsx`（全技能唯一） */
+  hudIcon?: HeroSkillHudIconId;
 }
 
 export interface HeroDef {
@@ -135,7 +136,7 @@ export const HEROES: HeroDef[] = [
       },
       {
         name: '雜訊緩讀',
-        hudIcon: 'activity',
+        hudIcon: 'filter',
         detail: '信號干擾區內，電報數字輪播間隔延長一倍，較易鎖定讀值。',
       },
     ],
@@ -291,7 +292,7 @@ export const HEROES: HeroDef[] = [
     combatSkills: [
       {
         name: '格網倍乘',
-        hudIcon: 'mails',
+        hudIcon: 'grid',
         detail:
           '每顆已確定的雷：幾格已佈數字與它緊鄰，加權 0～1 格→1；2 格→2，每再多一格 ×2（4、8…），封頂 8。',
       },
@@ -358,7 +359,7 @@ export const HEROES: HeroDef[] = [
     combatSkills: [
       {
         name: '嗅線標記',
-        hudIcon: 'activity',
+        hudIcon: 'footprints',
         detail:
           '同一組電報的第二手：選定長官電報後，會在上一手鄰格亮起「放當前電碼不會爆」的空格（已揭雷格不亮）。',
       },
@@ -430,8 +431,8 @@ export const HEROES: HeroDef[] = [
     id: 'laozhang',
     name: '老張',
     role: '結構工程師',
-    skillName: '加固模組',
-    skillDetail: '每關 2 次：放錯不爆炸，該格改算火力（亮橙火力字，數值計入火力％）。',
+    skillName: '壓箱電碼',
+    skillDetail: '先選電碼，再點專屬壓箱槽壓箱；選中後可連續點格使用（最多 3 次），可隨時再壓新電碼。',
     missionMapHook:
       '甲面上噬星者抓過的痕與焊補邊緣一樣清楚——乾谷據點他曾澆過最後一車漿，也親眼看裂隙把它啃穿。',
     codename: '城牆',
@@ -440,7 +441,7 @@ export const HEROES: HeroDef[] = [
       '鋼筋混凝土與連鎖反應在他眼里同一套語言；戰壕裡會默默遞根菸、話少的那種可靠。他穿最重的甲不是炫，是算過：多扛一瞬，後面就少賠一條命。',
       '乾谷據點有他親手澆的樑。異界推進那夜，梁斷人沒全撤——他記得是誰的名字沒回來。從此他嘴更硬、手更快：線不能在他面前整段塌。',
     ],
-    specialties: ['應急加固', '連鎖阻斷', '帶隊節奏'],
+    specialties: ['壓箱電碼', '連鎖阻斷', '帶隊節奏'],
     personalItems: [
       { label: '甲面焊補痕對照素描', icon: 'note' },
       { label: '應力計算尺', icon: 'tag' },
@@ -491,8 +492,16 @@ export const HEROES: HeroDef[] = [
     id: 'tungsten',
     name: '堡壘-09',
     role: '重裝自律戰鬥體',
-    skillName: '無',
-    skillDetail: '戰鬥模組規劃中。',
+    skillName: '加固模組',
+    skillDetail: '每關 2 次：放錯不爆，該格改算火力（亮橙火力字，數值計入火力％）。',
+    barrage: {
+      opening: ['指令接收。加固模組待命。', '結構弱點掃描完成。執行。'],
+      lastTen: ['剩餘十秒。優先穩定連鎖。', '時限逼近。收斂序列。'],
+      idle: ['待命中。', '承載餘量計算中。'],
+      good: ['落格有效。', '結構穩定。'],
+      bad: ['連鎖觸發。加固介入。', '錯格已轉火力。'],
+      victory: ['序列完成。撤回待機。', '佈雷達標。終止。'],
+    },
     missionMapHook:
       '工業深處挖出來的自律機體——相位奇點在核心留下的不是人性，是只計算破壞效率的金屬邏輯。',
     codename: '鎢鋼',
@@ -588,7 +597,7 @@ function readRawMappedSelectedId(): string | null {
 }
 
 export function getStoredHeroId(): string {
-  const unlocked = new Set(loadUnlockedHeroIds());
+  const unlocked = new Set(getEffectiveUnlockedHeroIds());
   const raw = readRawMappedSelectedId();
   const firstAvailable = HEROES.find((h) => unlocked.has(h.id))?.id ?? HEROES[0].id;
   const pick = raw != null && unlocked.has(raw) ? raw : firstAvailable;
@@ -616,7 +625,7 @@ export function getHeroDef(id: string): HeroDef {
   return HEROES.find((h) => h.id === id) ?? HEROES[0];
 }
 
-/** 整備／對局右上角技能列（老張另有「加固模組」專屬 UI，不經此列） */
+/** 整備／對局右上角技能列（老張另有「壓箱槽」、堡壘-09 另有「加固模組」專屬 UI，不經此列） */
 export function getHeroCombatSkills(hero: HeroDef): HeroCombatSkill[] {
   if (hero.combatSkills && hero.combatSkills.length > 0) return hero.combatSkills;
   if (hero.skillName) {

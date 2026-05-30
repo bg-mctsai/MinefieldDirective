@@ -1,9 +1,9 @@
 import { MineSolver } from '../gameLogic';
-import type { Level } from '../gameLogic';
+import type { Level, MineSolverTopology } from '../gameLogic';
+import { solverConstraintsForPlacement } from './fortifyModule';
+import type { PlacedNumber } from './types';
 
-type Placed = { x: number; y: number; value: number };
-
-export type BobbyDownshiftTopo = Parameters<typeof MineSolver>[2];
+export type BobbyDownshiftTopo = MineSolverTopology;
 
 /** 波比緊急降碼：每關可用次數 */
 export const BOBBY_DOWNSHIFT_CHARGES_PER_LEVEL = 2;
@@ -20,7 +20,7 @@ export function canAttemptBobbyDownshift(placementValue: number): boolean {
 /** 若降碼後無邏輯衝突則回傳新值；否則 null */
 export function bobbyDownshiftResolvedValue(
   cells: Level['cells'],
-  placedBefore: readonly Placed[],
+  placedBefore: readonly PlacedNumber[],
   x: number,
   y: number,
   placementValue: number,
@@ -28,7 +28,10 @@ export function bobbyDownshiftResolvedValue(
 ): number | null {
   if (!canAttemptBobbyDownshift(placementValue)) return null;
   const reduced = placementValue - 1;
-  const trial = [...placedBefore, { x, y, value: reduced }];
-  const conflict = new MineSolver(cells, trial, topo).getConflicts();
+  const conflict = new MineSolver(
+    cells,
+    solverConstraintsForPlacement(placedBefore, { x, y, value: reduced }),
+    topo,
+  ).getConflicts();
   return conflict ? null : reduced;
 }

@@ -10,11 +10,11 @@
     "medalThresholds.silver": "銀級勳章火力門檻 0～1。建議比銅高約 0.05～0.15。",
     "medalThresholds.gold": "金級勳章火力門檻 0～1。達此值對局自動結算；建議比銀高約 0.05～0.15。受 forbiddenCells 影響時請避免逼近 1.0。",
     "timeLimit": "時間限制（秒）；須為正整數，全戰役關卡皆計時。",
-    "timeLimit.chapter4": "第 4 章（chapter=4）：建議 timeLimit = 該關 mapRef 對應 maps/*.json 之 gridStats.playableCells（1:1，不加秒）。實際數值以本檔各 level 條目為單一真相來源；改地圖後請手動對齊本欄。",
-    "timeLimit.chapter5": "第 5 章（chapter=5）：建議 timeLimit = playableCells − 5。5_1～5_4 各 3 據點；5_5～5_8 各 4 據點。",
+    "timeLimit.chapter4": "第 4 章蜂巢戰線（chapter=4）：4_1～4_2 建議 timeLimit = playableCells（1:1）；4_3～4_8 建議 playableCells − 5。全章 HEXAGON，commands 僅 \"1\"～\"6\"。",
+    "timeLimit.chapter5": "第 5 章斷線封鎖（chapter=5）：5_1～5_5 方格建議 timeLimit = playableCells；5_6～5_8 六角建議 playableCells − 5。",
     "commands.chapter4": "第 4 章蜂巢關（mapRef 4_1～4_8）：commands.weights 請只使用鍵 \"1\"～\"6\"（六角鄰數上限）；勿填 7、8。",
-    "commands.chapter6": "第 6 章（chapter=6）：依 maps/{mapRef}.json 的 mapLayout.type——HEXAGON 僅 \"1\"～\"6\"；SQUARE 為 \"1\"～\"8\"。六角建議 18/22/20/18/12/8；四方建議 8/14/22/22/14/10/7/3（同第 3 章方格池）。",
-    "digitOutposts.chapter4": "第 4 章僅 mapRef 4_5～4_8 填 digitOutposts；4_1～4_4 請省略 digitOutposts。座標須落在該關可部署格。",
+    "commands.chapter6": "第 6～10 章：依 mapLayout.type——HEXAGON 僅 \"1\"～\"6\"（每章約 2～3 關）；SQUARE 為 \"1\"～\"8\"。六角建議 18/22/20/18/12/8；四方建議 8/14/22/22/14/10/7/3。",
+    "digitOutposts.chapter4": "第 4 章：4_1～4_2 省略 digitOutposts；4_3～4_4 各 3 據點；4_5～4_8 各 4 據點（自原第 5 章遷入）。座標須落在可部署格。",
     "initialSeed": "盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。",
     "mapRef": "可選；外置地圖時填「章節_關卡」（與 levelKey 相同，如 1_1、10_8），對應 levelData/maps/{mapRef}.json。檔案典型結構：mapLayout（必填）、mapTheme（可選）、gridStats（可選，僅企劃標註）。與關卡內嵌 mapLayout 二擇一；併存時以內嵌為準。",
     "（外置地圖）mapTheme": "可選；寫在 maps/*.json。極短戰場名，供關卡選擇列與戰情簡報標題（建議約 2～5 字）。",
@@ -749,7 +749,7 @@
     {
       "levelId": 25,
       "chapter": 4,
-      "title": "蜂格前哨 · 4_1",
+      "title": "蜂巢戰線 · 4_1",
       "coverageGoal": 0.73,
       "timeLimit": 50,
       "initialSeed": "minefield-campaign-v1-L31-ch4",
@@ -772,7 +772,7 @@
     {
       "levelId": 26,
       "chapter": 4,
-      "title": "蜂格前哨 · 4_2",
+      "title": "蜂巢戰線 · 4_2",
       "coverageGoal": 0.73,
       "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L32-ch4",
@@ -795,10 +795,11 @@
     {
       "levelId": 27,
       "chapter": 4,
-      "title": "蜂格前哨 · 4_3",
-      "coverageGoal": 0.73,
-      "timeLimit": 65,
-      "initialSeed": "minefield-campaign-v1-L33-ch4",
+      "mapRef": "4_3",
+      "title": "蜂巢戰線 · 4_3",
+      "coverageGoal": 0.8,
+      "timeLimit": 70,
+      "initialSeed": "minefield-campaign-v1-L27-ch4-merged",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -812,294 +813,30 @@
         }
       },
       "events": [],
-      "rewards": {},
-      "mapRef": "4_3"
+      "digitOutposts": [
+        [
+          6,
+          1
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          6,
+          9
+        ]
+      ],
+      "rewards": {}
     },
     {
       "levelId": 28,
       "chapter": 4,
-      "title": "蜂格前哨 · 4_4",
-      "coverageGoal": 0.73,
-      "timeLimit": 73,
-      "initialSeed": "minefield-campaign-v1-L34-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "4_4"
-    },
-    {
-      "levelId": 29,
-      "chapter": 4,
-      "title": "蜂格前哨 · 4_5",
-      "coverageGoal": 0.73,
-      "timeLimit": 80,
-      "initialSeed": "minefield-campaign-v1-L35-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "4_5",
-      "digitOutposts": [
-        [
-          0,
-          0
-        ],
-        [
-          9,
-          7
-        ]
-      ]
-    },
-    {
-      "levelId": 30,
-      "chapter": 4,
-      "title": "蜂格前哨 · 4_6",
-      "coverageGoal": 0.73,
-      "timeLimit": 87,
-      "initialSeed": "minefield-campaign-v1-L36-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "4_6",
-      "digitOutposts": [
-        [
-          1,
-          5
-        ],
-        [
-          8,
-          2
-        ]
-      ]
-    },
-    {
-      "levelId": 31,
-      "chapter": 4,
-      "title": "蜂格前哨 · 4_7",
-      "coverageGoal": 0.73,
-      "timeLimit": 94,
-      "initialSeed": "minefield-campaign-v1-L37-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "4_7",
-      "digitOutposts": [
-        [
-          2,
-          6
-        ],
-        [
-          9,
-          1
-        ]
-      ]
-    },
-    {
-      "levelId": 32,
-      "chapter": 4,
-      "title": "蜂格前哨 · 4_8",
-      "coverageGoal": 0.73,
-      "timeLimit": 100,
-      "initialSeed": "minefield-campaign-v1-L38-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "rewards": {},
-      "mapRef": "4_8",
-      "digitOutposts": [
-        [
-          3,
-          3
-        ],
-        [
-          8,
-          7
-        ]
-      ]
-    },
-    {
-      "levelId": 33,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_1",
-      "coverageGoal": 0.8,
-      "timeLimit": 73,
-      "initialSeed": "minefield-campaign-v1-L41-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "digitOutposts": [
-        [
-          6,
-          1
-        ],
-        [
-          7,
-          5
-        ],
-        [
-          6,
-          9
-        ]
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_1"
-    },
-    {
-      "levelId": 34,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_2",
-      "coverageGoal": 0.8,
-      "timeLimit": 72,
-      "initialSeed": "minefield-campaign-v1-L42-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "digitOutposts": [
-        [
-          7,
-          0
-        ],
-        [
-          6,
-          7
-        ],
-        [
-          9,
-          2
-        ]
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_2"
-    },
-    {
-      "levelId": 35,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_3",
-      "coverageGoal": 0.8,
-      "timeLimit": 70,
-      "initialSeed": "minefield-campaign-v1-L43-ch4",
-      "commands": {
-        "maxHand": 3,
-        "poolType": "WEIGHTED",
-        "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
-        }
-      },
-      "events": [],
-      "digitOutposts": [
-        [
-          6,
-          1
-        ],
-        [
-          6,
-          5
-        ],
-        [
-          6,
-          9
-        ]
-      ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_3"
-    },
-    {
-      "levelId": 36,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_4",
+      "mapRef": "4_4",
+      "title": "蜂巢戰線 · 4_4",
       "coverageGoal": 0.8,
       "timeLimit": 71,
-      "initialSeed": "minefield-campaign-v1-L44-ch4",
+      "initialSeed": "minefield-campaign-v1-L28-ch4-merged",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1127,20 +864,16 @@
           8
         ]
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_4"
+      "rewards": {}
     },
     {
-      "levelId": 37,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_5",
+      "levelId": 29,
+      "chapter": 4,
+      "mapRef": "4_5",
+      "title": "蜂巢戰線 · 4_5",
       "coverageGoal": 0.8,
       "timeLimit": 67,
-      "initialSeed": "minefield-campaign-v1-L45-ch4",
+      "initialSeed": "minefield-campaign-v1-L29-ch4-merged",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1172,20 +905,16 @@
           2
         ]
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_5"
+      "rewards": {}
     },
     {
-      "levelId": 38,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_6",
+      "levelId": 30,
+      "chapter": 4,
+      "mapRef": "4_6",
+      "title": "蜂巢戰線 · 4_6",
       "coverageGoal": 0.8,
       "timeLimit": 77,
-      "initialSeed": "minefield-campaign-v1-L46-ch4",
+      "initialSeed": "minefield-campaign-v1-L30-ch4-merged",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1217,20 +946,16 @@
           3
         ]
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_6"
+      "rewards": {}
     },
     {
-      "levelId": 39,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_7",
+      "levelId": 31,
+      "chapter": 4,
+      "mapRef": "4_7",
+      "title": "蜂巢戰線 · 4_7",
       "coverageGoal": 0.8,
       "timeLimit": 81,
-      "initialSeed": "minefield-campaign-v1-L47-ch4",
+      "initialSeed": "minefield-campaign-v1-L31-ch4-merged",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1262,20 +987,16 @@
           2
         ]
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_7"
+      "rewards": {}
     },
     {
-      "levelId": 40,
-      "chapter": 5,
-      "title": "蜂巢防線 · 5_8",
+      "levelId": 32,
+      "chapter": 4,
+      "mapRef": "4_8",
+      "title": "蜂巢戰線 · 4_8",
       "coverageGoal": 0.8,
       "timeLimit": 67,
-      "initialSeed": "minefield-campaign-v1-L48-ch4",
+      "initialSeed": "minefield-campaign-v1-L32-ch4-merged",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1307,20 +1028,165 @@
           2
         ]
       ],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
-      "mapRef": "5_8"
+      "rewards": {}
     },
     {
-      "levelId": 41,
-      "chapter": 6,
-      "title": "深海要塞 · 6_1",
-      "coverageGoal": 0.8,
+      "levelId": 33,
+      "chapter": 5,
+      "mapRef": "5_1",
+      "rewards": {},
+      "title": "斷線封鎖 · 5_1",
+      "coverageGoal": 0.75,
       "timeLimit": 63,
-      "initialSeed": "minefield-campaign-v1-L51-ch5",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
+        }
+      },
+      "initialSeed": "minefield-campaign-v1-L33-ch5-square"
+    },
+    {
+      "levelId": 34,
+      "chapter": 5,
+      "mapRef": "5_2",
+      "rewards": {},
+      "title": "斷線封鎖 · 5_2",
+      "coverageGoal": 0.76,
+      "timeLimit": 80,
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
+        }
+      },
+      "initialSeed": "minefield-campaign-v1-L34-ch5-square"
+    },
+    {
+      "levelId": 35,
+      "chapter": 5,
+      "mapRef": "5_3",
+      "rewards": {},
+      "title": "斷線封鎖 · 5_3",
+      "coverageGoal": 0.77,
+      "timeLimit": 95,
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
+        }
+      },
+      "initialSeed": "minefield-campaign-v1-L35-ch5-square",
+      "digitOutposts": [
+        [
+          5,
+          5
+        ]
+      ]
+    },
+    {
+      "levelId": 36,
+      "chapter": 5,
+      "mapRef": "5_4",
+      "rewards": {},
+      "title": "斷線封鎖 · 5_4",
+      "coverageGoal": 0.78,
+      "timeLimit": 117,
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
+        }
+      },
+      "initialSeed": "minefield-campaign-v1-L36-ch5-square",
+      "digitOutposts": [
+        [
+          4,
+          4
+        ],
+        [
+          7,
+          7
+        ]
+      ]
+    },
+    {
+      "levelId": 37,
+      "chapter": 5,
+      "mapRef": "5_5",
+      "rewards": {},
+      "title": "斷線封鎖 · 5_5",
+      "coverageGoal": 0.79,
+      "timeLimit": 98,
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
+        }
+      },
+      "initialSeed": "minefield-campaign-v1-L37-ch5-square",
+      "digitOutposts": [
+        [
+          0,
+          1
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          7,
+          7
+        ]
+      ]
+    },
+    {
+      "levelId": 38,
+      "chapter": 5,
+      "title": "斷線封鎖 · 5_6",
+      "coverageGoal": 0.8,
+      "timeLimit": 77,
+      "initialSeed": "minefield-campaign-v1-L38-ch5-hex",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1333,13 +1199,134 @@
           "6": 8
         }
       },
+      "events": [],
+      "digitOutposts": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          5,
+          11
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "rewards": {},
+      "mapRef": "5_6"
+    },
+    {
+      "levelId": 39,
+      "chapter": 5,
+      "title": "斷線封鎖 · 5_7",
+      "coverageGoal": 0.8,
+      "timeLimit": 81,
+      "initialSeed": "minefield-campaign-v1-L39-ch5-hex",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 8
+        }
+      },
+      "events": [],
+      "digitOutposts": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          5,
+          10
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "rewards": {},
+      "mapRef": "5_7"
+    },
+    {
+      "levelId": 40,
+      "chapter": 5,
+      "title": "斷線封鎖 · 5_8",
+      "coverageGoal": 0.8,
+      "timeLimit": 67,
+      "initialSeed": "minefield-campaign-v1-L40-ch5-hex",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 8
+        }
+      },
+      "events": [],
+      "digitOutposts": [
+        [
+          6,
+          0
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          6,
+          10
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "rewards": {},
+      "mapRef": "5_8"
+    },
+    {
+      "levelId": 41,
+      "chapter": 6,
+      "title": "深海要塞 · 6_1",
+      "coverageGoal": 0.8,
+      "timeLimit": 59,
+      "initialSeed": "minefield-campaign-v1-L51-ch5",
+      "commands": {
+        "maxHand": 3,
+        "poolType": "WEIGHTED",
+        "weights": {
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
+        }
+      },
       "dynamicMinePerMove": true,
       "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
+      "rewards": {},
       "mapRef": "6_1"
     },
     {
@@ -1405,27 +1392,25 @@
       "chapter": 6,
       "title": "深海要塞 · 6_4",
       "coverageGoal": 0.81,
-      "timeLimit": 59,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L54-ch5-34a684b5",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "dynamicMinePerMove": true,
       "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 六角格鄰居與畫面呈現"
-        ]
-      },
+      "rewards": {},
       "mapRef": "6_4"
     },
     {
@@ -1576,15 +1561,20 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_2",
       "coverageGoal": 0.81,
-      "timeLimit": 59,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L62-ch7-309c3e55",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -1650,15 +1640,20 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_5",
       "coverageGoal": 0.81,
-      "timeLimit": 75,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
         "poolType": "RANDOM",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -1667,7 +1662,7 @@
       "digitOutposts": [
         [
           5,
-          5
+          7
         ]
       ],
       "rewards": {},
@@ -1820,41 +1815,42 @@
       "chapter": 8,
       "title": "引爆危機 · 8_2",
       "coverageGoal": 0.86,
-      "timeLimit": 59,
+      "timeLimit": 63,
       "initialSeed": "minefield-campaign-v1-L72-ch8-4b889058",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "blastPoints": [
         {
           "pos": [
-            2,
-            0
+            5,
+            6
           ],
           "countdownSec": 30,
           "defuseBonusSec": 12
         },
         {
           "pos": [
-            7,
-            9
+            4,
+            4
           ],
           "countdownSec": 30,
           "defuseBonusSec": 12
         }
       ],
       "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 兩炸點同時倒數，測試 UI 清晰度"
-        ]
-      },
+      "rewards": {},
       "mapRef": "8_2"
     },
     {
@@ -1962,15 +1958,20 @@
       "chapter": 8,
       "title": "引爆危機 · 8_5",
       "coverageGoal": 0.86,
-      "timeLimit": 57,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "blastPoints": [
@@ -2000,11 +2001,7 @@
         }
       ],
       "events": [],
-      "rewards": {
-        "todo": [
-          "TODO: 炸點倒數不等長，考驗排程優先序"
-        ]
-      },
+      "rewards": {},
       "mapRef": "8_5"
     },
     {
@@ -2202,9 +2199,14 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -2267,15 +2269,20 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_5",
       "coverageGoal": 0.86,
-      "timeLimit": 59,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],

@@ -158,9 +158,9 @@
         "digitOutpostIncomplete": ["覆蓋夠了，據點還沒灌漿。下一盤一個一個填滿。"],
         "digitOutpostRevealedAsMine": ["據點變雷？那格只能放數字，結構不允許。"],
         "jammingSelectTelegraphFirst": ["先點電碼對讀值，再下格。急不得，也拖不得。"],
-        "buckEmergencySaved": ["加固擋住了。還有一次，下一手收乾淨。"],
-        "laozhangFortifySaved": ["錯格不爆。這格當火力算，還有一次加固。"],
-        "laozhangFortifyLast": ["最後一次加固。這格入火力，別再賭結構。"]
+        "laozhangCopyDone": ["電碼 {digit} 壓箱了，還能用 3 次。"],
+        "laozhangCopySelectHandFirst": ["先選一道電碼，再點壓箱槽。"],
+        "laozhangCopyEmpty": ["壓箱槽空了。先選電碼再壓。"]
       },
       "afterPlace": {
         "newHandArrived": "新電碼到了。選下一道，這線還撐得住。",
@@ -176,9 +176,11 @@
         "chainExploding": "連環爆！停手，線要斷了。",
         "missionOver": "這盤收工。歇口氣再澆下一條。",
         "selectTelegraphJammingIdle": "先選電碼，讀值對好再下。別急折在這。",
-        "selectTelegraphNormal": "先穩電碼，再點格。結構我盯著。",
+        "selectTelegraphNormal": "先穩電碼，再點格。要壓箱就先選電碼再點壓箱槽。",
         "digitLockedPickCell": "數字鎖了。選格下，慢一拍。",
-        "pickTargetCellWithDigit": "電碼「{digit}」——點那格，撐住。"
+        "pickTargetCellWithDigit": "電碼「{digit}」——點那格，撐住。",
+        "pickTargetCellWithCopyDigit": "壓箱「{digit}」——點格下（剩 {uses} 次）。",
+        "copySlotReadyToPaste": "壓箱已選中。直接點格使用，或先選電碼換壓箱。"
       },
       "lossOperative": {
         "adjacentNeighborConflict": "{v} 跟 {other} 鄰格衝突，連鎖要斷——換格。",
@@ -194,7 +196,9 @@
         "blastPointExplosion": ["炸點承載斷裂。周邊格未達標，連鎖啟動。"],
         "digitOutpostIncomplete": ["覆蓋率達標。據點節點仍空——任務未完成。"],
         "digitOutpostRevealedAsMine": ["據點格判定為雷。邏輯衝突：該格僅允許數字。"],
-        "jammingSelectTelegraphFirst": ["干擾輪播中。先鎖電碼讀值，再執行落格。"]
+        "jammingSelectTelegraphFirst": ["干擾輪播中。先鎖電碼讀值，再執行落格。"],
+        "fortifySaved": ["錯格不爆。該格轉火力。加固模組剩餘一次。"],
+        "fortifyLast": ["最後一次加固。該格入火力序列。"]
       },
       "afterPlace": {
         "newHandArrived": "新電碼佇列更新。選下一道，繼續序列。",

@@ -1,5 +1,5 @@
 import { MineSolver, mergeTopologyWithDynamicMines, mineSolverTopologyFromLevel, type Level } from '../gameLogic';
-import { placementsForSolver } from './laozhangFortify';
+import { placementsForSolver } from './fortifyModule';
 import type { PlacedNumber } from './types';
 import type { SeededRng } from './seededRng';
 import { shuffleWithRng } from './seededRng';

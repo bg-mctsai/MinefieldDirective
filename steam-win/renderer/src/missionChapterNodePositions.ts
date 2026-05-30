@@ -47,7 +47,7 @@ export const MISSION_CHAPTER_NODE_LAYOUTS: readonly (readonly MissionChapterNode
     { x: 32, y: 26 },
     { x: 48, y: 18 },
   ],
-  // 第 4 章 — 蜂格前哨：右翼包抄，Boss 東北角
+  // 第 4 章 — 蜂巢戰線：右翼包抄，Boss 東北角
   [
     { x: 12, y: 55 },
     { x: 22, y: 68 },
@@ -58,7 +58,7 @@ export const MISSION_CHAPTER_NODE_LAYOUTS: readonly (readonly MissionChapterNode
     { x: 74, y: 38 },
     { x: 86, y: 22 },
   ],
-  // 第 5 章 — 蜂巢防線：中軸蛇行，Boss 置中（巢心）；拉開 5～7 關避免節點疊在視覺上過近
+  // 第 5 章 — 斷線封鎖：中軸蛇行，Boss 置中；拉開 5～7 關避免節點疊在視覺上過近
   [
     { x: 48, y: 78 },
     { x: 38, y: 62 },

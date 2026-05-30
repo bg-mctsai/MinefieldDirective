@@ -68,6 +68,8 @@ export default function GameView({
     gameState,
     selectedHandIndex,
     selectHand,
+    laozhangCopySlotSelected,
+    selectLaozhangCopySlot,
     movingSoldier,
     initGame,
     handleCellClick,
@@ -299,7 +301,9 @@ export default function GameView({
             gameState={gameState}
             statusBarFrameClass={combatTheme.statusBarWrap}
             speakerHeroId={combatHeroId}
-            laozhangFortifyRemaining={gameState.laozhangFortifyRemaining}
+            fortifyRemaining={gameState.fortifyRemaining}
+            laozhangCopiedValue={gameState.laozhangCopiedValue}
+            laozhangCopiedUsesRemaining={gameState.laozhangCopiedUsesRemaining}
             bobbyDownshiftRemaining={gameState.bobbyDownshiftRemaining}
             allowPreBattleHeroSwitch={gameState.status === 'playing' && !gameState.timerStarted}
             placement="header"
@@ -326,6 +330,8 @@ export default function GameView({
                 onSelectHand={selectHand}
                 heroTheme={combatTheme}
                 combatHeroId={combatHeroId}
+                laozhangCopySlotSelected={laozhangCopySlotSelected}
+                onLaozhangCopySlotClick={selectLaozhangCopySlot}
               />
               <GameBoard
                 boardRef={boardRef}
@@ -340,7 +346,11 @@ export default function GameView({
               />
               <HeroSkillHud
                 heroId={combatHeroId}
-                laozhangFortifyRemaining={gameState.laozhangFortifyRemaining}
+                fortifyRemaining={gameState.fortifyRemaining}
+                laozhangCopiedValue={gameState.laozhangCopiedValue}
+                laozhangCopiedUsesRemaining={gameState.laozhangCopiedUsesRemaining}
+                laozhangCopySlotSelected={laozhangCopySlotSelected}
+                handSelected={selectedHandIndex !== null}
                 bobbyDownshiftRemaining={gameState.bobbyDownshiftRemaining}
                 theme={combatTheme}
               />

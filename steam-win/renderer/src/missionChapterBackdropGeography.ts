@@ -57,7 +57,7 @@ const CHAPTER_3: MissionBackdropGeographyLabel[] = [
   { x: 50, y: 30, text: '中央淺溝', align: 'middle' },
 ];
 
-/** 第 4 章 蜂格前哨（蜂巢地形前導） */
+/** 第 4 章 蜂巢戰線（全章六角） */
 const CHAPTER_4: MissionBackdropGeographyLabel[] = [
   { x: 48, y: 10, text: '北稜觀測所', align: 'middle' },
   { x: 82, y: 28, text: '東脊防火線', align: 'end' },
@@ -73,20 +73,20 @@ const CHAPTER_4: MissionBackdropGeographyLabel[] = [
   { x: 44, y: 18, text: '主高地峰', align: 'middle' },
 ];
 
-/** 第 5 章 蜂巢防線 */
+/** 第 5 章 斷線封鎖（方格廊道為主） */
 const CHAPTER_5: MissionBackdropGeographyLabel[] = [
-  { x: 50, y: 10, text: '蜂巢北緣', align: 'middle' },
-  { x: 32, y: 28, text: '六角網核心', align: 'start' },
-  { x: 68, y: 32, text: '工蜂走道', align: 'end' },
-  { x: 44, y: 62, text: '南巢出入口', align: 'middle' },
-  { x: 24, y: 48, text: '養殖艙外殼', align: 'start' },
-  { x: 76, y: 52, text: '冷卻廊道', align: 'end' },
-  { x: 50, y: 42, text: '電網接合區', align: 'middle' },
-  { x: 58, y: 22, text: '巢心管制室', align: 'middle' },
-  { x: 12, y: 62, text: '廢蠟處理槽', align: 'start' },
-  { x: 88, y: 68, text: '東巢擴張帶', align: 'end' },
-  { x: 38, y: 76, text: '維修豎井', align: 'start' },
-  { x: 84, y: 36, text: '外殼裂縫帶', align: 'end' },
+  { x: 50, y: 10, text: '北緣封鎖帶', align: 'middle' },
+  { x: 32, y: 28, text: '斷線中繼站', align: 'start' },
+  { x: 68, y: 32, text: '紅筆節點', align: 'end' },
+  { x: 44, y: 62, text: '南廊撤離口', align: 'middle' },
+  { x: 24, y: 48, text: '西側拒馬', align: 'start' },
+  { x: 76, y: 52, text: '東線導流槽', align: 'end' },
+  { x: 50, y: 42, text: '封鎖接合區', align: 'middle' },
+  { x: 58, y: 22, text: '參謀劃線室', align: 'middle' },
+  { x: 12, y: 62, text: '廢訊號池', align: 'start' },
+  { x: 88, y: 68, text: '東翼延伸帶', align: 'end' },
+  { x: 38, y: 76, text: '緊急豎井', align: 'start' },
+  { x: 84, y: 36, text: '裂隙旁路', align: 'end' },
 ];
 
 /** 第 6 章 深海要塞 */

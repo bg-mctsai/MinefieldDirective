@@ -29,7 +29,7 @@ export type MovingSoldierState =
       flightFrom: { x: number; y: number } | null;
     };
 
-/** 棋格已佈數字；`fortifyFirepower` 為老張加固轉火力格 */
+/** 棋格已佈數字；`fortifyFirepower` 為堡壘-09 加固轉火力格 */
 export type PlacedNumber = {
   x: number;
   y: number;
@@ -75,8 +75,12 @@ export interface GameState {
    * 非引爆危機關卡為空 Map。
    */
   blastPointsCountdown: Map<string, number>;
-  /** 老張「加固模組」本關剩餘次數（非老張為 0） */
-  laozhangFortifyRemaining: number;
+  /** 堡壘-09「加固模組」本關剩餘次數（非 tungsten 為 0） */
+  fortifyRemaining: number;
+  /** 老張「壓箱電碼」：已壓箱的電碼；null 表示尚未壓箱 */
+  laozhangCopiedValue: number | null;
+  /** 老張「壓箱電碼」：壓箱槽剩餘可用次數（0～3） */
+  laozhangCopiedUsesRemaining: number;
   /** 波比「緊急降碼」本關剩餘次數（開局 2；非波比為 0） */
   bobbyDownshiftRemaining: number;
   /** 結算當下的勳章（status === 'won' 時寫入）；非過關狀態為 null */

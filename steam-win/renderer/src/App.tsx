@@ -7,6 +7,7 @@ import HeroSelect from './HeroSelect';
 import GameView from './game/GameView';
 import { isLevelUnlocked, loadGameProgress } from './game/gameProgressStorage';
 import { effectiveMissionClearedLevelKeys } from './missionMapDevUnlock';
+import { setDevUnlockAllHeroes as setHeroDevUnlockAllOverride } from './heroDevUnlock';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './game/chapterStage';
 import DossierPostChapter10Gate from './DossierPostChapter10Gate';
 import { HeroPortraitLightboxProvider } from './home/HeroPortraitLightbox';
@@ -106,7 +107,12 @@ export default function App() {
               import.meta.env.DEV
                 ? {
                     unlockAllActive: devUnlockAllHeroes,
-                    onToggleUnlockAll: () => setDevUnlockAllHeroes((v) => !v),
+                    onToggleUnlockAll: () =>
+                      setDevUnlockAllHeroes((v) => {
+                        const next = !v;
+                        setHeroDevUnlockAllOverride(next);
+                        return next;
+                      }),
                   }
                 : undefined
             }

@@ -1,6 +1,6 @@
 ---
 name: level-time-adjustment
-description: 當使用者要調整 levels.json 的 timeLimit、coverageGoal、地圖大小、forbiddenCells，或要求某章關卡重平衡與 timeLimit 規則校正時使用。含第1章 1_3～1_8（playableCells+5）、第2章 2_1～2_8（playableCells+2）、第3～5章 3_1～5_8（timeLimit=playableCells）、第6～10章 6_1～10_8（playableCells−15）之固定公式（見 ref/formulas-and-heuristics.md）。
+description: 當使用者要調整 levels.json 的 timeLimit、coverageGoal、地圖大小、forbiddenCells，或要求某章關卡重平衡與 timeLimit 規則校正時使用。含第1～2章固定偏移、第3章與第5章方格 1:1、第4章 4_1～4_2 為 1:1／4_3～4_8 與第5章六角為 playable−5、第6～10章 playable−15（見 ref/formulas-and-heuristics.md）。
 constraints:
   - 優先維持章內難度與 timeLimit 單調遞增，不可出現後關卡明顯變簡單。
   - 任何 gridSystem 或 mapLayout 變更，必須同步檢查 commands.weights 可用鍵上限。

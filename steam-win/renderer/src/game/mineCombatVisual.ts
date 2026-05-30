@@ -97,7 +97,7 @@ export const placedCommandDigitClassName = (isConflict: boolean): string =>
     ? 'font-black tabular-nums leading-none tracking-tight text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.95),0_0_8px_rgba(255,255,255,0.35)]'
     : 'font-black tabular-nums leading-none tracking-tight text-amber-300 drop-shadow-[0_1px_0_rgba(0,0,0,0.92),0_0_14px_rgba(251,191,36,0.65)]';
 
-/** 老張加固：錯格轉火力，與長官電碼琥珀色區隔 */
+/** 堡壘-09 加固：錯格轉火力，與長官電碼琥珀色區隔 */
 export function fortifyFirepowerDigitClassName(value: number): string {
   const w = Math.min(Math.max(1, value), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
   return `font-black tabular-nums leading-none tracking-tight ${mineFirepowerDigitTextClass(w, 'red')}`;

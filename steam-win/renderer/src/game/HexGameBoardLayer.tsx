@@ -17,7 +17,7 @@ import {
   placedCommandDigitFontPx,
   placedCommandDigitSvgClassName,
 } from './mineCombatVisual';
-import { isFortifyFirepowerPlacement } from './laozhangFortify';
+import { isFortifyFirepowerPlacement } from './fortifyModule';
 import { MineCellCombatDisplay } from './MineCellCombatDisplay';
 import { PlaceHintOverlay } from './PlaceHintOverlay';
 

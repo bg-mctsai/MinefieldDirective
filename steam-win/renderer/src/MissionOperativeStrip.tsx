@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Lock, ZoomIn } from 'lucide-react';
 import { HEROES, resolveMissionBriefCarouselLines, setStoredHeroId } from './heroes';
-import { loadUnlockedHeroIds } from './game/heroUnlockedStorage';
+import { useEffectiveUnlockedHeroIds } from './game/heroUnlockedStorage';
 import { requiredCompletedChapterForHero } from './game/heroUnlockByChapter';
 import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
@@ -22,7 +22,8 @@ export function MissionOperativeStrip({
   previewLevelId: number;
   className?: string;
 }) {
-  const unlocked = useMemo(() => new Set(loadUnlockedHeroIds()), []);
+  const effectiveUnlockedIds = useEffectiveUnlockedHeroIds();
+  const unlocked = useMemo(() => new Set(effectiveUnlockedIds), [effectiveUnlockedIds]);
   const hero = HEROES.find((h) => h.id === operativeId) ?? HEROES[0];
   const briefLines = useMemo(
     () => resolveMissionBriefCarouselLines(operativeId, previewLevelId),

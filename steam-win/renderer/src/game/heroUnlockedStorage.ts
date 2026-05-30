@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from 'react';
+import { effectiveUnlockedHeroIds, HERO_DEV_UNLOCK_CHANGED } from '../heroDevUnlock';
 import { loadGameProgress } from './gameProgressStorage';
 import { heroIdsUnlockedOnChapterCleared } from './heroUnlockByChapter';
 
@@ -84,8 +86,24 @@ function saveUnlocked(list: string[]) {
   }
 }
 
+/** 含 DEV「開放全部幹員」覆寫；實際存檔仍見 loadUnlockedHeroIds。 */
+export function getEffectiveUnlockedHeroIds(): string[] {
+  return effectiveUnlockedHeroIds(loadUnlockedHeroIds(), ALL_OFFICER_IDS);
+}
+
 export function isHeroIdUnlocked(heroId: string): boolean {
-  return new Set(loadUnlockedHeroIds()).has(heroId);
+  return new Set(getEffectiveUnlockedHeroIds()).has(heroId);
+}
+
+/** 訂閱 DEV 幹員解鎖覆寫切換，供 UI 重算可選幹員。 */
+export function useEffectiveUnlockedHeroIds(): string[] {
+  const [rev, setRev] = useState(0);
+  useEffect(() => {
+    const onChange = () => setRev((n) => n + 1);
+    window.addEventListener(HERO_DEV_UNLOCK_CHANGED, onChange);
+    return () => window.removeEventListener(HERO_DEV_UNLOCK_CHANGED, onChange);
+  }, []);
+  return useMemo(() => getEffectiveUnlockedHeroIds(), [rev]);
 }
 
 /**

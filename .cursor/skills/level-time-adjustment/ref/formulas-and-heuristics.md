@@ -13,13 +13,17 @@
 
 套用時同步編輯 `steam-win/renderer/src/levelData/levels.json` 對應筆的 `timeLimit`（正整數）。
 
-## 第 3～5 章：格子數即秒數（專案約定）
+## 第 3～5 章：timeLimit（專案約定）
 
-| 範圍 | `mapRef` | `levelId`（現行戰役） | `timeLimit` |
-|------|----------|----------------------|-------------|
-| 第三～五章 | `3_1`～`5_8` | 17～40 | **`playableCells`**（與可玩格 1:1） |
+| 範圍 | `mapRef` | `levelId` | `timeLimit` |
+|------|----------|-----------|-------------|
+| 第三章 | `3_1`～`3_8` | 17～24 | **`playableCells`**（1:1） |
+| 第四章 蜂巢戰線 | `4_1`～`4_2` | 25～26 | **`playableCells`**（1:1） |
+| 第四章 蜂巢戰線 | `4_3`～`4_8` | 27～32 | **`playableCells − 5`** |
+| 第五章 斷線封鎖 方格 | `5_1`～`5_5` | 33～37 | **`playableCells`**（1:1） |
+| 第五章 斷線封鎖 六角 | `5_6`～`5_8` | 38～40 | **`playableCells − 5`** |
 
-改動地圖後請以 `maps/{mapRef}.json` 的 `gridStats.playableCells` 為準更新 `levels.json`；亦可對 `chapter >= 3 && chapter <= 5` 的關卡批次讀圖重算 `timeLimit`。
+改動地圖後請以 `maps/{mapRef}.json` 的 `gridStats.playableCells` 為準更新 `levels.json`。
 
 ## 第 6～10 章：可玩格減 15 秒（專案約定）
 
