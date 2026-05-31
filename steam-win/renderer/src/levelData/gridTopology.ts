@@ -17,6 +17,21 @@ export function mooreNeighborKeys(x: number, y: number, validKeys: Set<string>):
   return neighbors;
 }
 
+/** 方格四向鄰（克萊兒生命鏈結：數字「相連」不含斜角）。 */
+export function cardinalNeighborKeys(x: number, y: number, validKeys: Set<string>): string[] {
+  const neighbors: string[] = [];
+  for (const [dx, dy] of [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ] as const) {
+    const k = cellKey(x + dx, y + dy);
+    if (validKeys.has(k)) neighbors.push(k);
+  }
+  return neighbors;
+}
+
 export function logicNeighborKeys(
   x: number,
   y: number,
@@ -32,6 +47,21 @@ export function logicNeighborKeys(
 export function neighborModeForGridSystem(gs: GridSystem): NeighborMode {
   if (gs === 'HEXAGON') return 'HEXAGON';
   return 'MOORE';
+}
+
+/** 克萊兒生命鏈結：方格四向、六角六邊（不含方格斜角）。 */
+export function digitLinkNeighborKeys(
+  x: number,
+  y: number,
+  validKeys: Set<string>,
+  gridSystem: GridSystem,
+  boardW: number,
+  boardH: number,
+): string[] {
+  if (gridSystem === 'HEXAGON') {
+    return logicNeighborKeys(x, y, validKeys, 'HEXAGON', boardW, boardH);
+  }
+  return cardinalNeighborKeys(x, y, validKeys);
 }
 
 /** 敗北台詞用：兩格是否在「邏輯鄰接圖」上相鄰（蜂巢為六邊鄰，方格為八鄰） */

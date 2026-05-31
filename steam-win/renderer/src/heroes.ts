@@ -533,8 +533,17 @@ export const HEROES: HeroDef[] = [
     id: 'claire',
     name: '克萊兒',
     role: '靈能醫療兵',
-    skillName: '無',
-    skillDetail: '戰術醫療模組規劃中。',
+    skillName: '生命鏈結',
+    skillDetail:
+      '已佈指令數字彼此邏輯相鄰時，每對相鄰 +2 火力（方格四向／六角六邊；不同組合可重複累加；圍成環時閉合邊亦計）。',
+    combatSkills: [
+      {
+        name: '生命鏈結',
+        hudIcon: 'link',
+        detail:
+          '每對邏輯相鄰的已佈數字 +2 火力（方格四向、六角六邊）。例：3–4→+2；3–4–4→+4；3–4–4–5→+6；圍環再加閉合邊（如 3–5）→+8。',
+      },
+    ],
     missionMapHook:
       '野戰醫院實習夜被相位餘波撕開掩體後，她的視界多了一層生命能量的網格——冷靜得像儀器，痛卻全算在自己身上。',
     codename: '精神鏈接（Psi-Link）',
@@ -543,7 +552,7 @@ export const HEROES: HeroDef[] = [
       '第一次異界衝擊時，她是在前線野戰醫院實習的醫學生。爆炸的相位餘波擊穿了醫療站的掩體，在生死一瞬，她潛在的靈能天賦被徹底激發。她活了下來，但從此視界中多了一層「生命能量結構」——這不是什麼溫柔的神蹟，而是職業病與創傷疊在一起的專注。',
       '她能比旁人早半步察覺空間裡不對勁的生命力波動——那是儀器曲線與噬星者掠食前緣對齊後的生命毒性讀數，不是聽見怪物說話。檔案註記：過度共情導致的精神疲勞、螢幕反光過敏；戰場上比誰都冷靜。',
     ],
-    specialties: ['生命場讀取', '野戰急救', '毒性前緣預警'],
+    specialties: ['生命場讀取', '生命鏈結', '野戰急救', '毒性前緣預警'],
     personalItems: [
       { label: '左眼光學靈能鏈路 HUD', icon: 'tag' },
       { label: '臂掛生體地形投影腕甲', icon: 'compass' },
@@ -583,6 +592,11 @@ export function telegraphHandSlotCount(heroId: string): number {
 /** 火力％分子：每顆已揭示雷依「幾格已佈數字與其邏輯相鄰」加權；賽琳娜格網倍乘（n≤1→1，n≥2→min(2^(n−1),8)），其餘 min(n,2) 封頂。 */
 export function heroFirepowerDigitWeightMode(heroId: string): FirepowerDigitWeightMode {
   return heroId === 'selina' ? 'convergenceExp' : 'capTwo';
+}
+
+/** 克萊兒生命鏈結：每對相鄰已佈數字額外計入火力的加值；其餘幹員為 0。 */
+export function heroFirepowerDigitLinkPerEdge(heroId: string): number {
+  return heroId === 'claire' ? 2 : 0;
 }
 
 function readRawMappedSelectedId(): string | null {

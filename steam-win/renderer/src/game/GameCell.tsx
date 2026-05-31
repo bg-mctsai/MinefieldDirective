@@ -6,6 +6,7 @@ import { boardCellTooltipText } from './boardCellTooltipText';
 import {
   fortifyFirepowerDigitClassName,
   mineFirepowerDigitFontPx,
+  placedClaireDigitLinkClassName,
   placedCommandDigitClassName,
   placedCommandDigitFontPx,
   type FirepowerDigitWeightMode,
@@ -44,6 +45,9 @@ export interface GameCellProps {
   /** 火力視覺階 1～5（格網倍乘） */
   mineCombatTier?: MineBombVisualTier;
   fireDigitMode?: FirepowerDigitWeightMode;
+  /** 克萊兒：此格已佈數字參與生命鏈結 */
+  isDigitLinkNode?: boolean;
+  digitLinkDegree?: number;
   /** 敗北連鎖：違規地雷逐一爆；`none` 表示不在連鎖序列 */
   lossChainPhase?: LossChainPhase;
   /** 連鎖進度鍵，僅 `popping` 時用於重播動畫 key */
@@ -70,6 +74,8 @@ const GameCellComponent = ({
   isDynamicMine = false,
   mineCombatTier: mineCombatTierProp = 1,
   fireDigitMode = 'capTwo',
+  isDigitLinkNode = false,
+  digitLinkDegree = 0,
   lossChainPhase = 'none',
   lossChainPopKey = 0,
   status,
@@ -105,6 +111,7 @@ const GameCellComponent = ({
     mineCombatTier: combatTier,
     fireDigitMode,
     fortifyFirepower: isFortifyFirepower,
+    digitLinkDegree: isDigitLinkNode ? digitLinkDegree : 0,
   });
   return (
     <motion.div
@@ -119,7 +126,9 @@ const GameCellComponent = ({
           : placed
             ? isFortifyFirepower
               ? 'z-[5] border-2 border-orange-400 bg-orange-950/60 shadow-[0_0_14px_rgba(251,146,60,0.45)] ring-2 ring-amber-300/55'
-              : 'border-2 border-amber-500 bg-amber-900/40'
+              : isDigitLinkNode
+                ? 'z-[10] border-2 border-cyan-300 bg-cyan-950/70 shadow-[0_0_18px_rgba(34,211,238,0.55)] ring-2 ring-cyan-300/70'
+                : 'border-2 border-amber-500 bg-amber-900/40'
             : isDynamicMine
               ? 'border border-cyan-700 bg-cyan-950/50'
               : chainDeadStone || (status === 'lost' && isMine && lossChainPhase === 'none')
@@ -160,14 +169,16 @@ const GameCellComponent = ({
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className={`flex flex-col items-center justify-center leading-none ${isFortifyFirepower ? 'gap-px' : ''}`}
+          className={`relative flex flex-col items-center justify-center leading-none ${isFortifyFirepower ? 'gap-px' : ''}`}
         >
           <span
             style={{ fontSize: isFortifyFirepower ? fortifyDigitFont : commandDigitFont }}
             className={
               isFortifyFirepower
                 ? fortifyFirepowerDigitClassName(placed.value)
-                : placedCommandDigitClassName(isConflict)
+                : isDigitLinkNode
+                  ? placedClaireDigitLinkClassName(isConflict)
+                  : placedCommandDigitClassName(isConflict)
             }
           >
             {placed.value}

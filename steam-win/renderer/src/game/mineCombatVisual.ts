@@ -1,6 +1,6 @@
 import type { PlacedNumber } from './types';
 import type { GridSystem } from '../levelData/types';
-import { logicNeighborKeys, neighborModeForGridSystem, type NeighborMode } from '../levelData/gridTopology';
+import { logicNeighborKeys, neighborModeForGridSystem, digitLinkNeighborKeys, type NeighborMode } from '../levelData/gridTopology';
 
 /** 此雷與幾個「已佈署數字格」邏輯相鄰；每多一格數字就多一道指向此雷的讀數（與 solver 鄰接定義一致）。 */
 export function adjacentPlacedDigitCount(
@@ -21,6 +21,9 @@ export function adjacentPlacedDigitCount(
 
 /** 賽琳娜格網倍乘：單顆雷火力分子加權上限（對應 n≥5 緊鄰已佈數字）。 */
 export const SELINA_GRID_FIREPOWER_WEIGHT_MAX = 8;
+
+/** 克萊兒生命鏈結：每對邏輯相鄰的已佈數字格（不含加固火力格）額外計入火力的加值。 */
+export const CLAIRE_DIGIT_LINK_FIREPOWER_PER_EDGE = 2;
 
 /** 地雷／廢雷圖示與格底色階（1 基礎 → 5 為倍乘封頂階）。 */
 export type MineBombVisualTier = 1 | 2 | 3 | 4 | 5;
@@ -110,6 +113,15 @@ export const fortifyFirepowerDigitSvgClassName =
 export const placedCommandDigitSvgClassName = (isConflict: boolean): string =>
   isConflict ? 'pointer-events-none fill-white' : 'pointer-events-none fill-amber-300';
 
+/** 克萊兒生命鏈結：已佈數字格（與琥珀指令數字區隔） */
+export const placedClaireDigitLinkClassName = (isConflict: boolean): string =>
+  isConflict
+    ? placedCommandDigitClassName(true)
+    : 'relative z-[12] font-black tabular-nums leading-none tracking-tight text-cyan-100 drop-shadow-[0_1px_0_rgba(0,0,0,0.95),0_0_16px_rgba(34,211,238,0.95)]';
+
+export const placedClaireDigitLinkSvgClassName =
+  'pointer-events-none fill-cyan-100 font-black tabular-nums';
+
 export function mineFirepowerDigitTextClass(
   weight: number,
   variant: 'red' | 'cyan',
@@ -126,8 +138,103 @@ export function mineFirepowerDigitTextClass(
   return 'font-bold text-red-200/90 drop-shadow-[0_0_4px_rgba(248,113,113,0.65)]';
 }
 
+export type ClaireDigitLinkEdge = {
+  ax: number;
+  ay: number;
+  bx: number;
+  by: number;
+};
+
+function claireDigitLinkEdgeKey(ax: number, ay: number, bx: number, by: number): string {
+  return ax < bx || (ax === bx && ay < by) ? `${ax},${ay}|${bx},${by}` : `${bx},${by}|${ax},${ay}`;
+}
+
+/** 克萊兒生命鏈結：每對相鄰已佈數字（方格四向／六角六邊；不含加固火力格）。 */
+export function claireDigitLinkEdges(
+  placedNumbers: ReadonlyArray<PlacedNumber>,
+  levelCells: ReadonlyArray<{ x: number; y: number }>,
+  gridSystem: GridSystem,
+  boardW: number,
+  boardH: number,
+): ClaireDigitLinkEdge[] {
+  const validKeys = new Set(levelCells.map((c) => `${c.x},${c.y}`));
+  const linkKeys = new Set(
+    placedNumbers.filter((p) => !p.fortifyFirepower).map((p) => `${p.x},${p.y}`),
+  );
+  const edges: ClaireDigitLinkEdge[] = [];
+  const seen = new Set<string>();
+  for (const key of linkKeys) {
+    const comma = key.indexOf(',');
+    const x = Number(key.slice(0, comma));
+    const y = Number(key.slice(comma + 1));
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    for (const nk of digitLinkNeighborKeys(x, y, validKeys, gridSystem, boardW, boardH)) {
+      if (!linkKeys.has(nk)) continue;
+      const ncomma = nk.indexOf(',');
+      const nx = Number(nk.slice(0, ncomma));
+      const ny = Number(nk.slice(ncomma + 1));
+      const edgeKey = claireDigitLinkEdgeKey(x, y, nx, ny);
+      if (seen.has(edgeKey)) continue;
+      seen.add(edgeKey);
+      edges.push({ ax: x, ay: y, bx: nx, by: ny });
+    }
+  }
+  return edges;
+}
+
+export function claireDigitLinkKeySet(edges: ReadonlyArray<ClaireDigitLinkEdge>): Set<string> {
+  const keys = new Set<string>();
+  for (const e of edges) {
+    keys.add(`${e.ax},${e.ay}`);
+    keys.add(`${e.bx},${e.by}`);
+  }
+  return keys;
+}
+
+/** 此格參與幾條生命鏈結邊（= 相鄰已佈數字對數）。 */
+export function claireDigitLinkDegreeAt(
+  x: number,
+  y: number,
+  edges: ReadonlyArray<ClaireDigitLinkEdge>,
+): number {
+  const key = `${x},${y}`;
+  let n = 0;
+  for (const e of edges) {
+    if (`${e.ax},${e.ay}` === key || `${e.bx},${e.by}` === key) n++;
+  }
+  return n;
+}
+
+/**
+ * 克萊兒生命鏈結：已佈指令數字格（不含加固火力）在邏輯鄰接圖上的無向邊數。
+ * 方格為四向、六角為六邊；環狀閉合邊亦計入（每對相鄰只算一次）。
+ */
+export function claireDigitLinkEdgeCount(
+  placedNumbers: ReadonlyArray<PlacedNumber>,
+  levelCells: ReadonlyArray<{ x: number; y: number }>,
+  gridSystem: GridSystem,
+  boardW: number,
+  boardH: number,
+): number {
+  return claireDigitLinkEdges(placedNumbers, levelCells, gridSystem, boardW, boardH).length;
+}
+
+/** 克萊兒：每對相鄰已佈數字 {@link CLAIRE_DIGIT_LINK_FIREPOWER_PER_EDGE} 火力。 */
+export function claireDigitLinkFirepowerBonus(
+  placedNumbers: ReadonlyArray<PlacedNumber>,
+  levelCells: ReadonlyArray<{ x: number; y: number }>,
+  gridSystem: GridSystem,
+  boardW: number,
+  boardH: number,
+  perEdge: number = CLAIRE_DIGIT_LINK_FIREPOWER_PER_EDGE,
+): number {
+  if (perEdge <= 0) return 0;
+  return claireDigitLinkEdgeCount(placedNumbers, levelCells, gridSystem, boardW, boardH) * perEdge;
+}
+
 /**
  * HUD「火力 %」分子：每顆已揭示雷依模式加權；分母為可玩總格數；% 上限 100。
+ * `digitLinkBonusPerEdge`：克萊兒生命鏈結，每對相鄰已佈數字額外加值（預設 0）。
  */
 export function weightedFirepowerSumAndPct(
   mineKeys: Iterable<string>,
@@ -137,9 +244,11 @@ export function weightedFirepowerSumAndPct(
   boardW: number,
   boardH: number,
   digitWeightMode: FirepowerDigitWeightMode = 'capTwo',
-): { weightedSum: number; pct: number; totalCells: number } {
+  digitLinkBonusPerEdge = 0,
+): { weightedSum: number; pct: number; totalCells: number; digitLinkBonus: number } {
   const totalCells = levelCells.length;
-  if (totalCells <= 0) return { weightedSum: 0, pct: 0, totalCells: 0 };
+  if (totalCells <= 0)
+    return { weightedSum: 0, pct: 0, totalCells: 0, digitLinkBonus: 0 };
   const validKeys = new Set(levelCells.map((c) => `${c.x},${c.y}`));
   const placedByKey = new Map(placedNumbers.map((p) => [`${p.x},${p.y}`, p]));
   const mode = neighborModeForGridSystem(gridSystem);
@@ -155,10 +264,20 @@ export function weightedFirepowerSumAndPct(
   for (const p of placedNumbers) {
     if (p.fortifyFirepower) weightedSum += Math.max(1, p.value);
   }
+  const digitLinkBonus = claireDigitLinkFirepowerBonus(
+    placedNumbers,
+    levelCells,
+    gridSystem,
+    boardW,
+    boardH,
+    digitLinkBonusPerEdge,
+  );
+  weightedSum += digitLinkBonus;
   return {
     weightedSum,
     pct: Math.min(100, (weightedSum / totalCells) * 100),
     totalCells,
+    digitLinkBonus,
   };
 }
 

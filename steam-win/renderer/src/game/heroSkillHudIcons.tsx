@@ -4,6 +4,7 @@ import {
   Filter,
   Footprints,
   LayoutGrid,
+  Link2,
   Mails,
   Sparkles,
   type LucideIcon,
@@ -16,6 +17,7 @@ export type HeroSkillHudIconId =
   | 'grid'
   | 'footprints'
   | 'arrow-down'
+  | 'link'
   /** @deprecated 舊資料相容；新技能請勿使用 */
   | 'activity';
 
@@ -25,6 +27,7 @@ const ICON_BY_ID: Record<HeroSkillHudIconId, LucideIcon> = {
   grid: LayoutGrid,
   footprints: Footprints,
   'arrow-down': ArrowDown,
+  link: Link2,
   activity: Activity,
 };
 

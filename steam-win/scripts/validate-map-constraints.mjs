@@ -117,6 +117,22 @@ for (const lv of levels) {
       const [x, y] = bp.pos;
       checkCell('blastPoint', x, y);
     }
+    const cds = lv.blastPoints.map((bp) => bp.countdownSec);
+    const minCd = Math.min(...cds);
+    if (cds.length > 1 && minCd < 15) {
+      console.error(`L${lv.levelId}: blastPoints 最短 countdownSec 不得小於 15（目前 ${minCd}）`);
+      errors++;
+    }
+    for (let i = 0; i < cds.length; i++) {
+      for (let j = i + 1; j < cds.length; j++) {
+        if (Math.abs(cds[i] - cds[j]) < 5) {
+          console.error(
+            `L${lv.levelId}: blastPoints countdownSec 至少相差 5 秒（${cds[i]} vs ${cds[j]}）`,
+          );
+          errors++;
+        }
+      }
+    }
   }
   if (Array.isArray(lv.forcedMineCells)) {
     for (const p of lv.forcedMineCells) checkCell('forcedMine', p[0], p[1]);

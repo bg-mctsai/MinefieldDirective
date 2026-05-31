@@ -69,6 +69,7 @@ import { createSeededRngFromSeed, createSeededRngFromState } from './seededRng';
 import {
   getStoredHeroId,
   HERO_CHANGED_EVENT,
+  heroFirepowerDigitLinkPerEdge,
   heroFirepowerDigitWeightMode,
   telegraphHandSlotCount,
 } from '../heroes';
@@ -116,13 +117,15 @@ export function destructivePowerFromGameState(
   totalCells: number;
   weightedSum: number;
   overlapExtra: number;
+  digitLinkBonus: number;
 } {
   const totalCells = gs.level.cells.length;
   if (totalCells <= 0)
-    return { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0 };
+    return { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0, digitLinkBonus: 0 };
   const mineKeys = new Set<string>(gs.revealedMines);
   const digitMode = heroFirepowerDigitWeightMode(heroId);
-  const { pct, weightedSum } = weightedFirepowerSumAndPct(
+  const digitLinkPerEdge = heroFirepowerDigitLinkPerEdge(heroId);
+  const { pct, weightedSum, digitLinkBonus } = weightedFirepowerSumAndPct(
     mineKeys,
     gs.placedNumbers,
     gs.level.cells,
@@ -130,10 +133,11 @@ export function destructivePowerFromGameState(
     gs.level.width,
     gs.level.height,
     digitMode,
+    digitLinkPerEdge,
   );
   const mineCount = mineKeys.size;
   const overlapExtra = Math.max(0, weightedSum - mineCount);
-  return { pct, mineCount, totalCells, weightedSum, overlapExtra };
+  return { pct, mineCount, totalCells, weightedSum, overlapExtra, digitLinkBonus };
 }
 
 function effectiveBonusTargetKeys(level: GameState['level']): Set<string> {
@@ -954,7 +958,7 @@ export function useMineGame(initialLevelIndex: number) {
       : gameState.laozhangCopiedUsesRemaining;
 
     const nextMineKeys = new Set<string>(newRevealedMines);
-    const firepowerDigitMode = heroFirepowerDigitWeightMode(getStoredHeroId());
+    const firepowerDigitMode = heroFirepowerDigitWeightMode(heroId);
     const firepowerPct = weightedFirepowerSumAndPct(
       nextMineKeys,
       newPlacedNumbers,
@@ -963,6 +967,7 @@ export function useMineGame(initialLevelIndex: number) {
       gameState.level.width,
       gameState.level.height,
       firepowerDigitMode,
+      heroFirepowerDigitLinkPerEdge(heroId),
     ).pct;
     const bonusSecondsPerMine = gameState.level.definition.mineBonusSeconds ?? 5;
     const newlyRewardedTargets = newlyConfirmedMines.filter(
@@ -1163,7 +1168,7 @@ export function useMineGame(initialLevelIndex: number) {
 
   const destructivePower = gameState
     ? destructivePowerFromGameState(gameState)
-    : { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0 };
+    : { pct: 0, mineCount: 0, totalCells: 0, weightedSum: 0, overlapExtra: 0, digitLinkBonus: 0 };
 
   const medalThresholds = gameState
     ? resolveMedalThresholds(gameState.level.definition)
@@ -1245,6 +1250,7 @@ export function useMineGame(initialLevelIndex: number) {
     destructivePowerMineCount: destructivePower.mineCount,
     destructivePowerTotalCells: destructivePower.totalCells,
     destructivePowerOverlapExtra: destructivePower.overlapExtra,
+    destructivePowerDigitLinkBonus: destructivePower.digitLinkBonus,
     bonusFxKeys,
     bobbyDownshiftFx,
     medalThresholds,

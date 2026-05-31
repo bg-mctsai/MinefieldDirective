@@ -2,6 +2,7 @@ import type { LossChainPhase } from './lossExplosionChain';
 import { GAME_FIXED, sub } from './gameFixedMessages';
 import {
   convergenceFirepowerWeightFromTier,
+  CLAIRE_DIGIT_LINK_FIREPOWER_PER_EDGE,
   type FirepowerDigitWeightMode,
   type MineBombVisualTier,
 } from './mineCombatVisual';
@@ -25,6 +26,8 @@ export function boardCellTooltipText(opts: {
   /** 波比：選定電碼後的可放格 */
   isPlaceHint?: boolean;
   fortifyFirepower?: boolean;
+  /** 克萊兒：此格參與的生命鏈結邊數 */
+  digitLinkDegree?: number;
 }): string {
   const T = GAME_FIXED.cellTooltip;
   const {
@@ -41,12 +44,21 @@ export function boardCellTooltipText(opts: {
     fireDigitMode = 'capTwo',
     isPlaceHint = false,
     fortifyFirepower = false,
+    digitLinkDegree = 0,
   } = opts;
   const tier = mineCombatTier ?? 1;
   if (isConflict) return T.conflict;
   if (isPlaceHint) return T.placeHint;
   if (placedValue !== undefined) {
     if (fortifyFirepower) return sub(T.fortifyFirepower, { value: placedValue });
+    if (digitLinkDegree > 0) {
+      return sub(T.digitLinkPlaced, {
+        value: placedValue,
+        neighbors: digitLinkDegree,
+        pairs: digitLinkDegree,
+        bonus: digitLinkDegree * CLAIRE_DIGIT_LINK_FIREPOWER_PER_EDGE,
+      });
+    }
     return sub(T.placedDigit, { value: placedValue });
   }
   if (blastPointCountdown !== undefined) return T.blastPoint;

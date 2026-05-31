@@ -77,7 +77,8 @@ export const PLANNER_FIELD_DOCS: Record<string, string> = {
   blastPoints:
     '可選；引爆危機章節——地圖上的定時炸點陣列。每個炸點含 pos[x,y]、countdownSec（倒數秒數）、defuseBonusSec（解除後加秒；未填預設 0）。歸零前若周圍格子邏輯未確認所有地雷，即觸發爆炸失敗。',
   'blastPoints[].pos': '炸點座標 [x, y]，與 mapLayout 格子索引一致（0-based）。',
-  'blastPoints[].countdownSec': '炸點倒數秒數；獨立於主計時器，歸零即輸。',
+  'blastPoints[].countdownSec':
+    '炸點倒數秒數；獨立於主計時器，歸零即輸。同一關多個炸點時，各 countdownSec 至少相差 5 秒，且最短不得小於 15。',
   'blastPoints[].defuseBonusSec': '可選；解除炸點後加入主計時器的獎勵秒數（未填為 0）。',
 
   digitOutposts:

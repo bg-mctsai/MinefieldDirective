@@ -10,7 +10,8 @@
     "mineCountsHigh": "地雷（火力 2）：兩個或以上已佈署數字格共同指向此雷",
     "emptyPlaceable": "空格：可放置數字",
     "digitOutpost": "戰術據點：必須在此格佈署數字；若邏輯上此格為雷亦視同失敗。達覆蓋率仍未填仍引爆。",
-    "placeHint": "可放格：已選電碼放此格不會立刻衝突（上一手鄰格）。"
+    "placeHint": "可放格：已選電碼放此格不會立刻衝突（上一手鄰格）。",
+    "digitLinkPlaced": "生命鏈結 {value}：與 {neighbors} 格相鄰（{pairs} 對，+{bonus} 火力）"
   },
   "byHero": {
     "xiaoming": {

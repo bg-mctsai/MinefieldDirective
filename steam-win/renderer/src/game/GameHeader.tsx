@@ -74,6 +74,7 @@ export function GameHeader({
   destructivePowerMineCount,
   destructivePowerTotalCells,
   destructivePowerOverlapExtra,
+  destructivePowerDigitLinkBonus = 0,
   medalThresholds,
   projectedMedal,
   showEarlySettleButton,
@@ -98,6 +99,8 @@ export function GameHeader({
   destructivePowerTotalCells: number;
   /** 加權分子額外量：Σmax(1,鄰近數字數) − 雷格數 */
   destructivePowerOverlapExtra: number;
+  /** 克萊兒生命鏈結加成（含於 overlapExtra 與 weightedSum） */
+  destructivePowerDigitLinkBonus?: number;
   /** 三段勳章火力門檻（0～1） */
   medalThresholds: MedalThresholds;
   /** 對局中即時投影：此刻結算可拿到的勳章（未達銅為 null） */
@@ -138,11 +141,18 @@ export function GameHeader({
           glow: '',
         };
 
+  const mineOverlapExtra = Math.max(0, destructivePowerOverlapExtra - destructivePowerDigitLinkBonus);
   const firepowerFractionLabel =
     destructivePowerTotalCells > 0
-      ? destructivePowerOverlapExtra > 0
-        ? `地雷（${destructivePowerMineCount}+${destructivePowerOverlapExtra}）/${destructivePowerTotalCells} 格`
-        : `地雷 ${destructivePowerMineCount}/${destructivePowerTotalCells} 格`
+      ? (() => {
+          const parts: string[] = [];
+          if (mineOverlapExtra > 0) parts.push(String(mineOverlapExtra));
+          if (destructivePowerDigitLinkBonus > 0) parts.push(`鏈${destructivePowerDigitLinkBonus}`);
+          if (parts.length === 0) {
+            return `地雷 ${destructivePowerMineCount}/${destructivePowerTotalCells} 格`;
+          }
+          return `地雷（${destructivePowerMineCount}+${parts.join('+')}）/${destructivePowerTotalCells} 格`;
+        })()
       : null;
 
   return (

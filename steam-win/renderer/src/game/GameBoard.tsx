@@ -8,11 +8,19 @@ import { lossChainPhaseForKey } from './lossExplosionChain';
 import { hexBoardContentSizePxForCells, hexRadiusPxForLevel } from './hexBoardLayout';
 import type { GameState, MovingSoldierState } from './types';
 import { neighborModeForGridSystem } from '../levelData/gridTopology';
-import { adjacentPlacedDigitCount, mineBombVisualTier } from './mineCombatVisual';
-import { heroFirepowerDigitWeightMode, getStoredHeroId } from '../heroes';
+import {
+  adjacentPlacedDigitCount,
+  claireDigitLinkDegreeAt,
+  claireDigitLinkEdges,
+  claireDigitLinkKeySet,
+  mineBombVisualTier,
+} from './mineCombatVisual';
+import { heroFirepowerDigitWeightMode, heroFirepowerDigitLinkPerEdge, getStoredHeroId } from '../heroes';
 import { NeighborBonusPlusOneFlight } from './NeighborBonusPlusOneFlight';
 import { NeighborResonancePlaceOverlay } from './NeighborResonancePlaceOverlay';
 import { BobbyDownshiftFxOverlay, type BobbyDownshiftFxState } from './BobbyDownshiftFxOverlay';
+import { ClaireDigitLinkOverlay } from './ClaireDigitLinkOverlay';
+import { GAME_BOARD_FRAME_PAD_PX } from './constants';
 
 export function GameBoard({
   gameState,
@@ -38,7 +46,8 @@ export function GameBoard({
 }) {
   const w = gameState.level.width;
   const h = gameState.level.height;
-  const grid = gameState.level.definition.gridSystem;
+  const gridSystem = gameState.level.definition.gridSystem ?? 'SQUARE';
+  const grid = gridSystem;
   const isHex = grid === 'HEXAGON';
   const cloud = gameState.level.definition.mapCloudOverlay;
   const configuredBonusTargets = gameState.level.definition.mineBonusTargetCells;
@@ -59,6 +68,17 @@ export function GameBoard({
   );
   const hintKeys = placeHintKeys ?? null;
   const boardAlignClass = align === 'left' ? 'mr-auto' : 'mx-auto';
+  const showClaireDigitLink = heroFirepowerDigitLinkPerEdge(combatHeroId) > 0;
+  const digitLinkEdges = showClaireDigitLink
+    ? claireDigitLinkEdges(
+        gameState.placedNumbers,
+        gameState.level.cells,
+        gridSystem,
+        w,
+        h,
+      )
+    : [];
+  const digitLinkKeys = showClaireDigitLink ? claireDigitLinkKeySet(digitLinkEdges) : new Set<string>();
 
   if (isHex) {
     const r = hexRadiusPxForLevel(w, h);
@@ -83,6 +103,17 @@ export function GameBoard({
             bonusFxKeys={bonusFxKeySet}
             bonusSeconds={bonusSeconds}
             placeHintKeys={hintKeys}
+            digitLinkEdges={digitLinkEdges}
+            digitLinkKeys={digitLinkKeys}
+          />
+
+          <ClaireDigitLinkOverlay
+            edges={digitLinkEdges}
+            layout="hex"
+            cellSize={r}
+            overlayWidthPx={contentW + GAME_BOARD_FRAME_PAD_PX * 2}
+            overlayHeightPx={contentH + GAME_BOARD_FRAME_PAD_PX * 2}
+            hexMin={{ x: minX, y: minY }}
           />
 
           {cloud && (
@@ -174,6 +205,15 @@ export function GameBoard({
           width: 'fit-content',
         }}
       >
+        <ClaireDigitLinkOverlay
+          edges={digitLinkEdges}
+          layout="square"
+          cellSize={cellSize}
+          overlayWidthPx={boardWidthPx + GAME_BOARD_FRAME_PAD_PX * 2}
+          overlayHeightPx={boardHeightPx + GAME_BOARD_FRAME_PAD_PX * 2}
+          squareGridMin={squareGridMin}
+        />
+
         {Array.from({ length: gridW * gridH }).map((_, i) => {
           const gx = i % gridW;
           const gy = Math.floor(i / gridW);
@@ -208,6 +248,9 @@ export function GameBoard({
           const blastPointCountdown = blastPointsCountdown.get(key);
           const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, squareNeighborMode, w, h);
           const mCombat = mineBombVisualTier(adjDigits, fireDigitMode);
+          const linkDegree = showClaireDigitLink
+            ? claireDigitLinkDegreeAt(x, y, digitLinkEdges)
+            : 0;
 
           return (
             <GameCell
@@ -229,6 +272,8 @@ export function GameBoard({
               isDynamicMine={isDynMine}
               mineCombatTier={isMine ? mCombat : 1}
               fireDigitMode={fireDigitMode}
+              isDigitLinkNode={linkDegree > 0}
+              digitLinkDegree={linkDegree}
               lossChainPhase={lossChainPhase}
               lossChainPopKey={gameState.lossExplosionWaveIndex}
               status={gameState.status}

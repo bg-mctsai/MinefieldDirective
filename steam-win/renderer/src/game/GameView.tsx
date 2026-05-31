@@ -79,6 +79,7 @@ export default function GameView({
     destructivePowerMineCount,
     destructivePowerTotalCells,
     destructivePowerOverlapExtra,
+    destructivePowerDigitLinkBonus,
     bonusFxKeys,
     bobbyDownshiftFx,
     medalThresholds,
@@ -265,6 +266,7 @@ export default function GameView({
         destructivePowerMineCount={destructivePowerMineCount}
         destructivePowerTotalCells={destructivePowerTotalCells}
         destructivePowerOverlapExtra={destructivePowerOverlapExtra}
+        destructivePowerDigitLinkBonus={destructivePowerDigitLinkBonus}
         medalThresholds={medalThresholds ?? resolveMedalThresholds(gameState.level.definition)}
         projectedMedal={projectedMedal}
         showEarlySettleButton={canEarlySettle}

@@ -11,11 +11,14 @@ import { neighborModeForGridSystem } from '../levelData/gridTopology';
 import { hexOffsetForEdge } from '../levelData/hexGrid';
 import {
   adjacentPlacedDigitCount,
+  claireDigitLinkDegreeAt,
   fortifyFirepowerDigitSvgClassName,
   mineBombVisualTier,
   mineFirepowerDigitFontPx,
+  placedClaireDigitLinkSvgClassName,
   placedCommandDigitFontPx,
   placedCommandDigitSvgClassName,
+  type ClaireDigitLinkEdge,
 } from './mineCombatVisual';
 import { isFortifyFirepowerPlacement } from './fortifyModule';
 import { MineCellCombatDisplay } from './MineCellCombatDisplay';
@@ -39,6 +42,8 @@ export function HexGameBoardLayer({
   bonusFxKeys,
   bonusSeconds,
   placeHintKeys = null,
+  digitLinkEdges = [],
+  digitLinkKeys = new Set<string>(),
 }: {
   gameState: GameState;
   r: number;
@@ -50,6 +55,8 @@ export function HexGameBoardLayer({
   bonusFxKeys: Set<string>;
   bonusSeconds: number;
   placeHintKeys?: ReadonlySet<string> | null;
+  digitLinkEdges?: ReadonlyArray<ClaireDigitLinkEdge>;
+  digitLinkKeys?: ReadonlySet<string>;
 }) {
   const w = gameState.level.width;
   const h = gameState.level.height;
@@ -122,6 +129,10 @@ export function HexGameBoardLayer({
         const isDynamicMine = gameState.dynamicMines.has(key);
         const adjDigits = adjacentPlacedDigitCount(x, y, placedByKey, validKey, neighborMode, w, h);
         const mCombat = mineBombVisualTier(adjDigits, fireDigitMode);
+        const isDigitLinkNode = digitLinkKeys.has(key);
+        const digitLinkDegree = isDigitLinkNode
+          ? claireDigitLinkDegreeAt(x, y, digitLinkEdges)
+          : 0;
 
         const commandDigitFont = placedCommandDigitFontPx(r);
         const iconSize = Math.max(12, Math.round(r * 0.36));
@@ -134,7 +145,9 @@ export function HexGameBoardLayer({
         } else if (placed) {
           fillClass = isFortifyFirepowerPlacement(placed)
             ? 'fill-orange-950/88'
-            : 'fill-amber-950/90';
+            : isDigitLinkNode
+              ? 'fill-cyan-950/95'
+              : 'fill-amber-950/90';
         } else if (isDynamicMine) {
           fillClass = 'fill-cyan-950/55';
         } else if (
@@ -191,6 +204,7 @@ export function HexGameBoardLayer({
           mineCombatTier: isMine ? mCombat : 1,
           fireDigitMode,
           fortifyFirepower: isFortifyFirepowerPlacement(placed),
+          digitLinkDegree,
         });
 
         return (
@@ -210,6 +224,16 @@ export function HexGameBoardLayer({
               onMouseMove={onPolygonMove}
               onMouseLeave={onPolygonLeave}
             />
+            {isDigitLinkNode && placed && !isFortifyFirepowerPlacement(placed) && (
+              <circle
+                cx={cx}
+                cy={cy}
+                r={r * 0.58}
+                className="pointer-events-none fill-none stroke-cyan-300/75"
+                strokeWidth={Math.max(1.4, r * 0.08)}
+                style={{ filter: 'drop-shadow(0 0 8px rgba(34,211,238,0.65))' }}
+              />
+            )}
             <g className="pointer-events-none">
               {Array.from({ length: 6 }, (_, ei) => {
                 const [dx, dy] = hexOffsetForEdge(y, ei);
@@ -243,7 +267,9 @@ export function HexGameBoardLayer({
                   className={
                     isFortifyFirepowerPlacement(placed)
                       ? fortifyFirepowerDigitSvgClassName
-                      : placedCommandDigitSvgClassName(isConflict)
+                      : isDigitLinkNode
+                        ? placedClaireDigitLinkSvgClassName
+                        : placedCommandDigitSvgClassName(isConflict)
                   }
                   style={{
                     fontSize: isFortifyFirepowerPlacement(placed)

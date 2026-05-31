@@ -45,7 +45,7 @@
     "commandSlotJammingStepMs": "可選；信號干擾時輪播「每換一個數字」的間隔（毫秒）。未填用程式預設；過小／過大會被 clamp（見 resolveSignalJammingStepMs）。",
     "blastPoints": "可選；引爆危機章節——地圖上的定時炸點陣列。每個炸點含 pos[x,y]、countdownSec（倒數秒數）、defuseBonusSec（解除後加秒；未填預設 0）。歸零前若周圍格子邏輯未確認所有地雷，即觸發爆炸失敗。",
     "blastPoints[].pos": "炸點座標 [x, y]，與 mapLayout 格子索引一致（0-based）。",
-    "blastPoints[].countdownSec": "炸點倒數秒數；獨立於主計時器，歸零即輸。",
+    "blastPoints[].countdownSec": "炸點倒數秒數；獨立於主計時器，歸零即輸。同一關多個炸點時，各 countdownSec 至少相差 5 秒，且最短不得小於 15。",
     "blastPoints[].defuseBonusSec": "可選；解除炸點後加入主計時器的獎勵秒數（未填為 0）。",
     "digitOutposts": "可選；戰術據點座標 [[x,y],…]（須為可部署格）。每格必須有數字佈署（含開局 prePlaced）；覆蓋率達標仍有據點未填數字則失敗。據點若被邏輯揭示為紅雷或出現動態廢雷佔格亦立即失敗。廢雷生成會排除據點座標。",
     "neighborPlacedDigitBonus": "可選；本機制唯一開關：僅當設為 true 時啟用，程式不依 chapter／levelId 推斷。true 時實際放下數字 = 電報底數 + 與目標格「邏輯相鄰」且已佈數字之鄰格個數（含開局 prePlaced／提示格）。鄰接規則與盤面 solver 相同。",
@@ -1845,7 +1845,7 @@
             4,
             4
           ],
-          "countdownSec": 30,
+          "countdownSec": 25,
           "defuseBonusSec": 12
         }
       ],
@@ -1886,7 +1886,7 @@
             11,
             9
           ],
-          "countdownSec": 25,
+          "countdownSec": 23,
           "defuseBonusSec": 10
         }
       ],
@@ -1903,7 +1903,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_4",
       "coverageGoal": 0.85,
-      "timeLimit": 65,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L74-ch8-3a736261",
       "commands": {
         "maxHand": 3,
@@ -1933,7 +1933,7 @@
             8,
             5
           ],
-          "countdownSec": 25,
+          "countdownSec": 20,
           "defuseBonusSec": 8
         },
         {
@@ -1941,7 +1941,7 @@
             9,
             9
           ],
-          "countdownSec": 25,
+          "countdownSec": 15,
           "defuseBonusSec": 8
         }
       ],
@@ -1958,7 +1958,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_5",
       "coverageGoal": 0.86,
-      "timeLimit": 65,
+      "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
@@ -1980,7 +1980,7 @@
             7,
             2
           ],
-          "countdownSec": 22,
+          "countdownSec": 20,
           "defuseBonusSec": 8
         },
         {
@@ -1996,7 +1996,7 @@
             3,
             9
           ],
-          "countdownSec": 22,
+          "countdownSec": 15,
           "defuseBonusSec": 8
         }
       ],
@@ -2009,7 +2009,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_6",
       "coverageGoal": 0.85,
-      "timeLimit": 63,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L76-ch8-7a01e404",
       "commands": {
         "maxHand": 3,
@@ -2029,7 +2029,7 @@
             3,
             1
           ],
-          "countdownSec": 20,
+          "countdownSec": 25,
           "defuseBonusSec": 6
         },
         {
@@ -2045,7 +2045,7 @@
             7,
             9
           ],
-          "countdownSec": 20,
+          "countdownSec": 15,
           "defuseBonusSec": 6
         }
       ],
@@ -2062,15 +2062,20 @@
       "chapter": 8,
       "title": "引爆危機 · 8_7",
       "coverageGoal": 0.86,
-      "timeLimit": 65,
+      "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L77-ch8-302d0ade",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 10,
+          "2": 14,
+          "3": 18,
+          "4": 18,
+          "5": 14,
+          "6": 10,
+          "7": 8,
+          "8": 4
         }
       },
       "blastPoints": [
@@ -2079,7 +2084,7 @@
             8,
             1
           ],
-          "countdownSec": 22,
+          "countdownSec": 25,
           "defuseBonusSec": 6
         },
         {
@@ -2087,7 +2092,7 @@
             0,
             5
           ],
-          "countdownSec": 22,
+          "countdownSec": 20,
           "defuseBonusSec": 6
         },
         {
@@ -2095,7 +2100,7 @@
             3,
             8
           ],
-          "countdownSec": 20,
+          "countdownSec": 15,
           "defuseBonusSec": 6
         }
       ],
@@ -2112,7 +2117,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_8",
       "coverageGoal": 0.85,
-      "timeLimit": 59,
+      "timeLimit": 95,
       "initialSeed": "minefield-campaign-v1-L78-ch8-e959a386",
       "commands": {
         "maxHand": 3,
@@ -2134,7 +2139,7 @@
             4,
             2
           ],
-          "countdownSec": 20,
+          "countdownSec": 25,
           "defuseBonusSec": 5
         },
         {
@@ -2150,7 +2155,7 @@
             6,
             10
           ],
-          "countdownSec": 18,
+          "countdownSec": 15,
           "defuseBonusSec": 5
         }
       ],
@@ -2682,7 +2687,7 @@
             7,
             4
           ],
-          "countdownSec": 26,
+          "countdownSec": 23,
           "defuseBonusSec": 10
         },
         {
