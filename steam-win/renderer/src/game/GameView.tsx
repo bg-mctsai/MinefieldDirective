@@ -18,8 +18,13 @@ import { campaignLevelHeaderTitle } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
 import { useCombatHeroId } from './useCombatHeroId';
 import { HeroUnlockDialogueOverlay } from './HeroUnlockDialogueOverlay';
-import { mergeUnlockedOnChapterCleared } from './heroUnlockedStorage';
+import { mergeUnlockedOnLevelCleared } from './heroUnlockedStorage';
+import { heroIdsUnlockedOnLevelCleared } from './heroUnlockByChapter';
 import { filterHeroIdsWithUnlockDialogue } from '../levelData/heroUnlockDialogue';
+import {
+  loadShownHeroUnlockDialogueIds,
+  markHeroUnlockDialoguesShown,
+} from './heroUnlockDialogueStorage';
 import { getHeroCombatTheme } from './heroCombatTheme';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './chapterStage';
 import { AudioEngine } from '../audio/AudioEngine';
@@ -150,20 +155,35 @@ export default function GameView({
     onBack(c != null ? { dossierAfterClearedChapter: c } : undefined);
   }, [onBack]);
 
+  const queueUnlockDialogueForLevel = useCallback((levelKey: string) => {
+    const shownDialogues = loadShownHeroUnlockDialogueIds();
+    return filterHeroIdsWithUnlockDialogue(
+      heroIdsUnlockedOnLevelCleared(levelKey).filter((id) => !shownDialogues.has(id)),
+    );
+  }, []);
+
+  const handleVictoryCelebrationConfirm = useCallback(() => {
+    if (!gameState) return;
+    setDismissedWinCelebrationGameId(gameState.gameId);
+    if (!unlockDialogueDismissed) {
+      const withDialogue = queueUnlockDialogueForLevel(gameState.level.levelKey);
+      if (withDialogue.length > 0) {
+        setPendingUnlockHeroIds(withDialogue);
+      }
+    }
+  }, [gameState, unlockDialogueDismissed, queueUnlockDialogueForLevel]);
+
   useEffect(() => {
     if (!gameState) return;
     if (gameState.status !== 'won') return;
     if (lastRecordedWinGameId.current === gameState.gameId) return;
 
     const clearedLevelKey = gameState.level.levelKey;
-    const ch = gameState.level.definition.chapter;
-    if (typeof ch === 'number' && Number.isFinite(ch) && stageInChapter(gameState.level.stage) === LEVELS_PER_CHAPTER) {
-      const newly = mergeUnlockedOnChapterCleared(ch);
-      const withDialogue = filterHeroIdsWithUnlockDialogue(newly);
-      if (withDialogue.length > 0) {
-        setPendingUnlockHeroIds(withDialogue);
-        setUnlockDialogueDismissed(false);
-      }
+    mergeUnlockedOnLevelCleared(clearedLevelKey);
+    const withDialogue = queueUnlockDialogueForLevel(clearedLevelKey);
+    if (withDialogue.length > 0) {
+      setPendingUnlockHeroIds(withDialogue);
+      setUnlockDialogueDismissed(false);
     }
     const nextClearedLevelKeys = Array.from(new Set([...clearedLevelKeys, clearedLevelKey]));
     if (gameState.settledMedal != null) {
@@ -173,7 +193,7 @@ export default function GameView({
     _onClearedLevelKeysChange(nextClearedLevelKeys);
     getStoredHeroId();
     lastRecordedWinGameId.current = gameState.gameId;
-  }, [gameState?.status, gameState?.gameId, gameState?.level.levelKey, gameState?.level.stage, gameState?.settledMedal, clearedLevelKeys, _onClearedLevelKeysChange]);
+  }, [gameState?.status, gameState?.gameId, gameState?.level.levelKey, gameState?.level.stage, gameState?.settledMedal, clearedLevelKeys, _onClearedLevelKeysChange, queueUnlockDialogueForLevel]);
 
   const bobbyPlaceHintKeys = useMemo(() => {
     if (combatHeroId !== 'bobby' || selectedHandIndex === null || !gameState) return null;
@@ -335,17 +355,19 @@ export default function GameView({
                 laozhangCopySlotSelected={laozhangCopySlotSelected}
                 onLaozhangCopySlotClick={selectLaozhangCopySlot}
               />
-              <GameBoard
-                boardRef={boardRef}
-                gameState={gameState}
-                movingSoldier={movingSoldier}
-                onCellClick={handleCellClick}
-                bonusFxKeys={bonusFxKeys}
-                bobbyDownshiftFx={bobbyDownshiftFx}
-                combatHeroId={combatHeroId}
-                placeHintKeys={bobbyPlaceHintKeys}
-                align="left"
-              />
+              <div className="relative">
+                <GameBoard
+                  boardRef={boardRef}
+                  gameState={gameState}
+                  movingSoldier={movingSoldier}
+                  onCellClick={handleCellClick}
+                  bonusFxKeys={bonusFxKeys}
+                  bobbyDownshiftFx={bobbyDownshiftFx}
+                  combatHeroId={combatHeroId}
+                  placeHintKeys={bobbyPlaceHintKeys}
+                  align="left"
+                />
+              </div>
               <HeroSkillHud
                 heroId={combatHeroId}
                 fortifyRemaining={gameState.fortifyRemaining}
@@ -374,7 +396,10 @@ export default function GameView({
       <HeroUnlockDialogueOverlay
         visible={showHeroUnlockDialogue}
         heroIds={pendingUnlockHeroIds}
-        onComplete={() => setUnlockDialogueDismissed(true)}
+        onComplete={() => {
+          markHeroUnlockDialoguesShown(pendingUnlockHeroIds);
+          setUnlockDialogueDismissed(true);
+        }}
       />
 
       <VictoryCelebrationOverlay
@@ -382,7 +407,7 @@ export default function GameView({
         variant={isLastLevel ? 'campaign' : 'level'}
         fillPercentage={gameState.settledFillPercentage ?? fillPercentage}
         levelCount={levelList.length}
-        onConfirm={() => setDismissedWinCelebrationGameId(gameState.gameId)}
+        onConfirm={handleVictoryCelebrationConfirm}
         settledMedal={gameState.settledMedal}
         previousBestMedal={getBestMedal(gameState.level.levelKey)}
         secondsLeft={gameState.settledSecondsLeft}

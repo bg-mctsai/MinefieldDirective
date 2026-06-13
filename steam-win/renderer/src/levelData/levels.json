@@ -14,7 +14,8 @@
     "timeLimit.chapter5": "第 5 章斷線封鎖（chapter=5）：5_1～5_5 方格建議 timeLimit = playableCells；5_6～5_8 六角建議 playableCells − 5。",
     "commands.chapter4": "第 4 章蜂巢關（mapRef 4_1～4_8）：commands.weights 請只使用鍵 \"1\"～\"6\"（六角鄰數上限）；勿填 7、8。",
     "commands.chapter6": "第 6～10 章：依 mapLayout.type——HEXAGON 僅 \"1\"～\"6\"（每章約 2～3 關）；SQUARE 為 \"1\"～\"8\"。六角建議 18/22/20/18/12/8；四方建議 8/14/22/22/14/10/7/3。",
-    "digitOutposts.chapter4": "第 4 章：4_1～4_2 省略 digitOutposts；4_3～4_4 各 3 據點；4_5～4_8 各 4 據點（自原第 5 章遷入）。座標須落在可部署格。",
+    "digitOutposts.chapter4": "第 4 章：4_1～4_4 純六角教學（無據點）；4_5～4_8 混 ch3 據點（各 3～4 據點）。",
+    "mineBonusTargetCells.chapter5": "第 5 章斷線封鎖：5_1～5_4 僅 mineBonusTargetCells（通訊恢復節點，1→1→2→2）；5_5 起混 ch3 據點與 ch4 六角。勿與 digitOutposts 重疊。",
     "initialSeed": "盤面種子字串；用於固定障礙等隨機結果，勿隨意改動除非刻意換盤面。",
     "mapRef": "可選；外置地圖時填「章節_關卡」（與 levelKey 相同，如 1_1、10_8），對應 levelData/maps/{mapRef}.json。檔案典型結構：mapLayout（必填）、mapTheme（可選）、gridStats（可選，僅企劃標註）。與關卡內嵌 mapLayout 二擇一；併存時以內嵌為準。",
     "（外置地圖）mapTheme": "可選；寫在 maps/*.json。極短戰場名，供關卡選擇列與戰情簡報標題（建議約 2～5 字）。",
@@ -53,7 +54,9 @@
     "missionTacticalBriefingMap": "可選；作戰地圖（章內六角戰術圖）視覺。可覆寫該關節點在圖上的位置（百分比）與底圖色票；未填時節點採程式預設「軍事散點」十點佈局（左下起點→中央稜線→右側哨所→上緣分散→頂端目標），色票仍依 levelId 輪替。",
     "missionTacticalBriefingMap.nodePositionPct": "可選；{ x, y } 為節點中心在戰術圖上的百分比座標（0～100，原點左上），覆寫該章預設佈局（第 1～10 章見程式 missionChapterNodePositions）。",
     "missionTacticalBriefingMap.mapPalette": "可選；底圖與路徑色票：aurora | ember | jade | steel | violet | monsoon；未填則依 levelId 在六種預設間輪替。",
-    "missionTacticalTerrainAsset": "作戰地圖衛星／點陣「全畫面底圖」：（1）關卡專屬：renderer/src/assets/mission-tactical-level-{兩位數 levelId}.png，有則優先。（2）章節預設：assets/mission-tactical-chapter-maps/mission-tactical-chapter-{NN}.png；第 1 章可為 mission-tactical-chapter-01-bootcamp.png；建置時 glob 收錄，缺檔章節用 mission-tactical-satellite-base.png。無須在 levels.json 填欄位。"
+    "missionTacticalTerrainAsset": "作戰地圖衛星／點陣「全畫面底圖」：（1）關卡專屬：renderer/src/assets/mission-tactical-level-{兩位數 levelId}.png，有則優先。（2）章節預設：assets/mission-tactical-chapter-maps/mission-tactical-chapter-{NN}.png；第 1 章可為 mission-tactical-chapter-01-bootcamp.png；建置時 glob 收錄，缺檔章節用 mission-tactical-satellite-base.png。無須在 levels.json 填欄位。",
+    "commands.chapter9": "第 9 章鄰焰共振（chapter=9）：全章 SQUARE，commands 為 \"1\"～\"8\"（9_8 例外僅 \"1\"～\"3\"）；timeLimit = playableCells − 15。",
+    "chapterProgression.front4back4": "每章 8 關：x_1～x_4 僅本章核心機制（強度遞增）；x_5～x_8 本章核心 + 第 1～(N-1) 章機制漸進混和。全戰役計時與覆蓋率為底層，不算特色機制。"
   },
   "levels": [
     {
@@ -332,12 +335,14 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "2": 12,
+          "1": 8,
+          "2": 14,
           "3": 22,
           "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -354,12 +359,14 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "2": 12,
+          "1": 8,
+          "2": 14,
           "3": 22,
           "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -376,12 +383,14 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "2": 12,
+          "1": 8,
+          "2": 14,
           "3": 22,
           "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -398,12 +407,14 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "2": 12,
+          "1": 8,
+          "2": 14,
           "3": 22,
           "4": 22,
-          "5": 18,
-          "6": 16,
-          "7": 10
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
@@ -567,7 +578,7 @@
       "chapter": 3,
       "title": "乾谷據點 · 3_5",
       "coverageGoal": 0.75,
-      "timeLimit": 98,
+      "timeLimit": 132,
       "initialSeed": "minefield-campaign-v1-L25-ch3",
       "commands": {
         "maxHand": 3,
@@ -586,31 +597,31 @@
       "events": [],
       "digitOutposts": [
         [
-          0,
-          1
-        ],
-        [
-          5,
-          5
-        ],
-        [
-          7,
+          10,
           7
         ],
         [
-          8,
-          3
+          10,
+          9
+        ],
+        [
+          7,
+          10
+        ],
+        [
+          1,
+          5
         ]
       ],
       "rewards": {},
-      "mapRef": "3_5"
+      "mapRef": "2_5"
     },
     {
       "levelId": 22,
       "chapter": 3,
       "title": "乾谷據點 · 3_6",
       "coverageGoal": 0.75,
-      "timeLimit": 106,
+      "timeLimit": 94,
       "initialSeed": "minefield-campaign-v1-L26-ch3",
       "commands": {
         "maxHand": 3,
@@ -629,31 +640,31 @@
       "events": [],
       "digitOutposts": [
         [
-          2,
-          2
-        ],
-        [
-          8,
-          2
-        ],
-        [
-          4,
-          8
-        ],
-        [
           6,
-          3
+          6
+        ],
+        [
+          1,
+          11
+        ],
+        [
+          7,
+          6
+        ],
+        [
+          2,
+          12
         ]
       ],
       "rewards": {},
-      "mapRef": "3_6"
+      "mapRef": "2_6"
     },
     {
       "levelId": 23,
       "chapter": 3,
       "title": "乾谷據點 · 3_7",
       "coverageGoal": 0.75,
-      "timeLimit": 94,
+      "timeLimit": 117,
       "initialSeed": "minefield-campaign-v1-L27-ch3",
       "commands": {
         "maxHand": 3,
@@ -672,35 +683,35 @@
       "events": [],
       "digitOutposts": [
         [
-          1,
-          0
+          6,
+          6
         ],
         [
-          4,
-          0
-        ],
-        [
-          9,
-          9
-        ],
-        [
-          5,
-          5
+          6,
+          3
         ],
         [
           7,
+          6
+        ],
+        [
+          12,
+          4
+        ],
+        [
+          6,
           7
         ]
       ],
       "rewards": {},
-      "mapRef": "3_7"
+      "mapRef": "2_7"
     },
     {
       "levelId": 24,
       "chapter": 3,
       "title": "乾谷據點 · 3_8",
       "coverageGoal": 0.75,
-      "timeLimit": 139,
+      "timeLimit": 105,
       "initialSeed": "minefield-campaign-v1-L28-ch3",
       "commands": {
         "maxHand": 3,
@@ -719,32 +730,32 @@
       "events": [],
       "digitOutposts": [
         [
-          0,
-          0
-        ],
-        [
-          4,
-          3
-        ],
-        [
-          8,
-          8
-        ],
-        [
-          1,
-          8
+          6,
+          6
         ],
         [
           6,
-          2
+          3
         ],
         [
-          11,
-          5
+          7,
+          6
+        ],
+        [
+          12,
+          10
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          8,
+          4
         ]
       ],
       "rewards": {},
-      "mapRef": "3_8"
+      "mapRef": "2_8"
     },
     {
       "levelId": 25,
@@ -797,7 +808,7 @@
       "chapter": 4,
       "mapRef": "4_3",
       "title": "蜂巢戰線 · 4_3",
-      "coverageGoal": 0.8,
+      "coverageGoal": 0.74,
       "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L27-ch4-merged",
       "commands": {
@@ -813,20 +824,6 @@
         }
       },
       "events": [],
-      "digitOutposts": [
-        [
-          6,
-          1
-        ],
-        [
-          6,
-          5
-        ],
-        [
-          6,
-          9
-        ]
-      ],
       "rewards": {}
     },
     {
@@ -834,7 +831,7 @@
       "chapter": 4,
       "mapRef": "4_4",
       "title": "蜂巢戰線 · 4_4",
-      "coverageGoal": 0.8,
+      "coverageGoal": 0.74,
       "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L28-ch4-merged",
       "commands": {
@@ -850,20 +847,6 @@
         }
       },
       "events": [],
-      "digitOutposts": [
-        [
-          8,
-          1
-        ],
-        [
-          6,
-          5
-        ],
-        [
-          8,
-          8
-        ]
-      ],
       "rewards": {}
     },
     {
@@ -1037,7 +1020,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_1",
       "coverageGoal": 0.75,
-      "timeLimit": 63,
+      "timeLimit": 53,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1052,7 +1035,14 @@
           "8": 3
         }
       },
-      "initialSeed": "minefield-campaign-v1-L33-ch5-square"
+      "initialSeed": "minefield-campaign-v1-L33-ch5-square",
+      "mineBonusTargetCells": [
+        [
+          5,
+          2
+        ]
+      ],
+      "mineBonusSeconds": 6
     },
     {
       "levelId": 34,
@@ -1061,7 +1051,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_2",
       "coverageGoal": 0.76,
-      "timeLimit": 80,
+      "timeLimit": 70,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1076,7 +1066,14 @@
           "8": 3
         }
       },
-      "initialSeed": "minefield-campaign-v1-L34-ch5-square"
+      "initialSeed": "minefield-campaign-v1-L34-ch5-square",
+      "mineBonusTargetCells": [
+        [
+          3,
+          4
+        ]
+      ],
+      "mineBonusSeconds": 5
     },
     {
       "levelId": 35,
@@ -1085,7 +1082,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_3",
       "coverageGoal": 0.77,
-      "timeLimit": 95,
+      "timeLimit": 85,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1101,12 +1098,17 @@
         }
       },
       "initialSeed": "minefield-campaign-v1-L35-ch5-square",
-      "digitOutposts": [
+      "mineBonusTargetCells": [
         [
-          5,
-          5
+          8,
+          7
+        ],
+        [
+          2,
+          3
         ]
-      ]
+      ],
+      "mineBonusSeconds": 5
     },
     {
       "levelId": 36,
@@ -1115,7 +1117,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_4",
       "coverageGoal": 0.78,
-      "timeLimit": 117,
+      "timeLimit": 88,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1131,16 +1133,17 @@
         }
       },
       "initialSeed": "minefield-campaign-v1-L36-ch5-square",
-      "digitOutposts": [
+      "mineBonusTargetCells": [
         [
-          4,
-          4
+          2,
+          5
         ],
         [
-          7,
-          7
+          8,
+          5
         ]
-      ]
+      ],
+      "mineBonusSeconds": 4
     },
     {
       "levelId": 37,
@@ -1149,7 +1152,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_5",
       "coverageGoal": 0.79,
-      "timeLimit": 98,
+      "timeLimit": 90,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1165,6 +1168,17 @@
         }
       },
       "initialSeed": "minefield-campaign-v1-L37-ch5-square",
+      "mineBonusTargetCells": [
+        [
+          4,
+          6
+        ],
+        [
+          9,
+          4
+        ]
+      ],
+      "mineBonusSeconds": 5,
       "digitOutposts": [
         [
           0,
@@ -1185,7 +1199,7 @@
       "chapter": 5,
       "title": "斷線封鎖 · 5_6",
       "coverageGoal": 0.8,
-      "timeLimit": 77,
+      "timeLimit": 87,
       "initialSeed": "minefield-campaign-v1-L38-ch5-hex",
       "commands": {
         "maxHand": 3,
@@ -1200,6 +1214,17 @@
         }
       },
       "events": [],
+      "mineBonusTargetCells": [
+        [
+          8,
+          3
+        ],
+        [
+          7,
+          8
+        ]
+      ],
+      "mineBonusSeconds": 4,
       "digitOutposts": [
         [
           5,
@@ -1226,7 +1251,7 @@
       "chapter": 5,
       "title": "斷線封鎖 · 5_7",
       "coverageGoal": 0.8,
-      "timeLimit": 81,
+      "timeLimit": 91,
       "initialSeed": "minefield-campaign-v1-L39-ch5-hex",
       "commands": {
         "maxHand": 3,
@@ -1241,6 +1266,21 @@
         }
       },
       "events": [],
+      "mineBonusTargetCells": [
+        [
+          8,
+          1
+        ],
+        [
+          3,
+          8
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      "mineBonusSeconds": 4,
       "digitOutposts": [
         [
           5,
@@ -1267,7 +1307,7 @@
       "chapter": 5,
       "title": "斷線封鎖 · 5_8",
       "coverageGoal": 0.8,
-      "timeLimit": 67,
+      "timeLimit": 95,
       "initialSeed": "minefield-campaign-v1-L40-ch5-hex",
       "commands": {
         "maxHand": 3,
@@ -1282,6 +1322,21 @@
         }
       },
       "events": [],
+      "mineBonusTargetCells": [
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          8,
+          1
+        ]
+      ],
+      "mineBonusSeconds": 5,
       "digitOutposts": [
         [
           6,
@@ -1439,7 +1494,24 @@
           "TODO: 六角格鄰居與畫面呈現"
         ]
       },
-      "mapRef": "6_5"
+      "mapRef": "6_5",
+      "mineBonusTargetCells": [
+        [
+          6,
+          5
+        ]
+      ],
+      "mineBonusSeconds": 5,
+      "digitOutposts": [
+        [
+          6,
+          4
+        ],
+        [
+          0,
+          1
+        ]
+      ]
     },
     {
       "levelId": 46,
@@ -1469,7 +1541,17 @@
           "TODO: 六角格鄰居與畫面呈現"
         ]
       },
-      "mapRef": "6_6"
+      "mapRef": "6_6",
+      "digitOutposts": [
+        [
+          5,
+          6
+        ],
+        [
+          5,
+          7
+        ]
+      ]
     },
     {
       "levelId": 47,
@@ -1497,7 +1579,28 @@
           "TODO: 六角格鄰居與畫面呈現"
         ]
       },
-      "mapRef": "6_7"
+      "mapRef": "6_7",
+      "mineBonusTargetCells": [
+        [
+          6,
+          5
+        ],
+        [
+          10,
+          4
+        ]
+      ],
+      "mineBonusSeconds": 4,
+      "digitOutposts": [
+        [
+          6,
+          6
+        ],
+        [
+          3,
+          3
+        ]
+      ]
     },
     {
       "levelId": 48,
@@ -1527,7 +1630,32 @@
           "TODO: 六角格鄰居與畫面呈現"
         ]
       },
-      "mapRef": "6_8"
+      "mapRef": "6_8",
+      "mineBonusTargetCells": [
+        [
+          8,
+          7
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "mineBonusSeconds": 5,
+      "digitOutposts": [
+        [
+          7,
+          8
+        ],
+        [
+          11,
+          6
+        ],
+        [
+          9,
+          5
+        ]
+      ]
     },
     {
       "levelId": 49,
@@ -1666,7 +1794,8 @@
         ]
       ],
       "rewards": {},
-      "mapRef": "7_5"
+      "mapRef": "7_5",
+      "dynamicMinePerMove": true
     },
     {
       "levelId": 54,
@@ -1697,7 +1826,14 @@
         ]
       ],
       "rewards": {},
-      "mapRef": "7_6"
+      "mapRef": "7_6",
+      "mineBonusTargetCells": [
+        [
+          6,
+          6
+        ]
+      ],
+      "mineBonusSeconds": 4
     },
     {
       "levelId": 55,
@@ -1730,7 +1866,14 @@
         ]
       ],
       "rewards": {},
-      "mapRef": "7_7"
+      "mapRef": "7_7",
+      "mineBonusTargetCells": [
+        [
+          6,
+          5
+        ]
+      ],
+      "mineBonusSeconds": 4
     },
     {
       "levelId": 56,
@@ -1768,7 +1911,18 @@
         ]
       ],
       "rewards": {},
-      "mapRef": "7_8"
+      "mapRef": "7_8",
+      "mineBonusTargetCells": [
+        [
+          5,
+          6
+        ],
+        [
+          0,
+          6
+        ]
+      ],
+      "mineBonusSeconds": 5
     },
     {
       "levelId": 57,
@@ -2002,7 +2156,9 @@
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "8_5"
+      "mapRef": "8_5",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 300
     },
     {
       "levelId": 62,
@@ -2055,7 +2211,8 @@
           "TODO: 多炸點組合壓力測試"
         ]
       },
-      "mapRef": "8_6"
+      "mapRef": "8_6",
+      "dynamicMinePerMove": true
     },
     {
       "levelId": 63,
@@ -2110,7 +2267,19 @@
           "TODO: 三炸點上二下一配置"
         ]
       },
-      "mapRef": "8_7"
+      "mapRef": "8_7",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "digitOutposts": [
+        [
+          6,
+          5
+        ],
+        [
+          5,
+          5
+        ]
+      ]
     },
     {
       "levelId": 64,
@@ -2165,7 +2334,20 @@
           "TODO: 十字配置炸點，上下兩點倒數更短"
         ]
       },
-      "mapRef": "8_8"
+      "mapRef": "8_8",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 260,
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          6,
+          5
+        ],
+        [
+          3,
+          6
+        ]
+      ]
     },
     {
       "levelId": 65,
@@ -2230,12 +2412,14 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
+          "1": 10,
+          "2": 14,
+          "3": 18,
           "4": 18,
-          "5": 12,
-          "6": 8
+          "5": 14,
+          "6": 10,
+          "7": 8,
+          "8": 4
         }
       },
       "events": [],
@@ -2274,7 +2458,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_5",
       "coverageGoal": 0.86,
-      "timeLimit": 57,
+      "timeLimit": 59,
       "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
@@ -2293,7 +2477,25 @@
       "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
-      "mapRef": "9_5"
+      "mapRef": "9_5",
+      "blastPoints": [
+        {
+          "pos": [
+            5,
+            6
+          ],
+          "countdownSec": 28,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            6,
+            6
+          ],
+          "countdownSec": 23,
+          "defuseBonusSec": 8
+        }
+      ]
     },
     {
       "levelId": 70,
@@ -2306,18 +2508,22 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 18,
-          "2": 22,
-          "3": 20,
-          "4": 18,
-          "5": 12,
-          "6": 8
+          "1": 8,
+          "2": 14,
+          "3": 22,
+          "4": 22,
+          "5": 14,
+          "6": 10,
+          "7": 7,
+          "8": 3
         }
       },
       "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
-      "mapRef": "9_6"
+      "mapRef": "9_6",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 300
     },
     {
       "levelId": 71,
@@ -2343,7 +2549,18 @@
       "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
-      "mapRef": "9_7"
+      "mapRef": "9_7",
+      "dynamicMinePerMove": true,
+      "digitOutposts": [
+        [
+          8,
+          7
+        ],
+        [
+          1,
+          7
+        ]
+      ]
     },
     {
       "levelId": 72,
@@ -2364,7 +2581,19 @@
       "events": [],
       "neighborPlacedDigitBonus": true,
       "rewards": {},
-      "mapRef": "9_8"
+      "mapRef": "9_8",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 280,
+      "blastPoints": [
+        {
+          "pos": [
+            5,
+            6
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 8
+        }
+      ]
     },
     {
       "levelId": 73,
@@ -2389,16 +2618,6 @@
       },
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 250,
-      "digitOutposts": [
-        [
-          2,
-          2
-        ],
-        [
-          8,
-          9
-        ]
-      ],
       "blastPoints": [
         {
           "pos": [
@@ -2430,16 +2649,6 @@
         }
       },
       "neighborPlacedDigitBonus": true,
-      "digitOutposts": [
-        [
-          9,
-          2
-        ],
-        [
-          3,
-          8
-        ]
-      ],
       "blastPoints": [
         {
           "pos": [
@@ -2476,16 +2685,6 @@
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 260,
       "dynamicMinePerMove": true,
-      "digitOutposts": [
-        [
-          2,
-          2
-        ],
-        [
-          9,
-          8
-        ]
-      ],
       "blastPoints": [
         {
           "pos": [
@@ -2498,7 +2697,14 @@
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_3"
+      "mapRef": "10_3",
+      "mineBonusTargetCells": [
+        [
+          5,
+          13
+        ]
+      ],
+      "mineBonusSeconds": 6
     },
     {
       "levelId": 76,
@@ -2524,16 +2730,6 @@
       "commandSlotReceiveJamming": true,
       "commandSlotJammingStepMs": 235,
       "dynamicMinePerMove": true,
-      "digitOutposts": [
-        [
-          3,
-          2
-        ],
-        [
-          10,
-          7
-        ]
-      ],
       "blastPoints": [
         {
           "pos": [
@@ -2594,7 +2790,14 @@
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_5"
+      "mapRef": "10_5",
+      "mineBonusTargetCells": [
+        [
+          6,
+          14
+        ]
+      ],
+      "mineBonusSeconds": 5
     },
     {
       "levelId": 78,
@@ -2701,7 +2904,16 @@
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_7"
+      "mapRef": "10_7",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 240,
+      "mineBonusTargetCells": [
+        [
+          6,
+          6
+        ]
+      ],
+      "mineBonusSeconds": 5
     },
     {
       "levelId": 80,
@@ -2749,7 +2961,19 @@
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_8"
+      "mapRef": "10_8",
+      "neighborPlacedDigitBonus": true,
+      "mineBonusTargetCells": [
+        [
+          6,
+          5
+        ],
+        [
+          0,
+          9
+        ]
+      ],
+      "mineBonusSeconds": 5
     }
   ]
 }

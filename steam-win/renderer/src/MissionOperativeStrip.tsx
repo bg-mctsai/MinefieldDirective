@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Lock, ZoomIn } from 'lucide-react';
 import { HEROES, resolveMissionBriefCarouselLines, setStoredHeroId } from './heroes';
 import { useEffectiveUnlockedHeroIds } from './game/heroUnlockedStorage';
-import { requiredCompletedChapterForHero } from './game/heroUnlockByChapter';
+import { heroUnlockRequirementHint } from './game/heroUnlockByChapter';
 import { HeroAvatarSilhouette } from './home/HeroAvatarSilhouette';
 import { useHeroPortraitLightbox } from './home/HeroPortraitLightbox';
 import { TeletypeInline } from './teletype';
@@ -60,13 +60,9 @@ export function MissionOperativeStrip({
           {HEROES.map((h) => {
             const active = h.id === operativeId;
             const canUse = unlocked.has(h.id);
-            const needCh = requiredCompletedChapterForHero(h.id);
-            const title =
-              canUse
-                ? `切換為 ${h.name}`
-                : needCh != null
-                  ? `通關第 ${needCh} 章整章解鎖`
-                  : '尚未解鎖';
+            const title = canUse
+              ? `切換為 ${h.name}`
+              : (heroUnlockRequirementHint(h.id) ?? '尚未解鎖');
             return (
               <div key={h.id} className="relative inline-flex">
                 <button

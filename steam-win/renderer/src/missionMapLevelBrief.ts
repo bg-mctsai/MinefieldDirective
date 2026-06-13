@@ -4,6 +4,9 @@ import type { LevelDefinition } from './levelData/types';
 export function missionEnemySituationLine(def: LevelDefinition): string {
   const parts: string[] = [];
   if (def.blastPoints?.length) parts.push(`定時炸點 ×${def.blastPoints.length}`);
+  if (def.mineBonusTargetCells?.length) {
+    parts.push(`通訊節點 ×${def.mineBonusTargetCells.length}`);
+  }
   if (def.digitOutposts?.length) parts.push(`數字據點 ×${def.digitOutposts.length}`);
   if (def.dynamicMinePerMove) parts.push('動態廢雷');
   if (def.forcedMineCells?.length) parts.push(`固定雷格 ×${def.forcedMineCells.length}`);
@@ -17,6 +20,7 @@ export function missionEnemySituationLine(def: LevelDefinition): string {
 export function missionEnemyIntelAbbrev(def: LevelDefinition): string {
   const chips: string[] = [];
   if (def.blastPoints?.length) chips.push(`BP×${def.blastPoints.length}`);
+  if (def.mineBonusTargetCells?.length) chips.push(`CR×${def.mineBonusTargetCells.length}`);
   if (def.digitOutposts?.length) chips.push(`DO×${def.digitOutposts.length}`);
   if (def.dynamicMinePerMove) chips.push('DM');
   if (def.forcedMineCells?.length) chips.push(`FM×${def.forcedMineCells.length}`);

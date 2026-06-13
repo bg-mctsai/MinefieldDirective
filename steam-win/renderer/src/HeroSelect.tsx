@@ -22,7 +22,7 @@ import { HeroAvatarSilhouette, getHeroPortraitUrl } from './home/HeroAvatarSilho
 import { heroSkillHudLucideIcon } from './game/heroSkillHudIcons';
 import { emit } from './audio/AudioEngine';
 import { useEffectiveUnlockedHeroIds } from './game/heroUnlockedStorage';
-import { requiredCompletedChapterForHero } from './game/heroUnlockByChapter';
+import { heroUnlockRequirementHint } from './game/heroUnlockByChapter';
 
 function ConfidentialStamp({ className = '' }: { className?: string }) {
   return (
@@ -451,11 +451,7 @@ export default function HeroSelect({
             {HEROES.map((h, i) => {
               const active = h.id === selected;
               const canUse = unlocked.has(h.id);
-              const needCh = requiredCompletedChapterForHero(h.id);
-              const lockHint =
-                canUse || needCh == null
-                  ? null
-                  : `通關第 ${needCh} 章整章解鎖`;
+              const lockHint = canUse ? null : heroUnlockRequirementHint(h.id);
               const rosterSkillNames = getHeroCombatSkills(h).map((s) => s.name);
               const rosterSkillsLine =
                 rosterSkillNames.length > 0 ? rosterSkillNames.join('、') : '教學基礎';

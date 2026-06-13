@@ -137,6 +137,16 @@ for (const lv of levels) {
   if (Array.isArray(lv.forcedMineCells)) {
     for (const p of lv.forcedMineCells) checkCell('forcedMine', p[0], p[1]);
   }
+  if (Array.isArray(lv.mineBonusTargetCells)) {
+    for (const p of lv.mineBonusTargetCells) checkCell('mineBonusTarget', p[0], p[1]);
+    const outpostKeys = new Set((lv.digitOutposts ?? []).map((c) => key(c[0], c[1])));
+    for (const p of lv.mineBonusTargetCells) {
+      if (outpostKeys.has(key(p[0], p[1]))) {
+        console.error(`L${lv.levelId}: mineBonusTarget (${p[0]},${p[1]}) overlaps digitOutpost`);
+        errors++;
+      }
+    }
+  }
 }
 
 if (errors > 0) {

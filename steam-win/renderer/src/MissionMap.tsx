@@ -299,6 +299,9 @@ export default function MissionMap({
     originY: number;
   } | null>(null);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
+  const mapLayerRef = useRef<HTMLDivElement | null>(null);
+  /** 拖曳中直接寫 DOM transform，避免每幀 setState 整頁重繪 */
+  const mapPanLiveRef = useRef(mapPan);
   /** 上一筆有效的 cover 尺寸（避免 ref 首幀 0×0 / flex 延遲時 terrainCoverLayout 變 null → 地圖層無寬高 → 整區全黑） */
   const stableTerrainCoverRef = useRef<TerrainCoverLayout | null>(null);
   const terrainNaturalKeyRef = useRef<string>('');
@@ -310,6 +313,16 @@ export default function MissionMap({
   const onTerrainNaturalSize = useCallback((nw: number, nh: number) => {
     setTerrainNaturalPx({ w: nw, h: nh });
   }, []);
+
+  const applyMapPanToDom = useCallback((x: number, y: number) => {
+    mapPanLiveRef.current = { x, y };
+    const el = mapLayerRef.current;
+    if (el) el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  }, []);
+
+  useLayoutEffect(() => {
+    applyMapPanToDom(mapPan.x, mapPan.y);
+  }, [mapPan.x, mapPan.y, applyMapPanToDom]);
 
   const terrainNaturalKey =
     terrainNaturalPx == null ? '' : `${terrainNaturalPx.w}x${terrainNaturalPx.h}`;
@@ -389,13 +402,7 @@ export default function MissionMap({
     [activeLevels],
   );
 
-  /** 底圖色票／地形相位：跟隨目前選中關卡，確保每關視覺不同 */
-  const chapterBackdropLevelId = useMemo(() => {
-    if (openedChapter == null) return 1;
-    if (selectedLevelId != null) return LEVELS.find((l) => l.levelKey === selectedLevelId)?.id ?? 1;
-    return activeLevels[0]?.levelId ?? 1;
-  }, [openedChapter, activeLevels, selectedLevelId]);
-
+  /** 底圖／裝飾 seed：跟章節走，切換關卡節點不重掛戰術底圖 */
   const tacticalBackdrop = useMemo(() => {
     if (openedChapter == null || activeLevels.length === 0) {
       return {
@@ -409,10 +416,11 @@ export default function MissionMap({
       const stage = stageInChapter(lv.stage);
       return missionMapTacticalNodePct(openedChapter, stage, lv);
     });
-    const focalLv = LEVELS.find((l) => l.id === chapterBackdropLevelId) ?? LEVELS[activeLevels[0]!.idx]!;
+    const decorSeed = activeLevels[0]!.levelId;
+    const focalLv = LEVELS[activeLevels[0]!.idx]!;
     const palette = missionTacticalBriefingPaletteFromDefinition(focalLv.id, focalLv.definition);
-    return { routePoints, palette, visualSeed: chapterBackdropLevelId };
-  }, [openedChapter, activeLevels, chapterBackdropLevelId]);
+    return { routePoints, palette, visualSeed: decorSeed };
+  }, [openedChapter, activeLevels]);
 
   const missionHudTelemetry = useMemo(
     () => (openedChapter != null ? missionMapHudTelemetry(openedChapter) : null),
@@ -689,8 +697,8 @@ export default function MissionMap({
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      originX: mapPan.x,
-      originY: mapPan.y,
+      originX: mapPanLiveRef.current.x,
+      originY: mapPanLiveRef.current.y,
     };
     setIsMapDragging(true);
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -702,7 +710,7 @@ export default function MissionMap({
       drag.originX + (e.clientX - drag.startX),
       drag.originY + (e.clientY - drag.startY),
     );
-    setMapPan(next);
+    applyMapPanToDom(next.x, next.y);
   };
   const onMapPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const drag = mapDragRef.current;
@@ -710,11 +718,12 @@ export default function MissionMap({
     mapDragRef.current = null;
     setIsMapDragging(false);
     e.currentTarget.releasePointerCapture(e.pointerId);
-    setMapPan((p) => clampMapPan(p.x, p.y));
+    const { x, y } = mapPanLiveRef.current;
+    setMapPan(clampMapPan(x, y));
   };
 
   return (
-    <TerminalBackdrop scanlineOpacity={0.1} className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
+    <TerminalBackdrop scanlineOpacity={0.06} className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
       <div
         className={`relative z-10 flex min-h-[100dvh] w-full flex-col ${phase === 'pickLevel' ? 'px-3 py-3 md:px-5' : 'mx-auto max-w-[min(96vw,1760px)] px-6 py-4 md:px-10'
           }`}
@@ -974,7 +983,7 @@ export default function MissionMap({
                             </div>
                             <div
                               ref={mapViewportRef}
-                              className={`relative z-10 min-h-0 w-full min-w-0 flex-1 overflow-hidden rounded-[9px] bg-[#0a0b0f] shadow-[inset_0_0_0_2px_rgba(0,0,0,0.82),inset_0_2px_0_rgba(255,255,255,0.05),inset_0_0_56px_rgba(0,0,0,0.48)] touch-none select-none overscroll-contain ${terrainNaturalPx ? '' : 'min-h-[240px]'} ${isMapDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                              className={`mission-map-viewport relative z-10 min-h-0 w-full min-w-0 flex-1 overflow-hidden rounded-[9px] bg-[#0a0b0f] shadow-[inset_0_0_0_2px_rgba(0,0,0,0.82),inset_0_2px_0_rgba(255,255,255,0.05),inset_0_0_56px_rgba(0,0,0,0.48)] touch-none select-none overscroll-contain ${terrainNaturalPx ? '' : 'min-h-[240px]'} ${isMapDragging ? 'cursor-grabbing mission-map-viewport--dragging' : 'cursor-grab'}`}
                             onDoubleClick={() => {
                               if (isMapDragging) return;
                               startSelectedLevelFromMap();
@@ -1046,12 +1055,12 @@ export default function MissionMap({
                             </div>
                             <div className="mission-map-viewport-grain pointer-events-none absolute inset-0 z-[11]" aria-hidden />
                             <div
-                              className={`absolute top-0 left-0 z-[12] will-change-transform ${terrainCoverLayout ? '' : 'inset-[-34%]'}`}
+                              ref={mapLayerRef}
+                              className={`mission-map-pan-layer absolute top-0 left-0 z-[12] ${terrainCoverLayout ? '' : 'inset-[-34%]'}`}
                               style={{
                                 ...(terrainCoverLayout
                                   ? { width: terrainCoverLayout.wd, height: terrainCoverLayout.hd }
                                   : {}),
-                                transform: `translate3d(${mapPan.x}px, ${mapPan.y}px, 0)`,
                               }}
                             >
                           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_26%,rgba(148,163,184,0.06),transparent_50%),radial-gradient(circle_at_82%_71%,rgba(100,116,139,0.05),transparent_48%)]" />

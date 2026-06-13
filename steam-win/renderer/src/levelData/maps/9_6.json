@@ -1,10 +1,8 @@
 {
   "mapLayout": {
-    "type": "HEXAGON",
-    "placeholder": {
-      "width": 12,
-      "height": 10
-    },
+    "type": "SQUARE",
+    "width": 12,
+    "height": 10,
     "forbiddenCells": [
       [
         0,

@@ -64,6 +64,12 @@ export function buildLevelStrategyGuideModel(
   if ((d.blastPoints?.length ?? 0) > 0) {
     briefingSummaryLines.push('炸點會倒數，歸零前沒處理完就輸。');
   }
+  if ((d.mineBonusTargetCells?.length ?? 0) > 0) {
+    const sec = d.mineBonusSeconds ?? 5;
+    briefingSummaryLines.push(
+      `通訊恢復節點 ${d.mineBonusTargetCells!.length} 處：邏輯確認為雷後各 +${sec} 秒。`,
+    );
+  }
   if ((d.digitOutposts?.length ?? 0) > 0) {
     briefingSummaryLines.push('據點格一定要填數字，不能放著不管。');
   }

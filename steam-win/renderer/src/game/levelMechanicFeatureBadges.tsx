@@ -2,7 +2,7 @@ import type { LevelDefinition } from '../levelData/types';
 
 /**
  * 本關「特色玩法」短標籤（與企劃 docs/world_map_design.md 用語對齊，供頂欄與指南旁顯示）。
- * — 戰術據點：digitOutposts
+ * — 通訊恢復：mineBonusTargetCells（斷線封鎖章，邏輯確認雷 +秒）
  * — 定時炸點：blastPoints
  * — 鄰焰共振：neighborPlacedDigitBonus（熱力迴聲）
  * — 信號輪播：commandSlotReceiveJamming（電報數字輪播至鎖定）
@@ -14,7 +14,12 @@ export type MechanicFeatureBadge = { key: string; label: string };
 
 export function levelMechanicFeatureBadges(def: LevelDefinition): MechanicFeatureBadge[] {
   const out: MechanicFeatureBadge[] = [];
-  if ((def.digitOutposts?.length ?? 0) > 0) out.push({ key: 'digit-outposts', label: '戰術據點' });
+  if ((def.mineBonusTargetCells?.length ?? 0) > 0) {
+    out.push({ key: 'comm-relay', label: '通訊恢復' });
+  }
+  if ((def.digitOutposts?.length ?? 0) > 0) {
+    out.push({ key: 'digit-outposts', label: '戰術據點' });
+  }
   if ((def.blastPoints?.length ?? 0) > 0) out.push({ key: 'blast-points', label: '定時炸點' });
   if (def.neighborPlacedDigitBonus) out.push({ key: 'neighbor-bonus', label: '鄰焰共振' });
   if (def.commandSlotReceiveJamming) out.push({ key: 'cmd-jamming', label: '信號輪播' });

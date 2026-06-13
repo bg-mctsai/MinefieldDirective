@@ -42,10 +42,6 @@
       ],
       [
         3,
-        2
-      ],
-      [
-        3,
         3
       ],
       [
@@ -55,10 +51,6 @@
       [
         3,
         5
-      ],
-      [
-        3,
-        6
       ],
       [
         1,
@@ -101,7 +93,7 @@
   "mapTheme": "撤離底線",
   "gridStats": {
     "totalCells": 121,
-    "forbiddenCellCount": 23,
-    "playableCells": 98
+    "forbiddenCellCount": 21,
+    "playableCells": 100
   }
 }

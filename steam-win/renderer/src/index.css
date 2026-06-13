@@ -469,7 +469,7 @@ body {
   }
 
   100% {
-    transform: scale(20);
+    transform: scale(12);
     opacity: 0;
   }
 }
@@ -950,12 +950,21 @@ body {
 }
 
 .mission-map-viewport-grain {
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+  opacity: 0.04;
   background-image:
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 0.5px, transparent 0.6px 7px),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 0.5px, transparent 0.6px 9px),
     radial-gradient(circle at 20% 18%, rgba(148, 163, 184, 0.06), transparent 42%);
+}
+
+/* 戰術地圖視窗：合成隔離 + 拖曳時才 promote 平移層 */
+.mission-map-viewport {
+  isolation: isolate;
+  contain: layout paint;
+}
+
+.mission-map-viewport--dragging .mission-map-pan-layer {
+  will-change: transform;
 }
 
 .mission-map-viewport-scanline {

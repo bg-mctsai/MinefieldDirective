@@ -26,7 +26,7 @@
       ]
     ]
   },
-  "mapTheme": "紅筆節點",
+  "mapTheme": "通訊節點",
   "gridStats": {
     "totalCells": 100,
     "forbiddenCellCount": 5,

@@ -1,10 +1,10 @@
 {
-  "onChapterCleared": {
-    "1": ["ada"],
-    "3": ["selina"],
-    "5": ["bobby"],
-    "7": ["laozhang"],
-    "9": ["claire"],
-    "10": ["tungsten"]
+  "onLevelCleared": {
+    "1_8": ["ada"],
+    "2_5": ["selina"],
+    "3_8": ["bobby"],
+    "4_5": ["laozhang"],
+    "6_8": ["claire"],
+    "7_8": ["tungsten"]
   }
 }

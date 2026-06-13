@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { effectiveUnlockedHeroIds, HERO_DEV_UNLOCK_CHANGED } from '../heroDevUnlock';
 import { loadGameProgress } from './gameProgressStorage';
-import { heroIdsUnlockedOnChapterCleared } from './heroUnlockByChapter';
+import { heroIdsUnlockedOnLevelCleared } from './heroUnlockByChapter';
 
 const LS = 'md:unlockedHeroIds';
 /** 與 heroes.ts 內 HEROES 同序，供遷移「全幹員」不 import heroes 避免循環匯入 */
@@ -107,11 +107,11 @@ export function useEffectiveUnlockedHeroIds(): string[] {
 }
 
 /**
- * 通關第 chapter 章整章（剛通關該章第 8 關且勝利）時，合併企劃表解鎖的幹員 id。可重入、冪等。
- * @returns 本次新解鎖的幹員 id（供戰後對話等；重玩已解鎖章節時為空陣列）
+ * 通關指定 levelKey 且勝利時，合併企劃表解鎖的幹員 id。可重入、冪等。
+ * @returns 本次新解鎖的幹員 id（供戰後對話等；重玩已解鎖關卡時為空陣列）
  */
-export function mergeUnlockedOnChapterCleared(chapter: number): string[] {
-  const extra = heroIdsUnlockedOnChapterCleared(chapter);
+export function mergeUnlockedOnLevelCleared(levelKey: string): string[] {
+  const extra = heroIdsUnlockedOnLevelCleared(levelKey);
   if (extra.length === 0) return [];
   const cur = new Set(loadUnlockedHeroIds());
   const newly: string[] = [];

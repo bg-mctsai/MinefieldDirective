@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { buildTacticalRouteSmoothD } from './missionChapterTacticalRoute';
 import {
   TACTICAL_BG,
@@ -8,7 +8,7 @@ import {
   type Pt,
 } from './missionChapterTacticalBackdropDecor';
 import { missionBackdropGeographyLabels } from './missionChapterBackdropGeography';
-import { missionTerrainSrcForLevel } from './missionTerrainByChapter';
+import { missionTerrainSrcForChapter } from './missionTerrainByChapter';
 
 export type MissionChapterTacticalBackdropPalette = {
   neon: string;
@@ -35,7 +35,7 @@ function TinyArrow({ x, y, deg }: { x: number; y: number; deg: number }) {
  * 戰術地圖背景：點陣地形滿版父層（父層寬高＝cover 後的整張圖像素）；
  * SVG 疊暗色／網格／雷達／路徑（preserveAspectRatio none，與關卡節點百分比座標對齊）。
  */
-export function MissionChapterTacticalBackdrop({
+export const MissionChapterTacticalBackdrop = memo(function MissionChapterTacticalBackdrop({
   chapter,
   routePoints,
   palette: _palette,
@@ -55,7 +55,6 @@ export function MissionChapterTacticalBackdrop({
   const sid = `${chapter}-${visualSeed}`;
   const gridId = `tacticalGrid-${sid}`;
   const gridCoarseId = `tacticalGridCoarse-${sid}`;
-  const satFilterId = `satTerrain-${sid}`;
   const satTintId = `satTint-${sid}`;
   const sweepGradId = `tacticalSweep-${sid}`;
   const mapSheenId = `mapSheen-${sid}`;
@@ -63,7 +62,6 @@ export function MissionChapterTacticalBackdrop({
   const scanPatternId = `tacticalScan-${sid}`;
 
   const faintDash = '0.45 0.85';
-  const noiseSeed = Math.abs(visualSeed % 17) + 1;
 
   const routeD = useMemo(() => buildTacticalRouteSmoothD(routePoints, 0.3), [routePoints]);
   const decorA = useMemo(
@@ -81,8 +79,8 @@ export function MissionChapterTacticalBackdrop({
   const routeTwinPaths = useMemo(() => {
     if (routePoints.length < 2) return { mainA: '', mainB: '' };
     return {
-      mainA: buildParallelSmoothD(routePoints, 0.55, false, 0.3),
-      mainB: buildParallelSmoothD(routePoints, 0.55, true, 0.3),
+      mainA: buildParallelSmoothD(routePoints, 0.38, false, 0.3),
+      mainB: buildParallelSmoothD(routePoints, 0.38, true, 0.3),
     };
   }, [routePoints]);
 
@@ -95,10 +93,11 @@ export function MissionChapterTacticalBackdrop({
   const radarCy = 52;
   /** 附圖中大圓幾乎覆蓋整張地圖 */
   const radarR = 62;
-  const terrainSrc = missionTerrainSrcForLevel(visualSeed, chapter);
+  /** 章節底圖穩定，切換關卡節點不重載衛星圖 */
+  const terrainSrc = missionTerrainSrcForChapter(chapter);
 
   return (
-    <div className={`pointer-events-none absolute inset-0 h-full w-full select-none ${className}`}>
+    <div className={`pointer-events-none absolute inset-0 h-full w-full select-none contain-paint ${className}`}>
       <div className="absolute inset-0 bg-[#010302]" aria-hidden />
       <img
         key={terrainSrc}
@@ -106,7 +105,7 @@ export function MissionChapterTacticalBackdrop({
         alt=""
         decoding="async"
         draggable={false}
-        className="absolute inset-0 h-full w-full object-cover object-center [image-rendering:high-quality] [filter:brightness(1.05)_contrast(1.06)_saturate(0.86)]"
+        className="absolute inset-0 h-full w-full object-cover object-center [image-rendering:auto] [filter:brightness(1.05)_contrast(1.06)_saturate(0.86)]"
         onLoad={(e) => {
           const { naturalWidth: nw, naturalHeight: nh } = e.currentTarget;
           if (nw > 0 && nh > 0) onTerrainNaturalSize?.(nw, nh);
@@ -125,24 +124,6 @@ export function MissionChapterTacticalBackdrop({
           <stop offset="50%" stopColor="#030405" stopOpacity="0.52" />
           <stop offset="100%" stopColor="#08090a" stopOpacity="0.68" />
         </linearGradient>
-        <filter id={satFilterId} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.022 0.032"
-            numOctaves="2"
-            seed={noiseSeed}
-            result="noise"
-          />
-          <feColorMatrix
-            in="noise"
-            type="matrix"
-            values="0.12 0.11 0.1 0 0.018
-                    0.11 0.12 0.1 0 0.018
-                    0.1 0.11 0.12 0 0.018
-                    0 0 0 0.34 0"
-            result="colored"
-          />
-        </filter>
         <linearGradient id={mapSheenId} x1="0.08" y1="0" x2="0.92" y2="1">
           <stop offset="0%" stopColor="#0c0e10" stopOpacity="0" />
           <stop offset="42%" stopColor="#6b7c74" stopOpacity="0.04" />
@@ -190,8 +171,6 @@ export function MissionChapterTacticalBackdrop({
 
       <rect x="0" y="0" width="100" height="100" fill={TACTICAL_BG.black} opacity="0.2" />
       <rect x="0" y="0" width="100" height="100" fill={`url(#${satTintId})`} opacity="0.32" />
-      {/** feTurbulence 地形顆粒：略降強度，避免戰術圖＋關卡圖示疊出「髒感」 */}
-      <rect x="0" y="0" width="100" height="100" filter={`url(#${satFilterId})`} opacity="0.035" />
       <rect x="0" y="0" width="100" height="100" fill={`url(#${mapSheenId})`} />
       <rect x="0" y="0" width="100" height="100" fill={`url(#mapAmbient-${sid})`} />
       <rect x="0" y="0" width="100" height="100" fill={`url(#${gridCoarseId})`} opacity="0.12" />
@@ -312,7 +291,6 @@ export function MissionChapterTacticalBackdrop({
               strokeWidth={0.05}
               strokeDasharray={faintDash}
               opacity={0.22}
-              className="mission-tactical-faint-dash"
             />
           ) : null}
           {decorB ? (
@@ -325,7 +303,6 @@ export function MissionChapterTacticalBackdrop({
               strokeWidth={0.035}
               strokeDasharray="0.35 0.7"
               opacity={0.18}
-              className="mission-tactical-faint-dash"
             />
           ) : null}
           {extras.map((seg, i) => (
@@ -354,10 +331,10 @@ export function MissionChapterTacticalBackdrop({
               d={routeD}
               fill="none"
               stroke="#01140a"
-              strokeWidth={1.1}
+              strokeWidth={0.72}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity="0.9"
+              opacity="0.88"
             />
             {/* 雙股平行虛線：主軌 + 副軌，皆流動，保留透氣感 */}
             <>
@@ -366,22 +343,22 @@ export function MissionChapterTacticalBackdrop({
                 d={routeD}
                 fill="none"
                 stroke="#39ff7a"
-                strokeWidth={0.85}
+                strokeWidth={0.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity="0.14"
+                opacity="0.11"
               />
               {routeTwinPaths.mainA ? (
                 <path
                   d={routeTwinPaths.mainA}
                   fill="none"
                   stroke="#39ff7a"
-                  strokeWidth={0.22}
+                  strokeWidth={0.14}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeDasharray="1.4 1.6"
+                  strokeDasharray="1.2 1.5"
                   className="mission-route-flow-dash"
-                  opacity="0.88"
+                  opacity="0.82"
                 />
               ) : null}
               {routeTwinPaths.mainB ? (
@@ -389,12 +366,12 @@ export function MissionChapterTacticalBackdrop({
                   d={routeTwinPaths.mainB}
                   fill="none"
                   stroke="#b7ffd0"
-                  strokeWidth={0.18}
+                  strokeWidth={0.11}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeDasharray="1.0 1.8"
+                  strokeDasharray="0.85 1.6"
                   className="mission-route-flow-dash mission-route-flow-dash--reverse"
-                  opacity="0.72"
+                  opacity="0.68"
                 />
               ) : null}
             </>
@@ -434,4 +411,4 @@ export function MissionChapterTacticalBackdrop({
       ) : null}
     </div>
   );
-}
+});
