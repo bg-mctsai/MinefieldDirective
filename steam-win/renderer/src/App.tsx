@@ -11,6 +11,7 @@ import { setDevUnlockAllHeroes as setHeroDevUnlockAllOverride } from './heroDevU
 import { LEVELS_PER_CHAPTER, stageInChapter } from './game/chapterStage';
 import DossierPostChapter10Gate from './DossierPostChapter10Gate';
 import { HeroPortraitLightboxProvider } from './home/HeroPortraitLightbox';
+import { AudioSettingsProvider } from './audio/AudioSettingsContext';
 
 type Screen = 'home' | 'mission' | 'game' | 'hero' | 'dossierGate';
 
@@ -38,6 +39,7 @@ export default function App() {
   );
 
   return (
+    <AudioSettingsProvider>
     <HeroPortraitLightboxProvider>
     <AnimatePresence mode="wait">
       <motion.div
@@ -152,5 +154,6 @@ export default function App() {
       </motion.div>
     </AnimatePresence>
     </HeroPortraitLightboxProvider>
+    </AudioSettingsProvider>
   );
 }

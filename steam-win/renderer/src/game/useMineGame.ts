@@ -197,7 +197,7 @@ function buildDigitOutpostIncompleteLossState(
   return {
     ...prev,
     status: 'exploding',
-    message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostIncomplete'),
+    message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostIncomplete', undefined, prev.level.definition.chapter),
     conflictCells: missing.map(([mx, my]) => ({ x: mx, y: my })),
     explosionMarkCells,
     lossSequentialExplosionKeys,
@@ -215,6 +215,14 @@ export function useMineGame(initialLevelIndex: number) {
   const [bobbyDownshiftFx, setBobbyDownshiftFx] = useState<BobbyDownshiftFxState | null>(null);
   const bonusFxTimeoutsRef = useRef<Map<string, number>>(new Map());
   const boardRef = useRef<HTMLDivElement>(null);
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
+  const selectedHandIndexRef = useRef(selectedHandIndex);
+  selectedHandIndexRef.current = selectedHandIndex;
+  const laozhangCopySlotSelectedRef = useRef(laozhangCopySlotSelected);
+  laozhangCopySlotSelectedRef.current = laozhangCopySlotSelected;
+  const movingSoldierRef = useRef(movingSoldier);
+  movingSoldierRef.current = movingSoldier;
 
   const initGame = useCallback((levelIndex: number, runSeed?: string) => {
     const level = LEVELS[levelIndex];
@@ -238,7 +246,7 @@ export function useMineGame(initialLevelIndex: number) {
       hand: generateHand(level, [...hints], rng, undefined, telegraphHandSlotCount(getStoredHeroId())),
       placedInTurn: 0,
       status: 'playing',
-      message: pickHeroGameStatusLine(getStoredHeroId(), 'initTelegraph'),
+      message: pickHeroGameStatusLine(getStoredHeroId(), 'initTelegraph', undefined, level.definition.chapter),
       conflictCells: [],
       explosionMarkCells: [],
       lossSequentialExplosionKeys: [],
@@ -292,7 +300,7 @@ export function useMineGame(initialLevelIndex: number) {
           ...prev,
           rngState: rng.state(),
           hand,
-          message: pickHeroGameStatusLine(id, 'initTelegraph'),
+          message: pickHeroGameStatusLine(id, 'initTelegraph', undefined, prev.level.definition.chapter),
           fortifyRemaining: initialFortifyRemaining(id),
           laozhangCopiedValue: initialLaozhangCopiedValue(id),
           laozhangCopiedUsesRemaining: initialLaozhangCopiedUsesRemaining(id),
@@ -431,7 +439,7 @@ export function useMineGame(initialLevelIndex: number) {
             blastPointsCountdown: newCountdown,
             revealedMines: newRevealedMines,
             status: 'exploding',
-            message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostRevealedAsMine'),
+            message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostRevealedAsMine', undefined, prev.level.definition.chapter),
             conflictCells: ocpCells,
             explosionMarkCells,
             lossSequentialExplosionKeys,
@@ -446,7 +454,7 @@ export function useMineGame(initialLevelIndex: number) {
             ...prev,
             blastPointsCountdown: newCountdown,
             status: 'exploding',
-            message: pickHeroGameStatusLine(getStoredHeroId(), 'blastPointExplosion'),
+            message: pickHeroGameStatusLine(getStoredHeroId(), 'blastPointExplosion', undefined, prev.level.definition.chapter),
             conflictCells: [],
             explosionMarkCells: [],
             lossSequentialExplosionKeys: timeoutLossExplosionKeys(
@@ -549,7 +557,7 @@ export function useMineGame(initialLevelIndex: number) {
           prev
             ? {
                 ...prev,
-                message: pickHeroGameStatusLine(heroId, 'jammingSelectTelegraphFirst'),
+                message: pickHeroGameStatusLine(heroId, 'jammingSelectTelegraphFirst', undefined, prev.level.definition.chapter),
               }
             : null,
         );
@@ -588,7 +596,12 @@ export function useMineGame(initialLevelIndex: number) {
     setSelectedHandIndex(null);
   }, [gameState, movingSoldier, selectedHandIndex, laozhangCopySlotSelected]);
 
-  const handleCellClick = async (x: number, y: number) => {
+  const handleCellClick = useCallback(async (x: number, y: number) => {
+    const gameState = gameStateRef.current;
+    const movingSoldier = movingSoldierRef.current;
+    const selectedHandIndex = selectedHandIndexRef.current;
+    const laozhangCopySlotSelected = laozhangCopySlotSelectedRef.current;
+
     if (!gameState || gameState.status !== 'playing' || movingSoldier) return;
 
     const heroId = getStoredHeroId();
@@ -619,7 +632,7 @@ export function useMineGame(initialLevelIndex: number) {
           prev
             ? {
                 ...prev,
-                message: pickHeroGameStatusLine(getStoredHeroId(), 'jammingSelectTelegraphFirst'),
+                message: pickHeroGameStatusLine(getStoredHeroId(), 'jammingSelectTelegraphFirst', undefined, prev.level.definition.chapter),
               }
             : null,
         );
@@ -1018,7 +1031,7 @@ export function useMineGame(initialLevelIndex: number) {
               hand: finalHand,
               placedInTurn: finalPlacedInTurn,
               status: 'exploding',
-              message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostRevealedAsMine'),
+              message: pickHeroGameStatusLine(getStoredHeroId(), 'digitOutpostRevealedAsMine', undefined, prev.level.definition.chapter),
               conflictCells: ocpCells,
               explosionMarkCells,
               lossSequentialExplosionKeys,
@@ -1110,20 +1123,26 @@ export function useMineGame(initialLevelIndex: number) {
           : null,
       );
     } else {
+      const placeChapter = gameState.level.definition.chapter;
       const P = {
-        dynamicMinePushed: pickHeroAfterPlaceLine(heroId, 'dynamicMinePushed'),
-        newHandArrived: pickHeroAfterPlaceLine(heroId, 'newHandArrived'),
-        awaitNextTelegraph: pickHeroAfterPlaceLine(heroId, 'awaitNextTelegraph'),
+        dynamicMinePushed: pickHeroAfterPlaceLine(heroId, 'dynamicMinePushed', undefined, placeChapter),
+        newHandArrived: pickHeroAfterPlaceLine(heroId, 'newHandArrived', undefined, placeChapter),
+        awaitNextTelegraph: pickHeroAfterPlaceLine(heroId, 'awaitNextTelegraph', undefined, placeChapter),
         mineBonusPrefix: (seconds: number) =>
-          pickHeroAfterPlaceLine(heroId, 'mineBonusPrefix', { seconds }),
+          pickHeroAfterPlaceLine(heroId, 'mineBonusPrefix', { seconds }, placeChapter),
+        neighborResonanceBonus: (bonus: number) =>
+          pickHeroAfterPlaceLine(heroId, 'neighborResonanceBonus', { bonus }, placeChapter),
       };
       const dynamicMineMsg =
         newDynamicMines.size > gameState.dynamicMines.size ? P.dynamicMinePushed : '';
       const mid = finalPlacedInTurn === 0 ? P.newHandArrived : P.awaitNextTelegraph;
-      const statusAfterPlace =
+      const resonanceMsg =
+        neighborBonusDigits > 0 ? P.neighborResonanceBonus(neighborBonusDigits) : '';
+      const statusCore =
         gainedSeconds > 0
           ? `${P.mineBonusPrefix(gainedSeconds)}${mid}${dynamicMineMsg}`
           : `${mid}${dynamicMineMsg}`;
+      const statusAfterPlace = resonanceMsg ? `${resonanceMsg}${statusCore}` : statusCore;
       setGameState((prev) =>
         prev
           ? {
@@ -1158,7 +1177,7 @@ export function useMineGame(initialLevelIndex: number) {
     setMovingSoldier(null);
     setSelectedHandIndex(null);
     setLaozhangCopySlotSelected(usingLaozhangCopy && nextLaozhangCopiedUsesRemaining > 0);
-  };
+  }, []);
 
   const fillPercentage = gameState
     ? ((gameState.placedNumbers.length + gameState.revealedMines.size + gameState.revealedClear.size + gameState.dynamicMines.size) /

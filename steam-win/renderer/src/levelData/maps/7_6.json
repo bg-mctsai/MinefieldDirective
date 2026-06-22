@@ -31,22 +31,6 @@
         1
       ],
       [
-        2,
-        2
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        2,
-        3
-      ],
-      [
-        2,
-        4
-      ],
-      [
         5,
         4
       ],
@@ -56,10 +40,6 @@
       ],
       [
         5,
-        5
-      ],
-      [
-        6,
         5
       ],
       [
@@ -95,7 +75,7 @@
   "mapTheme": "磁暴環",
   "gridStats": {
     "totalCells": 121,
-    "forbiddenCellCount": 21,
-    "playableCells": 100
+    "forbiddenCellCount": 16,
+    "playableCells": 105
   }
 }

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { pickHeroCommanderRowHint } from './heroGameStatusLines';
 import {
   effectiveSignalJammingStepMs,
@@ -50,6 +50,107 @@ function telegraphHint(
   });
 }
 
+const digitBtnClassColumn =
+  'flex h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:h-[2.55rem] md:text-xl';
+const digitBtnClassRow =
+  'flex aspect-square max-h-[2.55rem] min-h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:max-h-[2.85rem] sm:min-h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:max-h-[3.1rem] md:text-xl';
+
+const TelegraphHandButton = memo(function TelegraphHandButton({
+  slotIndex,
+  staticNum,
+  gameId,
+  status,
+  movingSoldier,
+  selected,
+  disabled,
+  heroTheme,
+  isColumn,
+  jamming,
+  jammingEpochMs,
+  jammingStepMs,
+  gridSystem,
+  combatHeroId,
+  lockedValue,
+  onSelect,
+}: {
+  slotIndex: number;
+  staticNum: number;
+  gameId: number;
+  status: GameState['status'];
+  movingSoldier: MovingSoldierState | null;
+  selected: boolean;
+  disabled: boolean;
+  heroTheme: HeroCombatTheme;
+  isColumn: boolean;
+  jamming: boolean;
+  jammingEpochMs: number;
+  jammingStepMs: number | undefined;
+  gridSystem: GameState['level']['definition']['gridSystem'];
+  combatHeroId: string;
+  lockedValue: number | null;
+  onSelect: (index: number) => void;
+}) {
+  const digitBtnClass = isColumn ? digitBtnClassColumn : digitBtnClassRow;
+  const jammingAnimateDigit = jamming && lockedValue === null;
+  const enterFromTop = signalJammingSlotEnterFromTop(slotIndex);
+  const [, setJamTick] = useState(0);
+
+  useEffect(() => {
+    if (!jammingAnimateDigit) return;
+    const step = effectiveSignalJammingStepMs(jammingStepMs, combatHeroId);
+    const tickMs = Math.max(32, Math.round(step * 0.34));
+    const id = window.setInterval(() => setJamTick((x) => x + 1), tickMs);
+    return () => window.clearInterval(id);
+  }, [jammingAnimateDigit, jammingStepMs, combatHeroId, gameId, jammingEpochMs, slotIndex]);
+
+  const displayNum =
+    lockedValue !== null
+      ? lockedValue
+      : jamming
+        ? signalJammingDisplayedDigit(
+            jammingEpochMs,
+            slotIndex,
+            Date.now(),
+            jammingStepMs,
+            gridSystem,
+            combatHeroId,
+          )
+        : staticNum;
+
+  return (
+    <motion.button
+      type="button"
+      whileHover={status === 'playing' ? { y: -1, scale: 1.02 } : {}}
+      whileTap={status === 'playing' ? { scale: 0.95 } : {}}
+      disabled={disabled}
+      onClick={() => onSelect(slotIndex)}
+      className={`${digitBtnClass}
+        ${selected ? heroTheme.telegraphDigitSelected : heroTheme.telegraphDigitIdle}
+        ${disabled ? 'cursor-not-allowed opacity-40' : ''}
+      `}
+    >
+      {jammingAnimateDigit ? (
+        <span className="relative flex h-[1.15em] w-full items-center justify-center overflow-hidden">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={`${gameId}-jam-${slotIndex}-${displayNum}`}
+              initial={{ y: enterFromTop ? '-85%' : '85%', opacity: 0.25 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: enterFromTop ? '85%' : '-85%', opacity: 0.2 }}
+              transition={{ duration: 0.11, ease: [0.22, 1, 0.36, 1] }}
+              className="flex items-center justify-center font-black tabular-nums"
+            >
+              {displayNum}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+      ) : (
+        displayNum
+      )}
+    </motion.button>
+  );
+});
+
 /** 長官電報：地圖左側直向列（或橫向，供舊版相容） */
 export function CommanderTelegraphRow({
   gameState,
@@ -80,27 +181,12 @@ export function CommanderTelegraphRow({
     gameState.status === 'playing' &&
     Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
 
-  const jammingStepMs = effectiveSignalJammingStepMs(
-    gameState.level.definition.commandSlotJammingStepMs,
-    combatHeroId,
-  );
-
-  const [, setJammingFrame] = useState(0);
-  useEffect(() => {
-    if (!jamming) return;
-    const tickMs = Math.max(32, Math.round(jammingStepMs * 0.34));
-    const id = window.setInterval(() => setJammingFrame((x) => x + 1), tickMs);
-    return () => clearInterval(id);
-  }, [jamming, jammingStepMs, gameState.gameId, gameState.jammingEpochMs]);
-
   const isColumn = layout === 'column';
   const shellClass = isColumn
     ? `flex w-[3.35rem] shrink-0 flex-col items-stretch gap-1 rounded-lg border-2 px-1 py-1.5 shadow-md sm:w-[3.65rem] sm:gap-1.5 sm:rounded-xl sm:px-1.5 sm:py-2 sm:shadow-lg md:w-[4rem] md:rounded-2xl md:shadow-xl ${heroTheme.telegraphWrap}`
     : `flex h-full min-h-[2.4rem] min-w-0 flex-1 items-center gap-1.5 rounded-lg border-2 px-1.5 py-1 shadow-md sm:min-h-[2.55rem] sm:gap-2 sm:rounded-xl sm:px-2 sm:py-1.5 sm:shadow-lg md:min-h-[2.65rem] md:rounded-2xl md:shadow-xl ${heroTheme.telegraphWrap}`;
 
-  const digitBtnClass = isColumn
-    ? 'flex h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:h-[2.55rem] md:text-xl'
-    : 'flex aspect-square max-h-[2.55rem] min-h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:max-h-[2.85rem] sm:min-h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:max-h-[3.1rem] md:text-xl';
+  const telegraphDisabled = gameState.status !== 'playing' || movingSoldier !== null;
 
   return (
     <motion.div className={shellClass} title={hint}>
@@ -141,59 +227,27 @@ export function CommanderTelegraphRow({
       >
         {gameState.hand.map((num, idx) => {
           const lock = gameState.jammingLockedSlot;
-          const displayNum = jamming
-            ? lock && lock.slotIndex === idx
-              ? lock.value
-              : signalJammingDisplayedDigit(
-                  gameState.jammingEpochMs,
-                  idx,
-                  Date.now(),
-                  gameState.level.definition.commandSlotJammingStepMs,
-                  gameState.level.definition.gridSystem,
-                  combatHeroId,
-                )
-            : num;
-          const jammingAnimateDigit =
-            jamming && !(lock && lock.slotIndex === idx);
-          const enterFromTop = signalJammingSlotEnterFromTop(idx);
+          const lockedValue = lock && lock.slotIndex === idx ? lock.value : null;
           return (
-            <motion.button
+            <TelegraphHandButton
               key={`${gameState.gameId}-slot-${idx}`}
-              type="button"
-              whileHover={gameState.status === 'playing' ? { y: -1, scale: 1.02 } : {}}
-              whileTap={gameState.status === 'playing' ? { scale: 0.95 } : {}}
-              disabled={gameState.status !== 'playing' || movingSoldier !== null}
-              onClick={() => onSelectHand(idx)}
-              className={`${digitBtnClass}
-                ${
-                  selectedHandIndex === idx
-                    ? heroTheme.telegraphDigitSelected
-                    : heroTheme.telegraphDigitIdle
-                }
-                ${
-                  gameState.status !== 'playing' || movingSoldier !== null ? 'cursor-not-allowed opacity-40' : ''
-                }
-              `}
-            >
-              {jammingAnimateDigit ? (
-                <span className="relative flex h-[1.15em] w-full items-center justify-center overflow-hidden">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.span
-                      key={`${gameState.gameId}-jam-${idx}-${displayNum}`}
-                      initial={{ y: enterFromTop ? '-85%' : '85%', opacity: 0.25 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: enterFromTop ? '85%' : '-85%', opacity: 0.2 }}
-                      transition={{ duration: 0.11, ease: [0.22, 1, 0.36, 1] }}
-                      className="flex items-center justify-center font-black tabular-nums"
-                    >
-                      {displayNum}
-                    </motion.span>
-                  </AnimatePresence>
-                </span>
-              ) : (
-                displayNum
-              )}
-            </motion.button>
+              slotIndex={idx}
+              staticNum={num}
+              gameId={gameState.gameId}
+              status={gameState.status}
+              movingSoldier={movingSoldier}
+              selected={selectedHandIndex === idx}
+              disabled={telegraphDisabled}
+              heroTheme={heroTheme}
+              isColumn={isColumn}
+              jamming={jamming}
+              jammingEpochMs={gameState.jammingEpochMs}
+              jammingStepMs={gameState.level.definition.commandSlotJammingStepMs}
+              gridSystem={gameState.level.definition.gridSystem}
+              combatHeroId={combatHeroId}
+              lockedValue={lockedValue}
+              onSelect={onSelectHand}
+            />
           );
         })}
         {combatHeroId === 'laozhang' && onLaozhangCopySlotClick ? (
@@ -201,9 +255,9 @@ export function CommanderTelegraphRow({
             type="button"
             whileHover={gameState.status === 'playing' ? { y: -1, scale: 1.02 } : {}}
             whileTap={gameState.status === 'playing' ? { scale: 0.95 } : {}}
-            disabled={gameState.status !== 'playing' || movingSoldier !== null}
+            disabled={telegraphDisabled}
             onClick={onLaozhangCopySlotClick}
-            className={`${digitBtnClass} relative mt-0.5 border-dashed
+            className={`${isColumn ? digitBtnClassColumn : digitBtnClassRow} relative mt-0.5 border-dashed
               ${
                 laozhangCopySlotSelected
                   ? heroTheme.telegraphDigitSelected
@@ -213,9 +267,7 @@ export function CommanderTelegraphRow({
                       ? heroTheme.telegraphDigitIdle
                       : 'border-slate-700 bg-slate-900 text-slate-500 hover:border-orange-500/50 hover:text-orange-300'
               }
-              ${
-                gameState.status !== 'playing' || movingSoldier !== null ? 'cursor-not-allowed opacity-40' : ''
-              }
+              ${telegraphDisabled ? 'cursor-not-allowed opacity-40' : ''}
             `}
             title={
               selectedHandIndex !== null

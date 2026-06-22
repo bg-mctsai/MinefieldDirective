@@ -16,7 +16,7 @@
   "byHero": {
     "xiaoming": {
       "gameStatus": {
-        "initTelegraph": ["電報來了……先點數字再點格，我、我跟上。"],
+        "initTelegraph": ["（深呼吸）電報……電報來了。數字對格網……先點數字、再點格。手指別抖……我、我能跟上！"],
         "timeUpExplosion": ["時間到啦！還有縫——先撤，照片還在就不算輸。"],
         "blastPointExplosion": ["炸點斷了……下次我先把鄰格看清！"],
         "digitOutpostIncomplete": ["覆蓋夠了，據點還空欸。下一盤一格格填，別讓人白等。"],
@@ -258,6 +258,286 @@
         "correctDigitWrongCell": "{v} 讀數對，格選錯，換。",
         "digitMismatchClue": "{v} 跟線索 {w} 對不上，退後重接。",
         "genericUnsatisfiable": "{v} 這手佈不回去，跟腕上線換路。"
+      }
+    }
+  },
+  "byChapterGameStatus": {
+    "3": {
+      "xiaoming": {
+        "digitOutpostIncomplete": [
+          "（焦慮、呼吸沉重）覆蓋率夠了……但是那格據點還空著！我、我下一盤絕對一格格填滿，別讓據點的人白等啊！ ——【老張·無線電，背景有震耳欲聾的鋼筋撞擊聲】小明！你雷埋得很爽，老子據點的混凝土還空著一塊呢！沙塵暴要來了，沒灌漿那格隨時會塌！下一盤給我一個一個填滿，別逼老子提著扳手用肉身幫你擋！"
+        ],
+        "digitOutpostRevealedAsMine": [
+          "（慘叫）據點、據點怎麼變成雷了？！那格只能填安全數字啊！完了…… ——【老張·無線電突傳劇烈爆炸與金屬撕裂聲】（劇烈咳嗽、破口大罵）你他媽在衝三小？！據點變雷？老子剛帶隊進去拉天線，你一炸差點把我活埋在裡面！咳……聽著，別慌！老子還沒死，這條線我用鋼樑幫你硬頂最後一次，下一手給我看準了再落子！"
+        ]
+      }
+    },
+    "7": {
+      "xiaoming": {
+        "jammingSelectTelegraphFirst": [
+          "（監聽耳機壓得耳膜發疼）電碼在跳……先、先鎖一道！讀錯他們會拿艾達開刀！"
+        ],
+        "initTelegraph": [
+          "（審訊帶的電流聲）電報……在跳。監聽台聽著……先選數字，抓到對的那一拍再點格。手別抖……"
+        ]
+      },
+      "ada": {
+        "jammingSelectTelegraphFirst": [
+          "監聽台在錄音。先鎖電碼讀值——錯一個字，罪名就會寫在我頭上。"
+        ],
+        "initTelegraph": [
+          "頻道被污染了。先鎖讀值，再落格。我還在席子上，靠你把密鑰波形釘出來。"
+        ]
+      },
+      "bobby": {
+        "jammingSelectTelegraphFirst": [
+          "雜訊太吵，巴克耳朵都炸了！先選電碼，讀穩再下——審判席在聽！"
+        ]
+      },
+      "laozhang": {
+        "jammingSelectTelegraphFirst": [
+          "先點電碼對讀值！監聽的雜種在等你看錯——艾達的命綁在這一拍上！"
+        ]
+      }
+    },
+    "8": {
+      "xiaoming": {
+        "blastPointExplosion": [
+          "（慘叫）炸點、炸點歸零了！礦道裡的聲音……斷了…… ——【無番號頻道·合成音】序列失敗。損失：已計入帳單。"
+        ],
+        "initTelegraph": [
+          "（倒數滴答與礦區轟鳴）定時炸點在走……先選電碼，把最近那顆周邊讀通。名字還在窄帶裡，別讓倒數先贏。"
+        ]
+      },
+      "ada": {
+        "blastPointExplosion": [
+          "炸點承載斷裂——周邊未讀通，爆風帳上又多了幾個呼號。退回，重排順序。"
+        ],
+        "initTelegraph": [
+          "炸點倒數已啟動。先鎖電碼，按最近引信排程。無名部隊在等你的表。"
+        ]
+      },
+      "bobby": {
+        "blastPointExplosion": [
+          "炸點爆了！巴克朝礦道狂吠……來不及了，重排！"
+        ]
+      },
+      "laozhang": {
+        "blastPointExplosion": [
+          "（怒吼）炸點歸零！外圍老子頂住了，內圈是你排的程——下一手把引信給我釘死！"
+        ]
+      }
+    },
+    "9": {
+      "xiaoming": {
+        "initTelegraph": [
+          "（地下熱浪撲臉，呼吸發燙）電報來了……鄰格有數字，熱會疊回來。先選電碼，跟著共振走……"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "干擾又來了！地下也逃不掉……先鎖電碼，別讓熱力帶偏讀值！"
+        ],
+        "blastPointExplosion": [
+          "（慘叫）炸點歸零！熱浪把窄帶裡的呼號……全燒斷了……"
+        ]
+      },
+      "ada": {
+        "initTelegraph": [
+          "鄰焰共振已啟動。先鎖電碼；落點鄰近已佈數字，熱力會回疊。"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "干擾切入。先鎖讀值——反擊節拍不能斷。"
+        ],
+        "blastPointExplosion": [
+          "炸點承載斷裂。地下掩體的節奏被打亂——重排。"
+        ]
+      },
+      "bobby": {
+        "blastPointExplosion": [
+          "炸點爆了！巴克在熱浪裡狂吠——重來！"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "雜訊太吵！先選電碼，讀穩再下——節拍不能亂！"
+        ]
+      },
+      "laozhang": {
+        "blastPointExplosion": [
+          "（怒吼）炸點歸零！鋼樑在熱裡彎了——下一手把引信釘死！"
+        ]
+      }
+    },
+    "10": {
+      "xiaoming": {
+        "initTelegraph": [
+          "（沙塵刮臉、視線發糊、手在抖）最後一盤……電碼在跳，炸點在走，廢雷在咬……先選數字，一格都不能浪費……"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "沙塵裡電碼在瘋跳！先鎖一道——讀錯就沒有下一章了！"
+        ],
+        "blastPointExplosion": [
+          "（崩潰）炸點……歸零了……身後的台站……我沒守住……"
+        ],
+        "digitOutpostIncomplete": [
+          "（嘶吼）覆蓋夠了，據點還空著！那格是「我在」——空著就等於把名字從帳上劃掉！"
+        ]
+      },
+      "ada": {
+        "initTelegraph": [
+          "終焉段全頻段開啟。先鎖電碼；炸點、干擾、鄰焰、廢雷同時在——跟線，別跟慌。"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "沙暴干擾。先鎖讀值——這是關機鍵前的最後校準。"
+        ],
+        "blastPointExplosion": [
+          "炸點斷線。全頻段未歸零——退回，重排。"
+        ],
+        "digitOutpostIncomplete": [
+          "覆蓋達標，據點仍空。終柵不允許少一句「我在」。"
+        ]
+      },
+      "bobby": {
+        "blastPointExplosion": [
+          "炸點爆了！巴克對著沙塵狂叫——終盤不能輸！"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "沙塵裡雜訊炸開！先選電碼，讀穩再帶狗下！"
+        ],
+        "digitOutpostIncomplete": [
+          "據點空著！終盤別留洞——下一手填滿！"
+        ]
+      },
+      "laozhang": {
+        "blastPointExplosion": [
+          "（低吼）炸點歸零！外圍老子還在——內圈下一手，把帳結清！"
+        ],
+        "jammingSelectTelegraphFirst": [
+          "先點電碼！沙塵干擾在等你看錯——最後一盤，別折在這！"
+        ],
+        "digitOutpostIncomplete": [
+          "據點空一格！終柵的混凝土還缺一塊——下一盤填滿，別逼我用肉身頂！"
+        ]
+      }
+    }
+  },
+  "byChapterAfterPlace": {
+    "5": {
+      "xiaoming": {
+        "mineBonusPrefix": "（聲音沙啞、近乎哽咽）節點對上了，+{seconds} 秒！……對不起，北邊的據點，我們搶到這條線了……"
+      },
+      "ada": {
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。……另一側的通訊頻段徹底變成了波形死線。我們……沒有退路了。"
+      },
+      "bobby": {
+        "mineBonusPrefix": "+{seconds} 秒！巴克朝著斷線的方向叫了一聲……該死，別回頭看，跟著搶通的線走！"
+      },
+      "laozhang": {
+        "mineBonusPrefix": "（咬牙切齒）+{seconds} 秒！這條後援線是用弟兄們最後一發星火換來的！撐住，別浪費一秒鐘！"
+      }
+    },
+    "6": {
+      "xiaoming": {
+        "dynamicMinePushed": "　（倒吸一口涼氣）⚠ 又補進一顆廢雷！該死……他在看著我下子！別慌……照表清，我能抓到你！"
+      },
+      "ada": {
+        "dynamicMinePushed": "　⚠ 雜訊裡被惡意灌入一顆廢雷。波形被污染了，濾掉它，照我的安全線清！"
+      },
+      "bobby": {
+        "dynamicMinePushed": "　⚠ 又補一顆！巴克氣得在刨地板！這個藏在暗處的渾蛋，重聞一圈，把他揪出來！"
+      },
+      "laozhang": {
+        "dynamicMinePushed": "　⚠ 又補一顆廢物！結構在被故意擠壓！別慌，新兵，鋼板老子幫你頂著，照順序清乾淨！"
+      }
+    },
+    "7": {
+      "xiaoming": {
+        "mineBonusPrefix": "（近乎啜泣）密鑰對上了，+{seconds} 秒！……艾達，審訊官的筆……停住了……",
+        "dynamicMinePushed": "　⚠ 又補一顆！監聽台在餵假雷——別讓雜訊替你認罪！"
+      },
+      "ada": {
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。密鑰波形歸位——指控頻段……暫時靜了。",
+        "dynamicMinePushed": "　⚠ 審訊帶灌入廢雷。濾掉，這是誘你讀錯的餌。"
+      },
+      "bobby": {
+        "mineBonusPrefix": "+{seconds} 秒！巴克對著監聽室方向吠——這條線能證明她清白！",
+        "dynamicMinePushed": "　⚠ 又補一顆！雜訊太髒，重聞一圈再清！"
+      },
+      "laozhang": {
+        "mineBonusPrefix": "（低吼）+{seconds} 秒！這秒數是艾達的命！撐住，別浪費！",
+        "dynamicMinePushed": "　⚠ 又補廢物！有人在搞鬼——照序清，老子頂結構！"
+      }
+    },
+    "8": {
+      "xiaoming": {
+        "mineBonusPrefix": "（喘粗氣）引信拆了，+{seconds} 秒！礦道那頭……還聽得見哭聲……",
+        "newHandArrived": "新電碼到了。下一顆炸點在跳——先選引信，別選錯順序。"
+      },
+      "ada": {
+        "mineBonusPrefix": "炸點解除，+{seconds} 秒。爆風帳上少幾個名字——繼續排程。",
+        "newHandArrived": "新封到了。下一引信優先級，你定。"
+      },
+      "bobby": {
+        "mineBonusPrefix": "+{seconds} 秒！多一口氣，多撤幾個人！",
+        "newHandArrived": "新電碼！下一顆炸點，巴克在催！"
+      },
+      "laozhang": {
+        "mineBonusPrefix": "（咬牙）+{seconds} 秒！外圍還撐得住——下一顆引信，快！",
+        "newHandArrived": "新電碼到。內圈順序你排，鋼板我頂。"
+      }
+    },
+    "9": {
+      "xiaoming": {
+        "neighborResonanceBonus": "（熱血、咬牙）共振疊起來了！波形……波形沒有散！張哥、波比，地底的通道被我們炸開了！",
+        "dynamicMinePushed": "　⚠ 地下也補廢雷！黑手還在餵——濾掉，別讓雜訊打斷節拍！",
+        "newHandArrived": "新電碼到了。反擊樂譜下一拍——鄰格有熱，跟著走。"
+      },
+      "ada": {
+        "neighborResonanceBonus": "偵測到雙重峰值重疊，火力正在呈指數級級聯放大。這就是我們的反擊樂譜，繼續疊加！",
+        "dynamicMinePushed": "　⚠ 廢雷補入。雜訊想切斷我們的共振——濾掉。",
+        "newHandArrived": "新封到了。下一拍，跟熱走。"
+      },
+      "bobby": {
+        "neighborResonanceBonus": "巴克在瘋狂搖尾巴！地底那群畜生在慘叫，味道對了！小明，對準牠們的痛腳繼續踩！",
+        "newHandArrived": "新電碼！下一拍，跟狗走！"
+      },
+      "laozhang": {
+        "neighborResonanceBonus": "（無線電傳來暢快的笑聲）炸得好！這記重擊砸得整條地殼都在抖！結構我幫你死扛著，繼續往下炸！",
+        "dynamicMinePushed": "　⚠ 又補廢雷！結構在熱裡發軟——照序清，老子頂！",
+        "newHandArrived": "新電碼到。反擊節拍你接，鋼板我扛。"
+      },
+      "tungsten": {
+        "neighborResonanceBonus": "（沉穩、重擊聲）結構鋼印對齊，共振威力翻倍。工匠，你的數字砸得很硬，老兵幫你開路。"
+      }
+    },
+    "10": {
+      "xiaoming": {
+        "neighborResonanceBonus": "（手還在抖，但讀數穩了）疊、疊起來了！裂隙邊的熱浪沒散……這一格，還撐得住！",
+        "dynamicMinePushed": "　⚠ 終柵還補廢雷！黑手到最後一刻都在餵——清掉！",
+        "mineBonusPrefix": "（哭腔壓回喉嚨）節點對上了，+{seconds} 秒！……多一秒，多撤一個人……",
+        "newHandArrived": "新電碼……倒數還在走。下一格，你定誰活。"
+      },
+      "ada": {
+        "neighborResonanceBonus": "鄰焰在裂隙邊級聯放大——峰值沒飄。小明，終柵頻率……還咬得住。",
+        "dynamicMinePushed": "　⚠ 廢雷補入。雜訊在裂隙邊最響——濾掉，照安全線清。",
+        "mineBonusPrefix": "目標雷確認，+{seconds} 秒。撤收餘量——用秒數換名字。",
+        "newHandArrived": "新封到了。下一格，全頻段在等。"
+      },
+      "bobby": {
+        "neighborResonanceBonus": "熱浪轟回來了！巴克對著裂隙邊緣狂吠——味道對，這記共振砸在牠們的痛腳上！",
+        "newHandArrived": "新電碼！最後幾拍，跟著走！"
+      },
+      "laozhang": {
+        "neighborResonanceBonus": "（無線電裡鋼筋呻吟）好！這記共振把外圍壓力頂回去一截——結構還在，繼續疊！",
+        "dynamicMinePushed": "　⚠ 又補廢雷！終線還有人搞鬼——照序清，鋼板頂著！",
+        "mineBonusPrefix": "（咬牙）+{seconds} 秒！多一秒，老子多幫你擋一輪爆風！",
+        "newHandArrived": "新電碼到。最後一格前，先把順序排好。"
+      },
+      "tungsten": {
+        "neighborResonanceBonus": "終柵共振耦合成功。火力倍率上升。工匠，裂隙邊的鋼印——砸硬了。"
+      },
+      "claire": {
+        "neighborResonanceBonus": "生命鏈結隨共振拉緊——毒性前緣退了一格。手還燙就深呼吸，跟讀數，別跟慌。"
+      },
+      "selina": {
+        "neighborResonanceBonus": "格網上熱力回疊的軌跡對上了。這條線……還畫得出回家路。"
       }
     }
   }

@@ -7,6 +7,7 @@ import type { HeroCombatTheme } from './heroCombatTheme';
 import { getHeroCombatTheme } from './heroCombatTheme';
 import type { Medal } from './medalThresholds';
 import type { MedalThresholds } from '../levelData/types';
+import type { CampaignBattlefieldHeaderLabels } from './campaignLevelUi';
 
 const MEDAL_TONE: Record<
   Medal,
@@ -85,7 +86,7 @@ export function GameHeader({
   onNextLevel,
   showChapterEndButton,
   onChapterEnd,
-  levelName,
+  levelHeader,
   secondsLeft,
   countdownStarted,
   guideButton,
@@ -116,7 +117,7 @@ export function GameHeader({
   /** 章內第 8 關通關後顯示「完結」：回到行動卷宗 */
   showChapterEndButton?: boolean;
   onChapterEnd?: () => void;
-  levelName: string;
+  levelHeader: CampaignBattlefieldHeaderLabels;
   /** `null` = 本關不計時 */
   secondsLeft: number | null;
   /** 限時關：是否已選定長官電報電碼並開始倒數 */
@@ -177,8 +178,16 @@ export function GameHeader({
             <MissionDirectiveEmblem className={heroTheme.headerMissionMark} size={26} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="mb-0 flex min-w-0 items-center gap-1 text-base font-black tracking-tight text-white sm:gap-1.5 sm:text-lg md:text-xl">
-              <span className="truncate">{levelName}</span>
+            <h1
+              className="mb-0 flex min-w-0 items-baseline gap-1.5 sm:gap-2"
+              aria-label={`${levelHeader.chapterStage} ${levelHeader.missionTitle}`}
+            >
+              <span className="shrink-0 font-mono text-[10px] font-bold tracking-[0.12em] text-sky-400/95 sm:text-xs md:text-sm">
+                {levelHeader.chapterStage}
+              </span>
+              <span className="min-w-0 truncate text-base font-black tracking-tight text-white sm:text-lg md:text-xl">
+                {levelHeader.missionTitle}
+              </span>
             </h1>
           </div>
         </div>

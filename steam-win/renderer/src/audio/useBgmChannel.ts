@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { AudioEngine } from './AudioEngine';
+import { useAudioSettings } from './AudioSettingsContext';
 import type { AudioEventKey } from './audioEventCatalog';
 
 /** 場景別名 → BGM 事件 key */
@@ -21,7 +22,14 @@ export type BgmScene = keyof typeof SCENE_MAP | null;
  * 若要「離開頁面立刻停音」，請在該頁 unmount 前呼叫 `AudioEngine.stopAllLoops()`。
  */
 export function useBgmChannel(scene: BgmScene) {
+  const { settings } = useAudioSettings();
+  const bgmEnabled = settings.bgmEnabled;
+
   useEffect(() => {
+    if (!bgmEnabled) {
+      AudioEngine.stopAllLoops(0.35);
+      return;
+    }
     if (!scene) return;
     const targetKey = SCENE_MAP[scene];
     if (!targetKey) return;
@@ -32,5 +40,5 @@ export function useBgmChannel(scene: BgmScene) {
       if (k !== current) AudioEngine.stopLoop(k, 0.6);
     });
     void AudioEngine.startLoop(current);
-  }, [scene]);
+  }, [scene, bgmEnabled]);
 }

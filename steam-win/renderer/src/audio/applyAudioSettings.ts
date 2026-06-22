@@ -1,11 +1,26 @@
 import { AudioEngine } from './AudioEngine';
-import type { AudioBusSettings } from '../home/types';
+import type { HomeSettings } from '../home/types';
 
-/** 把使用者的 bus 設定一次套到 AudioEngine；呼叫端不用管 bus 數量。 */
-export function applyAudioBusSettings(buses: AudioBusSettings) {
+/** 把使用者的音訊設定套到 AudioEngine；含音樂／音效總開關。 */
+export function applyAudioSettings(settings: HomeSettings) {
+  const buses = settings.buses;
   AudioEngine.setBusGain('master', buses.master);
-  AudioEngine.setBusGain('ui', buses.ui);
-  AudioEngine.setBusGain('sfx', buses.sfx);
+  AudioEngine.setBusGain('ui', settings.sfxEnabled ? buses.ui : 0);
+  AudioEngine.setBusGain('sfx', settings.sfxEnabled ? buses.sfx : 0);
   AudioEngine.setBusGain('vo', buses.vo);
-  AudioEngine.setBusGain('bgm', buses.bgm);
+  AudioEngine.setBusGain('bgm', settings.bgmEnabled ? buses.bgm : 0);
+  if (!settings.bgmEnabled) {
+    AudioEngine.stopAllLoops(0.35);
+  }
+}
+
+/** @deprecated 請改用 `applyAudioSettings` */
+export function applyAudioBusSettings(buses: HomeSettings['buses']) {
+  applyAudioSettings({
+    volume: buses.master,
+    buses,
+    sfxEnabled: true,
+    bgmEnabled: true,
+    lang: 'zh-Hant',
+  });
 }

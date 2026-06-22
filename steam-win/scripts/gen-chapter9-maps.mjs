@@ -1,5 +1,5 @@
 /**
- * 第九章 maps/9_1～9_8：第 6 章剪影水平鏡像，全章 SQUARE；
+ * 第九章 maps/9_1～9_8：專用方格剪影（全戰役唯一，非第 6 章鏡像）；
  * 可玩格 70～100；主題為鄰焰共振。
  *
  * 執行（cwd = steam-win）：node scripts/gen-chapter9-maps.mjs
@@ -8,42 +8,60 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { forbiddenFromPlayable } from './lib/campaignSilhouettes.mjs';
-import { CH6_SHAPES } from './lib/ch6BitmapShapes.mjs';
-import { mirrorRowsH, rowsBitmapToPlayable, assertPlayableInBand } from './lib/campaignBitmapUtils.mjs';
+import { CH9_SHAPES } from './lib/ch9BitmapShapes.mjs';
+import { rowsBitmapToPlayable, assertPlayableInBand } from './lib/campaignBitmapUtils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MAPS_DIR = path.resolve(__dirname, '../renderer/src/levelData/maps');
-
-/** mapRef, ch6 srcId, theme — 鏡像後與第 6 章原圖左右對稱 */
-const CH9_PLAN = [
-  { mapRef: '9_1', srcId: 53, theme: '鄰焰前哨·鯊鰭鏡像' },
-  { mapRef: '9_2', srcId: 52, theme: '三角收束·海星鏡像' },
-  { mapRef: '9_3', srcId: 51, theme: '六角共鳴·水母鏡像' },
-  { mapRef: '9_4', srcId: 56, theme: '深潛方陣·鏡像' },
-  { mapRef: '9_5', srcId: 54, theme: '三叉熱線·鏡像' },
-  { mapRef: '9_6', srcId: 55, theme: '蟹鉗巢·鏡像' },
-  { mapRef: '9_7', srcId: 58, theme: '渦環堤·鏡像' },
-  { mapRef: '9_8', srcId: 59, theme: '珊瑚扇·鏡像' },
-];
 
 function gridStats(W, H, forbiddenCount) {
   const total = W * H;
   return { totalCells: total, forbiddenCellCount: forbiddenCount, playableCells: total - forbiddenCount };
 }
 
-for (const plan of CH9_PLAN) {
-  const { mapRef, srcId, theme } = plan;
-  const src = CH6_SHAPES[srcId];
-  const rows = mirrorRowsH(src.rows);
+function forbiddenSignature(forbidden) {
+  return JSON.stringify(forbidden.sort((a, b) => a[0] - b[0] || a[1] - b[1]));
+}
 
-  const { W, H, playable } = rowsBitmapToPlayable(rows);
-  if (W !== src.W || H !== src.H) {
-    console.error(`${mapRef}: W,H mismatch src ${src.W}×${src.H}`);
+/** 既有戰役地圖禁格指紋（略過本次覆寫的 9_*） */
+function loadExistingForbiddenSigs(skipRefs) {
+  const sigs = new Map();
+  for (const f of fs.readdirSync(MAPS_DIR)) {
+    if (!f.endsWith('.json') || f.startsWith('_')) continue;
+    const ref = f.replace('.json', '');
+    if (skipRefs.has(ref)) continue;
+    const doc = JSON.parse(fs.readFileSync(path.join(MAPS_DIR, f), 'utf8'));
+    const fc = doc.mapLayout?.forbiddenCells;
+    if (!fc) continue;
+    const sig = forbiddenSignature(fc);
+    if (!sigs.has(sig)) sigs.set(sig, []);
+    sigs.get(sig).push(ref);
+  }
+  return sigs;
+}
+
+const skipRefs = new Set(Object.keys(CH9_SHAPES));
+const existingSigs = loadExistingForbiddenSigs(skipRefs);
+
+for (const [mapRef, shape] of Object.entries(CH9_SHAPES)) {
+  const { W, H, rows, theme } = shape;
+  if (!theme) {
+    console.error(`${mapRef}: missing theme`);
     process.exit(1);
   }
+
+  const { playable } = rowsBitmapToPlayable(rows);
   assertPlayableInBand(mapRef, playable.size);
 
   const forbidden = forbiddenFromPlayable(W, H, playable);
+  const sig = forbiddenSignature(forbidden);
+  const clash = existingSigs.get(sig);
+  if (clash) {
+    console.error(`${mapRef}: geometry duplicates ${clash.join(', ')}`);
+    process.exit(1);
+  }
+  existingSigs.set(sig, [mapRef]);
+
   const mapLayout = { type: 'SQUARE', width: W, height: H, forbiddenCells: forbidden };
   const doc = {
     mapLayout,

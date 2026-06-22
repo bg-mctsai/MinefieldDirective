@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TerminalBackdrop } from '../ui/TerminalBackdrop';
 import { HEROES, getStoredHeroId, setStoredHeroId } from '../heroes';
 import { AudioEngine } from '../audio/AudioEngine';
-import { applyAudioBusSettings } from '../audio/applyAudioSettings';
+import { useAudioSettings } from '../audio/AudioSettingsContext';
 import { useBgmChannel } from '../audio/useBgmChannel';
 import { HomeHeader } from './HomeHeader';
 import { HomeMainMenu } from './HomeMainMenu';
@@ -10,9 +10,9 @@ import { HomeOpsDashboard } from './HomeOpsDashboard';
 import { HeroSpotlight } from './HeroSpotlight';
 import { SettingsModal } from './SettingsModal';
 import { BaseAmbience } from './BaseAmbience';
-import { loadHomeSettings, saveHomeSettings } from './homeSettingsStorage';
+import { loadHomeSettings } from './homeSettingsStorage';
 import { devReloadLevelsFromJson } from '../dev/reloadLevelsJson';
-import type { HomeNavigateHandler, HomeSettings } from './types';
+import type { HomeNavigateHandler } from './types';
 
 export type { HomeNavigate, HomeNavigateOptions, HomeNavigateHandler } from './types';
 
@@ -27,7 +27,7 @@ export default function HomePage({
   const [heroId, setHeroId] = useState(() => getStoredHeroId());
   const [quoteIdx, setQuoteIdx] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settings, setSettings] = useState<HomeSettings>(loadHomeSettings);
+  const { settings, setSettings } = useAudioSettings();
   const [devReloadBusy, setDevReloadBusy] = useState(false);
   const [devReloadHint, setDevReloadHint] = useState<string | null>(null);
   const devReloadHintTimerRef = useRef<number | null>(null);
@@ -44,23 +44,14 @@ export default function HomePage({
     [],
   );
 
-  useEffect(() => {
-    saveHomeSettings(settings);
-    applyAudioBusSettings(settings.buses);
-  }, [settings]);
-
-  // HomePage 重新掛載時（例如從對局/作戰地圖返回）強制恢復 ctx + 套一次 bus 設定
-  useEffect(() => {
-    void AudioEngine.warmUp();
-    applyAudioBusSettings(loadHomeSettings().buses);
-  }, []);
-
   // 有些平台需要一次明確的使用者手勢才能解除音訊封鎖，
   // 這裡在首頁首次互動時主動喚醒並啟動主場 BGM，避免「要先開設定才有聲」。
   useEffect(() => {
     const unlockAndStart = () => {
       void AudioEngine.warmUp();
-      void AudioEngine.startLoop('bgm.home.settings');
+      if (loadHomeSettings().bgmEnabled) {
+        void AudioEngine.startLoop('bgm.home.settings');
+      }
     };
     window.addEventListener('pointerdown', unlockAndStart, { once: true });
     window.addEventListener('keydown', unlockAndStart, { once: true });

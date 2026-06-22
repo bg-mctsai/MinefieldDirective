@@ -12,9 +12,11 @@ import { LevelMechanicFeatureBadges } from './levelMechanicFeatureBadges';
 import { LevelStrategyGuide, LevelStrategyGuideTrigger } from './LevelStrategyGuide';
 import { ChapterEntryBriefingOverlay } from './ChapterEntryBriefingOverlay';
 import { VictoryCelebrationOverlay } from './VictoryCelebrationOverlay';
+import { LevelVictoryNarrativeOverlay } from './LevelVictoryNarrativeOverlay';
+import { getLevelVictoryNarrative } from '../levelData/levelVictoryNarrative';
 import { getBestMedal, isLevelUnlocked, recordMedal, saveGameProgress } from './gameProgressStorage';
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
-import { campaignLevelHeaderTitle } from './campaignLevelUi';
+import { campaignLevelBattlefieldHeaderLabels } from './campaignLevelUi';
 import { getStoredHeroId } from '../heroes';
 import { useCombatHeroId } from './useCombatHeroId';
 import { HeroUnlockDialogueOverlay } from './HeroUnlockDialogueOverlay';
@@ -29,6 +31,7 @@ import { getHeroCombatTheme } from './heroCombatTheme';
 import { LEVELS_PER_CHAPTER, stageInChapter } from './chapterStage';
 import { AudioEngine } from '../audio/AudioEngine';
 import { useBgmChannel } from '../audio/useBgmChannel';
+import { useCombatOutcomeAudio } from '../audio/useCombatOutcomeAudio';
 
 export type BackToMissionContext = {
   /** 在勝利狀態自章內第 8 關「返回」時，帶出剛完成的章，供上層顯示行動卷宗前對話 */
@@ -93,11 +96,15 @@ export default function GameView({
     requestEarlySettle,
   } = useMineGame(safeInitialLevelIndex);
 
+  useCombatOutcomeAudio(gameState);
+
   const combatHeroId = useCombatHeroId();
   const [chapterBriefingDismissed, setChapterBriefingDismissed] = useState(false);
   const [strategyGuideOpen, setStrategyGuideOpen] = useState(false);
   /** 與 gameId 對齊：按「確定」關閉過關畫面後才顯示內嵌操作列 */
   const [dismissedWinCelebrationGameId, setDismissedWinCelebrationGameId] = useState<number | null>(null);
+  /** 4_8 等關：過關劇情通訊播畢後才顯示勳章慶祝 */
+  const [dismissedVictoryNarrativeGameId, setDismissedVictoryNarrativeGameId] = useState<number | null>(null);
   /** 本章末剛解鎖、待戰後通話的幹員（勝利慶祝關閉後播放） */
   const [pendingUnlockHeroIds, setPendingUnlockHeroIds] = useState<string[]>([]);
   const [unlockDialogueDismissed, setUnlockDialogueDismissed] = useState(false);
@@ -107,6 +114,7 @@ export default function GameView({
     setChapterBriefingDismissed(false);
     setStrategyGuideOpen(false);
     setDismissedWinCelebrationGameId(null);
+    setDismissedVictoryNarrativeGameId(null);
     setPendingUnlockHeroIds([]);
     setUnlockDialogueDismissed(false);
   }, [gameState?.gameId]);
@@ -245,6 +253,12 @@ export default function GameView({
     gameState?.placedInTurn,
   ]);
 
+  const victoryNarrative = useMemo(
+    () =>
+      gameState?.status === 'won' ? getLevelVictoryNarrative(gameState.level.id) : null,
+    [gameState?.status, gameState?.level.id, gameState?.gameId],
+  );
+
   if (!gameState) return null;
 
   const levelBriefingLines =
@@ -260,8 +274,14 @@ export default function GameView({
     !chapterBriefingDismissed;
 
   const isLastLevel = currentLevelIndex >= levelList.length - 1;
+  const showVictoryNarrative =
+    gameState.status === 'won' &&
+    victoryNarrative != null &&
+    dismissedVictoryNarrativeGameId !== gameState.gameId;
   const showVictoryCelebration =
-    gameState.status === 'won' && dismissedWinCelebrationGameId !== gameState.gameId;
+    gameState.status === 'won' &&
+    dismissedWinCelebrationGameId !== gameState.gameId &&
+    !showVictoryNarrative;
   const winCelebrationDismissed =
     gameState.status === 'won' && dismissedWinCelebrationGameId === gameState.gameId;
   const hasPendingUnlockDialogue =
@@ -297,7 +317,7 @@ export default function GameView({
         onNextLevel={handleNextLevel}
         showChapterEndButton={winInlineActionsUnlocked && isChapterFinalStage && !isLastLevel}
         onChapterEnd={handleExitToMission}
-        levelName={campaignLevelHeaderTitle(gameState.level)}
+        levelHeader={campaignLevelBattlefieldHeaderLabels(gameState.level)}
         secondsLeft={gameState.secondsLeft}
         countdownStarted={gameState.timerStarted}
         heroTheme={combatTheme}
@@ -401,6 +421,14 @@ export default function GameView({
           setUnlockDialogueDismissed(true);
         }}
       />
+
+      {victoryNarrative ? (
+        <LevelVictoryNarrativeOverlay
+          visible={showVictoryNarrative}
+          narrative={victoryNarrative}
+          onComplete={() => setDismissedVictoryNarrativeGameId(gameState.gameId)}
+        />
+      ) : null}
 
       <VictoryCelebrationOverlay
         visible={showVictoryCelebration}

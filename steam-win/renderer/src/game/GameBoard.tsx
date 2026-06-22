@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import { memo, type RefObject } from 'react';
 import { GameCell } from './GameCell';
 import { MapCloudOverlay } from './MapCloudOverlay';
 import { Soldier } from './Soldier';
@@ -22,7 +22,20 @@ import { BobbyDownshiftFxOverlay, type BobbyDownshiftFxState } from './BobbyDown
 import { ClaireDigitLinkOverlay } from './ClaireDigitLinkOverlay';
 import { GAME_BOARD_FRAME_PAD_PX } from './constants';
 
-export function GameBoard({
+function placeHintKeysEqual(
+  a: ReadonlySet<string> | null | undefined,
+  b: ReadonlySet<string> | null | undefined,
+): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return a === b;
+  if (a.size !== b.size) return false;
+  for (const key of a) {
+    if (!b.has(key)) return false;
+  }
+  return true;
+}
+
+function GameBoardInner({
   gameState,
   movingSoldier,
   onCellClick,
@@ -327,3 +340,19 @@ export function GameBoard({
     </div>
   );
 }
+
+export const GameBoard = memo(
+  GameBoardInner,
+  (prev, next) =>
+    prev.gameState === next.gameState &&
+    prev.movingSoldier === next.movingSoldier &&
+    prev.onCellClick === next.onCellClick &&
+    prev.combatHeroId === next.combatHeroId &&
+    prev.align === next.align &&
+    prev.boardRef === next.boardRef &&
+    prev.bobbyDownshiftFx === next.bobbyDownshiftFx &&
+    placeHintKeysEqual(prev.placeHintKeys, next.placeHintKeys) &&
+    (prev.bonusFxKeys === next.bonusFxKeys ||
+      (prev.bonusFxKeys.length === next.bonusFxKeys.length &&
+        prev.bonusFxKeys.every((key, index) => key === next.bonusFxKeys[index]))),
+);

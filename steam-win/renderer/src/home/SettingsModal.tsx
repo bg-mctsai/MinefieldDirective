@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { X } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Music, Volume2, VolumeX, X } from 'lucide-react';
 import { HEROES, setStoredHeroId } from '../heroes';
 import { clearAllMdSaveData, DEFAULT_BUSES } from './homeSettingsStorage';
 import type { AudioBusSettings, HomeSettings } from './types';
@@ -11,6 +12,48 @@ const BUS_LABELS: { id: keyof AudioBusSettings; label: string; hint?: string }[]
   { id: 'vo', label: '語音/電報' },
   { id: 'bgm', label: '背景樂' },
 ];
+
+function AudioSwitchRow({
+  label,
+  enabled,
+  onToggle,
+  iconOn,
+  iconOff,
+}: {
+  label: string;
+  enabled: boolean;
+  onToggle: () => void;
+  iconOn: ReactNode;
+  iconOff: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      onClick={onToggle}
+      className={[
+        'flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors',
+        enabled
+          ? 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/15'
+          : 'border-slate-600/50 bg-slate-900/60 hover:border-slate-500/60',
+      ].join(' ')}
+    >
+      <span className="flex items-center gap-2.5 text-sm font-bold text-slate-200">
+        <span className="text-emerald-400">{enabled ? iconOn : iconOff}</span>
+        {label}
+      </span>
+      <span
+        className={[
+          'rounded-lg px-3 py-1 text-xs font-black tracking-wider',
+          enabled ? 'bg-emerald-500/25 text-emerald-300' : 'bg-slate-700/80 text-slate-500',
+        ].join(' ')}
+      >
+        {enabled ? '開啟' : '關閉'}
+      </span>
+    </button>
+  );
+}
 
 export function SettingsModal({
   open,
@@ -63,14 +106,34 @@ export function SettingsModal({
               </button>
             </div>
             <div className="space-y-5">
+              <div className="space-y-3 rounded-2xl border border-[#1e293b] bg-[#0B0E14] p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">音訊開關</div>
+                <AudioSwitchRow
+                  label="背景音樂"
+                  enabled={settings.bgmEnabled}
+                  onToggle={() => onChange({ ...settings, bgmEnabled: !settings.bgmEnabled })}
+                  iconOn={<Music size={18} />}
+                  iconOff={<Music size={18} className="opacity-40" />}
+                />
+                <AudioSwitchRow
+                  label="音效"
+                  enabled={settings.sfxEnabled}
+                  onToggle={() => onChange({ ...settings, sfxEnabled: !settings.sfxEnabled })}
+                  iconOn={<Volume2 size={18} />}
+                  iconOff={<VolumeX size={18} />}
+                />
+              </div>
               <div className="space-y-4 rounded-2xl border border-[#1e293b] bg-[#0B0E14] p-4">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   音訊通道
                 </div>
                 {BUS_LABELS.map(({ id, label }) => {
                   const value = settings.buses?.[id] ?? DEFAULT_BUSES[id];
+                  const busMuted =
+                    (id === 'bgm' && !settings.bgmEnabled) ||
+                    ((id === 'sfx' || id === 'ui') && !settings.sfxEnabled);
                   return (
-                    <div key={id}>
+                    <div key={id} className={busMuted ? 'opacity-45' : undefined}>
                       <div className="mb-1 flex items-center justify-between">
                         <label className="text-xs font-semibold text-slate-300">{label}</label>
                         <span className="text-xs tabular-nums text-slate-500">
@@ -109,7 +172,13 @@ export function SettingsModal({
                 type="button"
                 onClick={() => {
                   clearAllMdSaveData();
-                  onChange({ volume: DEFAULT_BUSES.master, buses: { ...DEFAULT_BUSES }, lang: 'zh-Hant' });
+                  onChange({
+                    volume: DEFAULT_BUSES.master,
+                    buses: { ...DEFAULT_BUSES },
+                    sfxEnabled: true,
+                    bgmEnabled: true,
+                    lang: 'zh-Hant',
+                  });
                   setStoredHeroId(HEROES[0].id);
                   onResetHero();
                 }}

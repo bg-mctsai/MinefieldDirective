@@ -222,7 +222,7 @@ function HeroUnlockDialogueScene({
   );
 }
 
-function DialogueTeletypeLine({
+export function DialogueTeletypeLine({
   text,
   resetKey,
   caretClassName,

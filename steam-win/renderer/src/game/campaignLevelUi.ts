@@ -2,6 +2,33 @@ import type { Level } from '../gameLogic';
 import { chapterCampaignTagline } from './levelStrategyGuideModel';
 import { stageInChapter } from './chapterStage';
 
+const CHAPTER_NUMERALS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'] as const;
+
+function chapterToChineseNumeral(chapter: number): string {
+  if (chapter >= 0 && chapter < CHAPTER_NUMERALS.length) return CHAPTER_NUMERALS[chapter]!;
+  return String(chapter);
+}
+
+/** 戰場頂欄章節定位，例如「第八章第5關」 */
+export function campaignLevelChapterStageLabel(level: Level): string {
+  const chapter = level.definition.chapter;
+  const stage = stageInChapter(level.stage);
+  return `第${chapterToChineseNumeral(chapter)}章第${stage}關`;
+}
+
+export type CampaignBattlefieldHeaderLabels = {
+  chapterStage: string;
+  missionTitle: string;
+};
+
+/** 戰場頂欄：章節關次＋任務主題標題 */
+export function campaignLevelBattlefieldHeaderLabels(level: Level): CampaignBattlefieldHeaderLabels {
+  return {
+    chapterStage: campaignLevelChapterStageLabel(level),
+    missionTitle: campaignLevelDisplayTitle(level),
+  };
+}
+
 /** 關卡識別（與存檔／mapRef 一致，如 `5_3`）— 僅程式／存檔用，不作玩家標題 */
 export function campaignLevelKeyLabel(level: Level): string {
   return level.levelKey;

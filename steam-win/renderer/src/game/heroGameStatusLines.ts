@@ -21,7 +21,8 @@ export type HeroAfterPlaceKey =
   | 'newHandArrived'
   | 'awaitNextTelegraph'
   | 'mineBonusPrefix'
-  | 'dynamicMinePushed';
+  | 'dynamicMinePushed'
+  | 'neighborResonanceBonus';
 
 export type HeroCommanderRowHintKey =
   | 'chainExploding'
@@ -43,8 +44,9 @@ export function pickHeroGameStatusLine(
   heroId: string,
   key: HeroGameStatusKey,
   vars?: Record<string, string | number>,
+  chapter?: number,
 ): string {
-  return pickHeroCombatLine(heroId, 'gameStatus', key, vars);
+  return pickHeroCombatLine(heroId, 'gameStatus', key, vars, chapter);
 }
 
 export function pickHeroVictoryStatusLine(heroId: string, key: HeroVictoryStatusKey): string {
@@ -55,8 +57,9 @@ export function pickHeroAfterPlaceLine(
   heroId: string,
   key: HeroAfterPlaceKey,
   vars?: Record<string, string | number>,
+  chapter?: number,
 ): string {
-  return pickHeroCombatLine(heroId, 'afterPlace', key, vars);
+  return pickHeroCombatLine(heroId, 'afterPlace', key, vars, chapter);
 }
 
 export function pickHeroCommanderRowHint(

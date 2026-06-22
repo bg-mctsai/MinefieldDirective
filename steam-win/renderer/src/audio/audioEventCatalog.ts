@@ -82,6 +82,14 @@ export const AUDIO_EVENT_CATALOG = {
     cooldownMs: 20,
     note: '逐字顯示電報音（高頻，嚴格 cooldown）',
   },
+  'vo.combat.victory': {
+    synthId: 'voVictoryWeWon',
+    bus: 'vo',
+    priority: 'high',
+    cooldownMs: 800,
+    duck: [{ targetBus: 'bgm', gainMul: 0.55, durationSec: 0.9 }],
+    note: '戰場過關隊長回報：哈……太棒了！我們贏啦！！幹得好，兄弟們。',
+  },
 
   // Game SFX
   'game.countdown.tick': {
@@ -118,6 +126,13 @@ export const AUDIO_EVENT_CATALOG = {
     bus: 'sfx',
     priority: 'high',
     note: '波比緊急降碼；fromValue / toValue 影響音高',
+  },
+  'game.victory': {
+    synthId: 'gameVictory',
+    bus: 'sfx',
+    priority: 'high',
+    duck: [{ targetBus: 'bgm', gainMul: 0.25, durationSec: 1.4 }],
+    note: "關卡過關凱旋（Glory's Edge 15–25s）",
   },
 
   // BGM（合成式循環骨架；之後可替換為真素材）
@@ -160,11 +175,13 @@ export type AudioEventParamsMap = {
   'ui.briefing.closeFolder': void;
   'ui.select.change': void;
   'vo.teletype.blip': void;
+  'vo.combat.victory': void;
   'game.countdown.tick': { remainingSeconds: number };
   'game.time.up': void;
   'game.number.place': { value: number };
   'game.mine.explode': { stepIndex: number };
   'game.bobby.downshift': { fromValue: number; toValue: number };
+  'game.victory': void;
   'bgm.base.ambience': void;
   'bgm.mission.map': void;
   'bgm.combat.loop': void;

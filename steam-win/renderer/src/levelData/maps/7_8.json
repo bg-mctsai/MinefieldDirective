@@ -17,10 +17,6 @@
         0
       ],
       [
-        3,
-        0
-      ],
-      [
         7,
         0
       ],
@@ -41,35 +37,19 @@
         1
       ],
       [
-        2,
-        1
-      ],
-      [
-        8,
-        1
-      ],
-      [
         9,
         1
       ],
       [
         0,
         2
-      ],
-      [
-        9,
-        2
-      ],
-      [
-        0,
-        3
       ]
     ]
   },
   "mapTheme": "火箭筒",
   "gridStats": {
     "totalCells": 120,
-    "forbiddenCellCount": 15,
-    "playableCells": 105
+    "forbiddenCellCount": 10,
+    "playableCells": 110
   }
 }
