@@ -35,6 +35,7 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm run build:renderer
+          touch dist-renderer/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3
         with:
