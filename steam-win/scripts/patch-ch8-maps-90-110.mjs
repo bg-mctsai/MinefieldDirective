@@ -200,7 +200,7 @@ for (const lvl of levelsDoc.levels) {
   if (!targets[mapRef]) continue;
   const map = JSON.parse(fs.readFileSync(path.join(mapsDir, `${mapRef}.json`), 'utf8'));
   const pc = map.gridStats.playableCells;
-  lvl.timeLimit = pc - 15;
+  lvl.timeLimit = pc - 20;
   if (mapRef === '8_7') {
     lvl.commands = {
       maxHand: 3,

@@ -396,8 +396,9 @@ export function useMineGame(initialLevelIndex: number) {
         for (const [key, remaining] of prev.blastPointsCountdown) {
           const [bx, by] = key.split(',').map(Number);
           const neighbors = logicNeighborKeys(bx, by, validKeysSet, nMode, prev.level.width, prev.level.height);
+          // 相鄰炸點本身即已知地雷，視為已解決（否則兩炸點互卡、永遠解不掉）
           const defused = neighbors.every(
-            (k) => forcedMinesSet.has(k) || forcedClearSet.has(k) || placedKeys.has(k),
+            (k) => forcedMinesSet.has(k) || forcedClearSet.has(k) || placedKeys.has(k) || intervalBlastKeys.has(k),
           );
 
           if (defused) {
@@ -903,7 +904,8 @@ export function useMineGame(initialLevelIndex: number) {
       for (const [key] of newBlastCountdown) {
         const [bx, by] = key.split(',').map(Number);
         const neighbors = logicNeighborKeys(bx, by, bpValidKeys, bpNMode, gameState.level.width, gameState.level.height);
-        if (neighbors.every((k) => logicOnlyForcedMines.has(k) || logicOnlyForcedClear.has(k) || bpPlacedKeys.has(k))) {
+        // 相鄰炸點本身即已知地雷，視為已解決（否則兩炸點互卡、永遠解不掉）
+        if (neighbors.every((k) => logicOnlyForcedMines.has(k) || logicOnlyForcedClear.has(k) || bpPlacedKeys.has(k) || allBlastPointKeys.has(k))) {
           newBlastCountdown.delete(key);
           // 解除後將炸點格加入 revealedMines，顯示地雷圖
           newRevealedMines.add(key);

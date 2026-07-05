@@ -1662,7 +1662,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_1",
       "coverageGoal": 0.8,
-      "timeLimit": 75,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L61-ch7-88c6cebb",
       "commands": {
         "maxHand": 3,
@@ -1689,7 +1689,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_2",
       "coverageGoal": 0.81,
-      "timeLimit": 77,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L62-ch7-309c3e55",
       "commands": {
         "maxHand": 3,
@@ -1716,7 +1716,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_3",
       "coverageGoal": 0.8,
-      "timeLimit": 79,
+      "timeLimit": 74,
       "initialSeed": "minefield-campaign-v1-L63-ch7-893b56a5",
       "commands": {
         "maxHand": 3,
@@ -1741,7 +1741,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_4",
       "coverageGoal": 0.8,
-      "timeLimit": 81,
+      "timeLimit": 76,
       "initialSeed": "minefield-campaign-v1-L64-ch7-38378ceb",
       "commands": {
         "maxHand": 3,
@@ -1768,7 +1768,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_5",
       "coverageGoal": 0.81,
-      "timeLimit": 83,
+      "timeLimit": 78,
       "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
@@ -1802,7 +1802,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_6",
       "coverageGoal": 0.8,
-      "timeLimit": 85,
+      "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L66-ch7-f5d69fa9",
       "commands": {
         "maxHand": 3,
@@ -1840,7 +1840,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_7",
       "coverageGoal": 0.81,
-      "timeLimit": 88,
+      "timeLimit": 83,
       "initialSeed": "minefield-campaign-v1-L67-ch7-28d0d8ae",
       "commands": {
         "maxHand": 3,
@@ -1880,7 +1880,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_8",
       "coverageGoal": 0.8,
-      "timeLimit": 90,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L68-ch7-68d7b054",
       "commands": {
         "maxHand": 3,
@@ -1929,7 +1929,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_1",
       "coverageGoal": 0.85,
-      "timeLimit": 58,
+      "timeLimit": 48,
       "initialSeed": "minefield-campaign-v1-L71-ch8-23dc551d",
       "commands": {
         "maxHand": 3,
@@ -1969,7 +1969,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_2",
       "coverageGoal": 0.86,
-      "timeLimit": 58,
+      "timeLimit": 48,
       "initialSeed": "minefield-campaign-v1-L72-ch8-4b889058",
       "commands": {
         "maxHand": 3,
@@ -2012,7 +2012,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_3",
       "coverageGoal": 0.85,
-      "timeLimit": 54,
+      "timeLimit": 44,
       "initialSeed": "minefield-campaign-v1-L73-ch8-67155d30",
       "commands": {
         "maxHand": 3,
@@ -2057,7 +2057,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_4",
       "coverageGoal": 0.85,
-      "timeLimit": 70,
+      "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L74-ch8-3a736261",
       "commands": {
         "maxHand": 3,
@@ -2112,7 +2112,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_5",
       "coverageGoal": 0.86,
-      "timeLimit": 75,
+      "timeLimit": 65,
       "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
@@ -2165,7 +2165,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_6",
       "coverageGoal": 0.85,
-      "timeLimit": 80,
+      "timeLimit": 70,
       "initialSeed": "minefield-campaign-v1-L76-ch8-7a01e404",
       "commands": {
         "maxHand": 3,
@@ -2219,7 +2219,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_7",
       "coverageGoal": 0.86,
-      "timeLimit": 85,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L77-ch8-302d0ade",
       "commands": {
         "maxHand": 3,
@@ -2286,7 +2286,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_8",
       "coverageGoal": 0.85,
-      "timeLimit": 90,
+      "timeLimit": 80,
       "initialSeed": "minefield-campaign-v1-L78-ch8-e959a386",
       "commands": {
         "maxHand": 3,
@@ -2354,7 +2354,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_1",
       "coverageGoal": 0.85,
-      "timeLimit": 62,
+      "timeLimit": 57,
       "initialSeed": "minefield-campaign-v1-L81-ch9-b5064a16",
       "commands": {
         "maxHand": 3,
@@ -2380,7 +2380,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_2",
       "coverageGoal": 0.86,
-      "timeLimit": 63,
+      "timeLimit": 58,
       "initialSeed": "minefield-campaign-v1-L82-ch9-091929ff",
       "commands": {
         "maxHand": 3,
@@ -2406,7 +2406,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_3",
       "coverageGoal": 0.85,
-      "timeLimit": 69,
+      "timeLimit": 58,
       "initialSeed": "minefield-campaign-v1-L83-ch9-a027e43e",
       "commands": {
         "maxHand": 3,
@@ -2432,7 +2432,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_4",
       "coverageGoal": 0.85,
-      "timeLimit": 65,
+      "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L84-ch9-00e0b334",
       "commands": {
         "maxHand": 3,
@@ -2458,7 +2458,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_5",
       "coverageGoal": 0.86,
-      "timeLimit": 63,
+      "timeLimit": 58,
       "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
@@ -2502,7 +2502,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_6",
       "coverageGoal": 0.85,
-      "timeLimit": 65,
+      "timeLimit": 60,
       "initialSeed": "minefield-campaign-v1-L86-ch9-613a3ba5",
       "commands": {
         "maxHand": 3,
@@ -2530,7 +2530,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_7",
       "coverageGoal": 0.85,
-      "timeLimit": 59,
+      "timeLimit": 54,
       "initialSeed": "minefield-campaign-v1-L87-ch9-d91760e8",
       "commands": {
         "maxHand": 3,
@@ -2567,7 +2567,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_8",
       "coverageGoal": 0.86,
-      "timeLimit": 69,
+      "timeLimit": 64,
       "initialSeed": "minefield-campaign-v1-L88-ch9-80a3f5ed",
       "commands": {
         "maxHand": 3,
@@ -2599,8 +2599,13 @@
       "levelId": 73,
       "chapter": 10,
       "title": "終焉防線 · 10_1",
-      "coverageGoal": 0.88,
-      "timeLimit": 83,
+      "coverageGoal": 0.89,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 125,
       "initialSeed": "minefield-campaign-v1-L91-ch10-a1b2c3d4",
       "commands": {
         "maxHand": 3,
@@ -2622,53 +2627,92 @@
         {
           "pos": [
             5,
-            5
+            12
           ],
           "countdownSec": 30,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            11,
+            1
+          ],
+          "countdownSec": 25,
           "defuseBonusSec": 10
         }
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_1"
+      "mapRef": "10_1",
+      "dynamicMinePerMove": true
     },
     {
       "levelId": 74,
       "chapter": 10,
       "title": "終焉防線 · 10_2",
       "coverageGoal": 0.89,
-      "timeLimit": 81,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 137,
       "initialSeed": "minefield-campaign-v1-L92-ch10-b2c3d4e5",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 28,
-          "2": 34,
-          "3": 38
+          "1": 18,
+          "2": 22,
+          "3": 20,
+          "4": 18,
+          "5": 12,
+          "6": 8
         }
       },
       "neighborPlacedDigitBonus": true,
       "blastPoints": [
         {
           "pos": [
-            6,
-            5
+            3,
+            2
           ],
-          "countdownSec": 28,
+          "countdownSec": 30,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            1,
+            7
+          ],
+          "countdownSec": 25,
           "defuseBonusSec": 10
         }
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_2"
+      "mapRef": "10_2",
+      "commandSlotReceiveJamming": true,
+      "commandSlotJammingStepMs": 245,
+      "mineBonusTargetCells": [
+        [
+          11,
+          7
+        ]
+      ],
+      "mineBonusSeconds": 6
     },
     {
       "levelId": 75,
       "chapter": 10,
       "title": "終焉防線 · 10_3",
-      "coverageGoal": 0.88,
-      "timeLimit": 80,
+      "coverageGoal": 0.89,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 147,
       "initialSeed": "minefield-campaign-v1-L93-ch10-c3d4e5f6",
       "commands": {
         "maxHand": 3,
@@ -2683,16 +2727,24 @@
         }
       },
       "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 260,
+      "commandSlotJammingStepMs": 240,
       "dynamicMinePerMove": true,
       "blastPoints": [
         {
           "pos": [
-            6,
-            4
+            8,
+            0
           ],
           "countdownSec": 30,
-          "defuseBonusSec": 11
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            11,
+            5
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 10
         }
       ],
       "events": [],
@@ -2700,18 +2752,33 @@
       "mapRef": "10_3",
       "mineBonusTargetCells": [
         [
-          5,
-          13
+          8,
+          9
         ]
       ],
-      "mineBonusSeconds": 6
+      "mineBonusSeconds": 6,
+      "digitOutposts": [
+        [
+          8,
+          8
+        ],
+        [
+          9,
+          3
+        ]
+      ]
     },
     {
       "levelId": 76,
       "chapter": 10,
       "title": "終焉防線 · 10_4",
-      "coverageGoal": 0.89,
-      "timeLimit": 82,
+      "coverageGoal": 0.9,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 158,
       "initialSeed": "minefield-campaign-v1-L94-ch10-d4e5f6a7",
       "commands": {
         "maxHand": 3,
@@ -2736,20 +2803,43 @@
             6,
             4
           ],
-          "countdownSec": 26,
-          "defuseBonusSec": 9
+          "countdownSec": 30,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            7,
+            6
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 10
         }
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_4"
+      "mapRef": "10_4",
+      "digitOutposts": [
+        [
+          11,
+          8
+        ],
+        [
+          20,
+          10
+        ]
+      ]
     },
     {
       "levelId": 77,
       "chapter": 10,
       "title": "終焉防線 · 10_5",
-      "coverageGoal": 0.89,
-      "timeLimit": 82,
+      "coverageGoal": 0.9,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 169,
       "initialSeed": "minefield-campaign-v1-L95-ch10-e5f6a7b8",
       "commands": {
         "maxHand": 3,
@@ -2766,26 +2856,42 @@
         }
       },
       "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 245,
+      "commandSlotJammingStepMs": 230,
       "dynamicMinePerMove": true,
       "digitOutposts": [
         [
-          3,
-          3
+          11,
+          8
         ],
         [
-          11,
-          6
+          8,
+          10
         ]
       ],
       "blastPoints": [
         {
           "pos": [
-            7,
-            4
+            14,
+            10
           ],
-          "countdownSec": 28,
+          "countdownSec": 30,
           "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            7,
+            5
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            21,
+            9
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 9
         }
       ],
       "events": [],
@@ -2793,30 +2899,35 @@
       "mapRef": "10_5",
       "mineBonusTargetCells": [
         [
-          6,
-          14
+          11,
+          7
         ]
       ],
-      "mineBonusSeconds": 5
+      "mineBonusSeconds": 6
     },
     {
       "levelId": 78,
       "chapter": 10,
       "title": "終焉防線 · 10_6",
-      "coverageGoal": 0.89,
-      "timeLimit": 83,
+      "coverageGoal": 0.9,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 180,
       "initialSeed": "minefield-campaign-v1-L96-ch10-f6a7b8c9",
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 12,
-          "2": 18,
-          "3": 22,
-          "4": 20,
+          "1": 10,
+          "2": 14,
+          "3": 18,
+          "4": 18,
           "5": 14,
           "6": 10,
-          "7": 4,
+          "7": 8,
           "8": 4
         }
       },
@@ -2825,38 +2936,60 @@
       "neighborPlacedDigitBonus": true,
       "digitOutposts": [
         [
-          2,
-          3
+          12,
+          7
         ],
         [
-          10,
-          3
+          9,
+          6
         ],
         [
-          6,
-          8
+          13,
+          7
         ]
       ],
       "blastPoints": [
         {
           "pos": [
             6,
+            5
+          ],
+          "countdownSec": 30,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            19,
             6
           ],
-          "countdownSec": 28,
+          "countdownSec": 25,
           "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            5,
+            5
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 9
         }
       ],
       "events": [],
       "rewards": {},
-      "mapRef": "10_6"
+      "mapRef": "10_6",
+      "dynamicMinePerMove": true
     },
     {
       "levelId": 79,
       "chapter": 10,
       "title": "終焉防線 · 10_7",
-      "coverageGoal": 0.9,
-      "timeLimit": 85,
+      "coverageGoal": 0.91,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 191,
       "initialSeed": "minefield-campaign-v1-L97-ch10-a7b8c9d0",
       "commands": {
         "maxHand": 3,
@@ -2876,41 +3009,57 @@
       "neighborPlacedDigitBonus": true,
       "digitOutposts": [
         [
-          2,
-          2
+          18,
+          22
         ],
         [
-          12,
-          7
+          20,
+          0
         ]
       ],
       "blastPoints": [
         {
           "pos": [
-            7,
-            4
+            12,
+            1
           ],
-          "countdownSec": 23,
+          "countdownSec": 30,
           "defuseBonusSec": 10
         },
         {
           "pos": [
-            11,
-            6
+            1,
+            13
           ],
-          "countdownSec": 28,
+          "countdownSec": 25,
           "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            28,
+            22
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 9
+        },
+        {
+          "pos": [
+            6,
+            22
+          ],
+          "countdownSec": 15,
+          "defuseBonusSec": 9
         }
       ],
       "events": [],
       "rewards": {},
       "mapRef": "10_7",
       "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 240,
+      "commandSlotJammingStepMs": 225,
       "mineBonusTargetCells": [
         [
-          6,
-          6
+          17,
+          22
         ]
       ],
       "mineBonusSeconds": 5
@@ -2919,8 +3068,13 @@
       "levelId": 80,
       "chapter": 10,
       "title": "終焉防線 · 10_8",
-      "coverageGoal": 0.9,
-      "timeLimit": 97,
+      "coverageGoal": 0.91,
+      "medalThresholds": {
+        "bronze": 0.65,
+        "silver": 0.8,
+        "gold": 0.95
+      },
+      "timeLimit": 205,
       "initialSeed": "minefield-campaign-v1-L98-ch10-b8c9d0e1",
       "commands": {
         "maxHand": 3,
@@ -2937,25 +3091,53 @@
         }
       },
       "commandSlotReceiveJamming": true,
-      "commandSlotJammingStepMs": 240,
+      "commandSlotJammingStepMs": 220,
       "dynamicMinePerMove": true,
       "digitOutposts": [
         [
-          3,
-          3
+          11,
+          11
         ],
         [
-          11,
-          7
+          8,
+          8
+        ],
+        [
+          12,
+          11
         ]
       ],
       "blastPoints": [
         {
           "pos": [
-            7,
-            5
+            13,
+            7
           ],
-          "countdownSec": 24,
+          "countdownSec": 30,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            9,
+            13
+          ],
+          "countdownSec": 25,
+          "defuseBonusSec": 10
+        },
+        {
+          "pos": [
+            15,
+            13
+          ],
+          "countdownSec": 20,
+          "defuseBonusSec": 9
+        },
+        {
+          "pos": [
+            5,
+            13
+          ],
+          "countdownSec": 15,
           "defuseBonusSec": 9
         }
       ],
@@ -2965,11 +3147,11 @@
       "neighborPlacedDigitBonus": true,
       "mineBonusTargetCells": [
         [
-          6,
-          5
+          11,
+          12
         ],
         [
-          0,
+          10,
           9
         ]
       ],

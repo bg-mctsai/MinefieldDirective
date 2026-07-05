@@ -22,11 +22,5 @@ export function requiredLevelKeyForHero(heroId: string): string | null {
 export function heroUnlockRequirementHint(heroId: string): string | null {
   const levelKey = requiredLevelKeyForHero(heroId);
   if (!levelKey) return null;
-  const m = /^(\d+)_(\d+)$/.exec(levelKey);
-  if (!m) return `通關 ${levelKey} 解鎖`;
-  const chapter = Number.parseInt(m[1], 10);
-  const stage = Number.parseInt(m[2], 10);
-  if (!Number.isFinite(chapter) || !Number.isFinite(stage)) return `通關 ${levelKey} 解鎖`;
-  if (stage === 8) return `通關第 ${chapter} 章整章解鎖`;
-  return `通關第 ${chapter} 章第 ${stage} 關解鎖`;
+  return '隨主線戰役推進解鎖';
 }

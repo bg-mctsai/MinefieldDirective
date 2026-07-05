@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Activity, Users } from 'lucide-react';
 import { campaignHomeContinueLabels } from '../game/campaignLevelUi';
@@ -11,6 +11,42 @@ import { ChapterMedalSummary } from './ChapterMedalSummary';
 
 function pct(n: number) {
   return `${Math.round(Math.max(0, Math.min(1, n)) * 100)}%`;
+}
+
+function StatMedallion({
+  children,
+  tone,
+}: {
+  children: ReactNode;
+  tone: 'emerald' | 'violet';
+}) {
+  const style =
+    tone === 'emerald'
+      ? {
+          background: 'radial-gradient(circle at 34% 28%, #ccfbf1 0%, #34d399 35%, #047857 72%, #042f2e 100%)',
+          ring: 'rgba(52,211,153,0.5)',
+          glow: 'rgba(16,185,129,0.22)',
+          text: 'text-emerald-950/80',
+        }
+      : {
+          background: 'radial-gradient(circle at 34% 28%, #ede9fe 0%, #a78bfa 38%, #6d28d9 72%, #2e1065 100%)',
+          ring: 'rgba(167,139,250,0.5)',
+          glow: 'rgba(139,92,246,0.22)',
+          text: 'text-violet-950/80',
+        };
+
+  return (
+    <span
+      className={`relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${style.text}`}
+      style={{
+        background: style.background,
+        boxShadow: `inset 0 1px 1.5px rgba(255,255,255,0.62), inset 0 -3px 5px rgba(0,0,0,0.5), 0 0 0 1px ${style.ring}, 0 0 16px ${style.glow}, 0 2px 5px rgba(0,0,0,0.55)`,
+      }}
+      aria-hidden
+    >
+      <span className="drop-shadow-[0_1px_0_rgba(255,255,255,0.2)]">{children}</span>
+    </span>
+  );
 }
 
 export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandler }) {
@@ -96,8 +132,10 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
         </button>
 
         <div className="relative mt-3 grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2.5 rounded-xl border border-slate-700/60 bg-slate-950/50 p-2.5 sm:gap-3 sm:p-3">
-            <Activity className="shrink-0 text-emerald-300" size={28} strokeWidth={2.25} aria-hidden />
+          <div className="flex items-center gap-2.5 rounded-xl border border-slate-700/45 bg-gradient-to-b from-slate-900/70 to-slate-950/70 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:gap-3 sm:p-3">
+            <StatMedallion tone="emerald">
+              <Activity size={24} strokeWidth={2.45} />
+            </StatMedallion>
             <div className="min-w-0 flex-1 text-right">
               <div className="text-xl font-black tabular-nums text-white sm:text-2xl">
                 {report.clearedCount}/{report.total}
@@ -105,8 +143,10 @@ export function HomeOpsDashboard({ onNavigate }: { onNavigate: HomeNavigateHandl
               <div className="text-xs font-bold tracking-[0.04em] text-slate-300 sm:text-sm">戰役完成</div>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-slate-700/60 bg-slate-950/50 p-2.5 sm:gap-3 sm:p-3">
-            <Users className="shrink-0 text-violet-300" size={28} strokeWidth={2.25} aria-hidden />
+          <div className="flex items-center gap-2.5 rounded-xl border border-slate-700/45 bg-gradient-to-b from-slate-900/70 to-slate-950/70 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:gap-3 sm:p-3">
+            <StatMedallion tone="violet">
+              <Users size={24} strokeWidth={2.45} />
+            </StatMedallion>
             <div className="min-w-0 flex-1 text-right">
               <div className="text-xl font-black tabular-nums text-white sm:text-2xl">
                 {report.unlockedHeroCount}/{HEROES.length}

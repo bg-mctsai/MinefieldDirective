@@ -1,5 +1,5 @@
 /**
- * 第九章全方格後，同步 levels.json：timeLimit = playable − 15、六角關改方格 weights。
+ * 第九章全方格後，同步 levels.json：timeLimit = playable − 20、六角關改方格 weights。
  * 執行（cwd = steam-win）：node scripts/patch-ch9-square-levels.mjs
  */
 import fs from 'node:fs';
@@ -43,7 +43,7 @@ for (const lv of doc.levels) {
   if (lv.chapter !== 9) continue;
   const mapRef = lv.mapRef;
   const playable = playableFromMapRef(mapRef);
-  const newTime = playable - 15;
+  const newTime = playable - 20;
   const weights = WEIGHTS_BY_MAP[mapRef];
 
   if (lv.timeLimit !== newTime) {
@@ -65,7 +65,7 @@ for (const lv of doc.levels) {
 const ch9doc = doc._企劃欄位說明;
 if (ch9doc) {
   ch9doc['commands.chapter9'] =
-    '第 9 章鄰焰共振（chapter=9）：全章 SQUARE，commands 為 \"1\"～\"8\"（9_8 例外僅 \"1\"～\"3\"）；timeLimit = playableCells − 15。';
+    '第 9 章鄰焰共振（chapter=9）：全章 SQUARE，commands 為 \"1\"～\"8\"（9_8 例外僅 \"1\"～\"3\"）；timeLimit = playableCells − 20。';
 }
 
 writeJson(LEVELS_PATH, doc);

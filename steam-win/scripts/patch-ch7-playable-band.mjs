@@ -171,7 +171,7 @@ for (let srcId = 61; srcId <= 68; srcId++) {
 
   const lv = levelsDoc.levels.find((l) => l.mapRef === mapRef);
   if (lv) {
-    lv.timeLimit = n - 15;
+    lv.timeLimit = n - 20;
     const w = lv.commands?.weights ?? {};
     const hexStd = w['1'] === 18 && w['2'] === 22 && w['7'] == null;
     const squareStd = w['1'] === 8 && w['2'] === 14 && w['7'] != null;
@@ -192,7 +192,7 @@ for (let srcId = 61; srcId <= 68; srcId++) {
   }
 
   const tag = `${before}→${n}`;
-  console.log(`${mapRef} ${shape.grid} ${W}×${H} playable ${tag} timeLimit=${n - 15} ${shape.theme}`);
+  console.log(`${mapRef} ${shape.grid} ${W}×${H} playable ${tag} timeLimit=${n - 20} ${shape.theme}`);
 }
 
 fs.writeFileSync(LEVELS_PATH, `${JSON.stringify(levelsDoc, null, 2)}\n`, 'utf8');

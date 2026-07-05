@@ -19,25 +19,33 @@ const MEDAL_FULL: Record<Medal, string> = {
 const TIER_STYLE: Record<
   Medal,
   {
-    chip: string;
-    chipText: string;
+    /** 圓幣金屬漸層（徑向打光） */
+    coin: string;
+    /** 描邊光圈色 */
+    ring: string;
+    /** 壓字色（幣面凹刻） */
+    emboss: string;
+    /** 數字色 */
     count: string;
   }
 > = {
   gold: {
-    chip: 'border-yellow-400/55 bg-gradient-to-br from-yellow-700/95 via-amber-400/90 to-yellow-200 shadow-[0_0_10px_rgba(253,224,71,0.28)]',
-    chipText: 'text-yellow-950',
-    count: 'text-yellow-200',
+    coin: 'radial-gradient(circle at 34% 28%, #fef3c7 0%, #fcd34d 38%, #f59e0b 68%, #b45309 100%)',
+    ring: 'rgba(253,224,71,0.55)',
+    emboss: 'text-amber-950/70',
+    count: 'text-amber-100',
   },
   silver: {
-    chip: 'border-slate-300/50 bg-gradient-to-br from-slate-700 via-slate-300 to-slate-100 shadow-[0_0_8px_rgba(226,232,240,0.18)]',
-    chipText: 'text-slate-900',
+    coin: 'radial-gradient(circle at 34% 28%, #ffffff 0%, #e2e8f0 42%, #cbd5e1 68%, #64748b 100%)',
+    ring: 'rgba(226,232,240,0.5)',
+    emboss: 'text-slate-800/70',
     count: 'text-slate-100',
   },
   bronze: {
-    chip: 'border-amber-600/55 bg-gradient-to-br from-amber-900 via-amber-600 to-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.22)]',
-    chipText: 'text-amber-950',
-    count: 'text-amber-300',
+    coin: 'radial-gradient(circle at 34% 28%, #fde7c8 0%, #f0a24b 40%, #c2701c 70%, #7c3f0f 100%)',
+    ring: 'rgba(234,140,60,0.5)',
+    emboss: 'text-orange-950/70',
+    count: 'text-orange-200',
   },
 };
 
@@ -47,14 +55,20 @@ function medalTooltip(medal: Medal, count: number): string {
   return `${tier}評級：${count} 關 — 各關最佳火力達 ${tier} 門檻`;
 }
 
-function TierRankChip({ medal }: { medal: Medal }) {
+function MedalCoin({ medal }: { medal: Medal }) {
   const style = TIER_STYLE[medal];
   return (
     <span
-      className={`inline-flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-[3px] border text-[9px] font-black leading-none sm:h-5 sm:w-5 sm:rounded sm:text-[10px] ${style.chip} ${style.chipText}`}
+      className="relative inline-flex h-[1.35rem] w-[1.35rem] shrink-0 items-center justify-center rounded-full"
+      style={{
+        background: style.coin,
+        boxShadow: `inset 0 1px 1.5px rgba(255,255,255,0.6), inset 0 -2px 3px rgba(0,0,0,0.45), 0 0 0 1px ${style.ring}, 0 1px 3px rgba(0,0,0,0.55)`,
+      }}
       aria-hidden
     >
-      {MEDAL_LABEL[medal]}
+      <span className={`text-[10px] font-black leading-none ${style.emboss}`}>
+        {MEDAL_LABEL[medal]}
+      </span>
     </span>
   );
 }
@@ -65,18 +79,18 @@ function TierStat({ medal, count }: { medal: Medal; count: number }) {
   return (
     <div
       title={medalTooltip(medal, count)}
-      className={`flex items-center gap-1 px-1 sm:gap-1.5 sm:px-1.5 ${dimmed ? 'opacity-40' : ''}`}
+      className={`flex items-center gap-1.5 ${dimmed ? 'opacity-35 saturate-50' : ''}`}
       aria-label={`${MEDAL_FULL[medal]} ${count} 關`}
     >
-      <TierRankChip medal={medal} />
-      <span className={`text-sm font-black tabular-nums leading-none sm:text-base ${style.count}`}>
+      <MedalCoin medal={medal} />
+      <span className={`text-base font-black tabular-nums leading-none sm:text-lg ${style.count}`}>
         {count}
       </span>
     </div>
   );
 }
 
-/** 首頁戰役卡右上：火力評級戰術讀數（無 PNG 徽章，與作戰 HUD 語彙一致） */
+/** 首頁戰役卡右上：火力評級戰術讀數（圓形獎章幣，與作戰 HUD 語彙一致） */
 export function ChapterMedalSummary({ className }: { className?: string } = {}) {
   const totals = useMemo(() => {
     const bestMap = getAllBestMedals();
@@ -92,11 +106,14 @@ export function ChapterMedalSummary({ className }: { className?: string } = {}) 
 
   return (
     <div className={['shrink-0', className].filter(Boolean).join(' ')}>
-      <div className="rounded-lg border border-slate-600/45 bg-slate-950/75 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_16px_rgba(0,0,0,0.25)] sm:rounded-xl sm:px-2.5">
-        <div className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
-          火力評級
+      <div className="relative overflow-hidden rounded-xl border border-slate-700/40 bg-gradient-to-b from-slate-900/80 to-slate-950/85 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_4px_18px_rgba(0,0,0,0.3)]">
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <span className="h-2.5 w-0.5 rounded-full bg-[#F59E0B]/80" aria-hidden />
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            火力評級
+          </span>
         </div>
-        <div className="flex items-center divide-x divide-slate-600/35">
+        <div className="flex items-center gap-3">
           {MEDAL_ORDER.map((medal) => (
             <TierStat key={medal} medal={medal} count={totals[medal]} />
           ))}
