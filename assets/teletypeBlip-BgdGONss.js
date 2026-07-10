@@ -1,0 +1,1 @@
+const i={playOn(n,o){const e=n.currentTime,t=n.createOscillator(),a=n.createGain();t.type="sine",t.frequency.setValueAtTime(1020+Math.random()*160,e),a.gain.setValueAtTime(0,e),a.gain.linearRampToValueAtTime(.005,e+.002),a.gain.exponentialRampToValueAtTime(12e-5,e+.022),t.connect(a),a.connect(o),t.start(e),t.stop(e+.024)}};export{i as default};
