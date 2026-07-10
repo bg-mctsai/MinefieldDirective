@@ -12,6 +12,7 @@ import { LEVELS_PER_CHAPTER, stageInChapter } from './game/chapterStage';
 import DossierPostChapter10Gate from './DossierPostChapter10Gate';
 import { HeroPortraitLightboxProvider } from './home/HeroPortraitLightbox';
 import { AudioSettingsProvider } from './audio/AudioSettingsContext';
+import { DEV_TOOLS_ENABLED } from './dev/devToolsFlag';
 
 type Screen = 'home' | 'mission' | 'game' | 'hero' | 'dossierGate';
 
@@ -34,7 +35,7 @@ export default function App() {
 
   const missionClearedLevelKeys = effectiveMissionClearedLevelKeys(
     clearedLevelKeys,
-    import.meta.env.DEV && devMissionUnlockAllChapters,
+    DEV_TOOLS_ENABLED && devMissionUnlockAllChapters,
     LEVELS.map((l) => l.levelKey),
   );
 
@@ -60,7 +61,7 @@ export default function App() {
               if (to === 'hero') setScreen('hero');
             }}
             onDevLevelsReloaded={
-              import.meta.env.DEV ? () => setLevelsReloadToken((n) => n + 1) : undefined
+              DEV_TOOLS_ENABLED ? () => setLevelsReloadToken((n) => n + 1) : undefined
             }
           />
         )}
@@ -93,7 +94,7 @@ export default function App() {
             }}
             clearedLevelKeys={missionClearedLevelKeys}
             devMissionChapterUnlockToggle={
-              import.meta.env.DEV
+              DEV_TOOLS_ENABLED
                 ? {
                     unlockAllActive: devMissionUnlockAllChapters,
                     onToggleUnlockAll: () => setDevMissionUnlockAllChapters((v) => !v),
@@ -106,7 +107,7 @@ export default function App() {
           <HeroSelect
             onBack={() => setScreen('home')}
             devHeroUnlockToggle={
-              import.meta.env.DEV
+              DEV_TOOLS_ENABLED
                 ? {
                     unlockAllActive: devUnlockAllHeroes,
                     onToggleUnlockAll: () =>
@@ -126,7 +127,7 @@ export default function App() {
             initialLevelIndex={gameLevelIndex}
             clearedLevelKeys={clearedLevelKeys}
             unlockClearedLevelKeys={
-              import.meta.env.DEV && devMissionUnlockAllChapters ? missionClearedLevelKeys : undefined
+              DEV_TOOLS_ENABLED && devMissionUnlockAllChapters ? missionClearedLevelKeys : undefined
             }
             onClearedLevelKeysChange={setClearedLevelKeys}
             onBack={(context) => {

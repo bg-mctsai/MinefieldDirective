@@ -12,6 +12,7 @@ import { SettingsModal } from './SettingsModal';
 import { BaseAmbience } from './BaseAmbience';
 import { loadHomeSettings } from './homeSettingsStorage';
 import { devReloadLevelsFromJson } from '../dev/reloadLevelsJson';
+import { DEV_TOOLS_ENABLED } from '../dev/devToolsFlag';
 import type { HomeNavigateHandler } from './types';
 
 export type { HomeNavigate, HomeNavigateOptions, HomeNavigateHandler } from './types';
@@ -106,7 +107,7 @@ export default function HomePage({
         <div className="pointer-events-none absolute bottom-5 right-5 h-5 w-16 border-b-2 border-r-2 border-cyan-300/55 md:bottom-7 md:right-7" />
         <HomeHeader
           devReload={
-            import.meta.env.DEV
+            DEV_TOOLS_ENABLED
               ? { onClick: handleDevReloadLevels, busy: devReloadBusy, hint: devReloadHint }
               : undefined
           }

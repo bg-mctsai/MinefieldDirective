@@ -5,6 +5,7 @@ import '@fontsource/noto-sans-tc/700.css';
 import '@fontsource/noto-sans-tc/900.css';
 import App from './App.tsx';
 import './index.css';
+import { DEV_TOOLS_ENABLED } from './dev/devToolsFlag';
 
 /**
  * DEV：`levelData/index.ts` 用 `import.meta.glob(..., { eager: true })` 打包地圖 JSON 時，
@@ -12,7 +13,7 @@ import './index.css';
  * 磁碟最新 `levels.json` + 各 map，與標題列「重讀 JSON」同一路徑。
  */
 async function maybeDevBootstrapLevelsFromDisk(): Promise<void> {
-  if (!import.meta.env.DEV) return;
+  if (!DEV_TOOLS_ENABLED) return;
   const { devReloadLevelsFromJson } = await import('./dev/reloadLevelsJson');
   const r = await devReloadLevelsFromJson();
   if (!r.ok) {

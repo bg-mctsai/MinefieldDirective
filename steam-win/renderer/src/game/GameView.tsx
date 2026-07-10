@@ -32,6 +32,7 @@ import { LEVELS_PER_CHAPTER, stageInChapter } from './chapterStage';
 import { AudioEngine } from '../audio/AudioEngine';
 import { useBgmChannel } from '../audio/useBgmChannel';
 import { useCombatOutcomeAudio } from '../audio/useCombatOutcomeAudio';
+import { DEV_TOOLS_ENABLED } from '../dev/devToolsFlag';
 
 export type BackToMissionContext = {
   /** 在勝利狀態自章內第 8 關「返回」時，帶出剛完成的章，供上層顯示行動卷宗前對話 */
@@ -322,7 +323,7 @@ export default function GameView({
         countdownStarted={gameState.timerStarted}
         heroTheme={combatTheme}
         testCompleteButton={
-          gameState.status !== 'won' ? (
+          DEV_TOOLS_ENABLED && gameState.status !== 'won' ? (
             <button
               type="button"
               onClick={forceCompleteForTest}
