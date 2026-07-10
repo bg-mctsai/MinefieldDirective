@@ -429,14 +429,23 @@ export default function MissionMap({
 
   const requestOpenChapter = (chapter: number) => {
     if (pendingChapter != null) return;
-    setPendingChapter(chapter);
-    if (pendingTimerRef.current != null) window.clearTimeout(pendingTimerRef.current);
-    pendingTimerRef.current = window.setTimeout(() => {
+    const openNow = () => {
       setOpenedChapter(chapter);
       setPhase('pickLevel');
       setPendingChapter(null);
       pendingTimerRef.current = null;
-    }, FOLDER_OPEN_TRANSITION_MS);
+    };
+    setPendingChapter(chapter);
+    if (pendingTimerRef.current != null) window.clearTimeout(pendingTimerRef.current);
+    const delayMs =
+      typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+        ? 0
+        : FOLDER_OPEN_TRANSITION_MS;
+    if (delayMs <= 0) {
+      openNow();
+      return;
+    }
+    pendingTimerRef.current = window.setTimeout(openNow, delayMs);
   };
 
   const backToChapters = () => {
@@ -692,7 +701,7 @@ export default function MissionMap({
   const onMapPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
-    if (target.closest('[data-mission-hex="1"]')) return;
+    if (target.closest('[data-mission-hex="1"], [data-mission-docked-brief="1"]')) return;
     mapDragRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -736,7 +745,7 @@ export default function MissionMap({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+              className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain touch-manipulation"
             >
               <motion.header
                 initial={{ opacity: 0, y: -8 }}
@@ -854,8 +863,8 @@ export default function MissionMap({
                         首頁
                       </button>
                     </div>
-                    <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_360px] items-stretch gap-3">
-                    <main className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl">
+                    <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-stretch">
+                    <main className="relative flex min-h-[min(58dvh,520px)] min-w-0 flex-col overflow-hidden rounded-xl lg:h-full lg:min-h-0">
                       <div
                         className={`flex min-h-0 h-full min-w-0 flex-1 flex-col ${MAP_VIEWPORT_FRAME_CLASS}`}
                       >
@@ -1197,7 +1206,7 @@ export default function MissionMap({
                       </div>
                     </main>
 
-                    <aside className="flex h-full min-h-0 min-w-0 flex-col gap-3">
+                    <aside className="hidden min-h-0 min-w-0 flex-col gap-3 lg:flex lg:h-full">
                       <div className="mission-metal-panel rounded-xl p-3">
                         <div className="flex items-center gap-1.5 border-b border-slate-600/35 pb-2 text-[#F59E0B]">
                           <MapIcon size={16} aria-hidden />

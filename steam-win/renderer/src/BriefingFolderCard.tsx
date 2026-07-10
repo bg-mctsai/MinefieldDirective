@@ -3,7 +3,7 @@
  * - 牛皮紙紋背景 + 內網格 + 釘裝邊
  * - 「展開卷宗」僅切換內文顯示；「進入作戰地圖」才開戰術選關
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type PointerEvent } from 'react';
 import { motion } from 'motion/react';
 import { Map as MapIcon } from 'lucide-react';
 import { emit } from './audio/AudioEngine';
@@ -49,8 +49,15 @@ export function BriefingFolderCard({
   const compact = collapsed && !storyOpen;
 
   const handleEnterMap = () => {
+    if (pending) return;
     emit('ui.select.change');
     onEnterMap();
+  };
+
+  const handleEnterMapPointer = (e: PointerEvent<HTMLButtonElement>) => {
+    if (pending || e.pointerType === 'mouse') return;
+    e.preventDefault();
+    handleEnterMap();
   };
 
   return (
@@ -102,7 +109,8 @@ export function BriefingFolderCard({
             type="button"
             disabled={pending}
             onClick={handleEnterMap}
-            className="flex min-w-0 items-baseline gap-2 rounded-lg text-left transition-colors hover:text-[#FCD34D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] disabled:pointer-events-none disabled:opacity-55"
+            onPointerUp={handleEnterMapPointer}
+            className="flex min-h-11 min-w-0 touch-manipulation items-baseline gap-2 rounded-lg text-left transition-colors hover:text-[#FCD34D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] disabled:pointer-events-none disabled:opacity-55"
             aria-label={`進入第 ${chapter} 章作戰地圖：${headline}`}
           >
             <span className="shrink-0 text-[11px] font-black tabular-nums tracking-tight text-[#F59E0B]/90 sm:text-xs">
@@ -119,6 +127,7 @@ export function BriefingFolderCard({
                 type="button"
                 disabled={pending}
                 onClick={handleEnterMap}
+                onPointerUp={handleEnterMapPointer}
                 className="inline-flex min-h-11 w-full touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-gradient-to-b from-[#FCD34D] via-[#F59E0B] to-[#D97706] px-3.5 py-2.5 text-xs font-black tracking-wide text-[#1c1003] shadow-[0_4px_18px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.38)] transition-[transform,filter,box-shadow] hover:brightness-105 hover:shadow-[0_6px_24px_rgba(245,158,11,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-55 sm:min-w-[9.5rem] sm:flex-initial sm:px-4"
               >
                 <MapIcon size={15} strokeWidth={2.5} className="shrink-0 opacity-90" aria-hidden />

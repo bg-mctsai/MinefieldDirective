@@ -77,7 +77,7 @@ export function MissionLevelTacticalDockedBrief({
                 onStart();
                 onClose();
               }}
-              className="mission-docked-cta-breathe inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#FF9F1C]/70 bg-[#FF9F1C]/12 px-2.5 py-1.5 text-xs font-black text-[#fdba74] transition-colors hover:bg-[#FF9F1C]/22"
+              className="mission-docked-cta-breathe inline-flex min-h-11 shrink-0 touch-manipulation items-center gap-0.5 rounded-md border border-[#FF9F1C]/70 bg-[#FF9F1C]/12 px-3 py-2 text-xs font-black text-[#fdba74] transition-colors hover:bg-[#FF9F1C]/22"
             >
               <span>{cta}</span>
               <ChevronRight size={14} strokeWidth={2.5} aria-hidden />

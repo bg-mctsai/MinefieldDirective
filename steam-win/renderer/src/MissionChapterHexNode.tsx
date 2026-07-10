@@ -326,6 +326,7 @@ export const MissionChapterHexNode = memo(function MissionChapterHexNode({
       <button
         type="button"
         data-mission-hex="1"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={onSelect}
         onDoubleClick={onDoubleClick}
         onMouseEnter={() => setHover(true)}
