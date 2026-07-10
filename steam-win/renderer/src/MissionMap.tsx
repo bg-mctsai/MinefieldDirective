@@ -725,7 +725,7 @@ export default function MissionMap({
   return (
     <TerminalBackdrop scanlineOpacity={0.06} className="font-mono text-slate-200 selection:bg-[#F59E0B]/30">
       <div
-        className={`relative z-10 flex min-h-[100dvh] w-full flex-col ${phase === 'pickLevel' ? 'px-3 py-3 md:px-5' : 'mx-auto max-w-[min(96vw,1760px)] px-6 py-4 md:px-10'
+        className={`relative z-10 flex w-full flex-col ${phase === 'pickLevel' ? 'min-h-[100dvh] px-3 py-3 md:px-5' : 'mx-auto max-h-[100dvh] min-h-[100dvh] max-w-[min(96vw,1760px)] overflow-hidden px-4 py-3 md:px-10 md:py-4'
           }`}
       >
         <AnimatePresence mode="wait">
@@ -736,11 +736,12 @@ export default function MissionMap({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
+              className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
             >
               <motion.header
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-10 flex flex-wrap items-center gap-5"
+                className="mb-6 flex shrink-0 flex-wrap items-center gap-4 md:mb-10 md:gap-5"
               >
                 <button
                   type="button"
@@ -1101,13 +1102,17 @@ export default function MissionMap({
                                   inProgress={inProgressVisual}
                                   locked={!unlocked}
                                   isBoss={stage === LEVELS_PER_CHAPTER}
-                                  onSelect={() =>
+                                  onSelect={() => {
+                                    if (!unlocked) return;
                                     setSelectedLevelId((cur) => {
-                                      const next = cur === lv.levelKey ? null : lv.levelKey;
-                                      if (next !== cur) emit('ui.select.change');
-                                      return next;
-                                    })
-                                  }
+                                      if (cur === lv.levelKey) {
+                                        triggerEnterFeedbackAndStart(row.idx, lv.id);
+                                        return cur;
+                                      }
+                                      emit('ui.select.change');
+                                      return lv.levelKey;
+                                    });
+                                  }}
                                   onDoubleClick={() => {
                                     if (!unlocked) return;
                                     setSelectedLevelId(lv.levelKey);

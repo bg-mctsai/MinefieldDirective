@@ -36,11 +36,22 @@ export function BriefingFolderCard({
   onEnterMap: () => void;
   delaySec: number;
 }) {
-  const [storyOpen, setStoryOpen] = useState(() => isHint);
+  /** 手機預設收合長文，避免「進入作戰地圖」被擠出視窗外且外層無法捲動 */
+  const [storyOpen, setStoryOpen] = useState(false);
   useEffect(() => {
-    if (isHint) setStoryOpen(true);
+    if (!isHint) return;
+    const mq = window.matchMedia('(min-width: 640px)');
+    const sync = () => setStoryOpen(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
   }, [isHint]);
   const compact = collapsed && !storyOpen;
+
+  const handleEnterMap = () => {
+    emit('ui.select.change');
+    onEnterMap();
+  };
 
   return (
     <motion.li
@@ -87,44 +98,41 @@ export function BriefingFolderCard({
             </div>
           ) : null}
 
-          <div className="flex min-w-0 items-baseline gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={handleEnterMap}
+            className="flex min-w-0 items-baseline gap-2 rounded-lg text-left transition-colors hover:text-[#FCD34D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] disabled:pointer-events-none disabled:opacity-55"
+            aria-label={`進入第 ${chapter} 章作戰地圖：${headline}`}
+          >
             <span className="shrink-0 text-[11px] font-black tabular-nums tracking-tight text-[#F59E0B]/90 sm:text-xs">
               卷 {String(chapter).padStart(2, '0')}
             </span>
             <span className="min-w-0 truncate text-base font-black tracking-tight text-white sm:text-lg" title={headline}>
               {headline}
             </span>
-          </div>
+          </button>
 
-          {storyOpen ? (
-            <div className="mt-1 rounded-xl border border-white/[0.06] bg-black/25 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-3.5 sm:py-3">
-              <p className="whitespace-pre-line text-xs leading-relaxed text-slate-200/95 sm:text-sm">{blurb}</p>
-            </div>
-          ) : null}
-
-          <div className="mt-2 flex flex-col gap-2.5 border-t border-white/[0.06] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="flex min-w-0 flex-wrap items-stretch gap-2">
+          <div className="mt-1 flex flex-col gap-2.5 sm:mt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-stretch">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={handleEnterMap}
+                className="inline-flex min-h-11 w-full touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-gradient-to-b from-[#FCD34D] via-[#F59E0B] to-[#D97706] px-3.5 py-2.5 text-xs font-black tracking-wide text-[#1c1003] shadow-[0_4px_18px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.38)] transition-[transform,filter,box-shadow] hover:brightness-105 hover:shadow-[0_6px_24px_rgba(245,158,11,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-55 sm:min-w-[9.5rem] sm:flex-initial sm:px-4"
+              >
+                <MapIcon size={15} strokeWidth={2.5} className="shrink-0 opacity-90" aria-hidden />
+                進入作戰地圖
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   emit('ui.select.change');
                   setStoryOpen((v) => !v);
                 }}
-                className="rounded-xl border border-slate-600/70 bg-slate-950/50 px-3 py-2 text-[11px] font-bold text-slate-300 shadow-sm transition-colors hover:border-[#F59E0B]/50 hover:bg-slate-900/80 hover:text-[#F59E0B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] sm:px-3.5 sm:text-xs"
+                className="inline-flex min-h-11 w-full touch-manipulation items-center justify-center rounded-xl border border-slate-600/70 bg-slate-950/50 px-3 py-2.5 text-xs font-bold text-slate-300 shadow-sm transition-colors hover:border-[#F59E0B]/50 hover:bg-slate-900/80 hover:text-[#F59E0B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F59E0B]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] sm:w-auto sm:px-3.5"
               >
                 {storyOpen ? '收合卷宗' : '展開卷宗'}
-              </button>
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => {
-                  emit('ui.select.change');
-                  onEnterMap();
-                }}
-                className="inline-flex min-h-[2.25rem] flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-b from-[#FCD34D] via-[#F59E0B] to-[#D97706] px-3.5 py-2 text-[11px] font-black tracking-wide text-[#1c1003] shadow-[0_4px_18px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.38)] transition-[transform,filter,box-shadow] hover:brightness-105 hover:shadow-[0_6px_24px_rgba(245,158,11,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-55 sm:flex-initial sm:min-w-[9.5rem] sm:px-4 sm:text-xs"
-              >
-                <MapIcon size={15} strokeWidth={2.5} className="shrink-0 opacity-90" aria-hidden />
-                進入作戰地圖
               </button>
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 sm:justify-end sm:text-xs">
@@ -136,6 +144,12 @@ export function BriefingFolderCard({
               ) : null}
             </div>
           </div>
+
+          {storyOpen ? (
+            <div className="mt-2 rounded-xl border border-white/[0.06] bg-black/25 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:mt-2.5 sm:px-3.5 sm:py-3">
+              <p className="whitespace-pre-line text-xs leading-relaxed text-slate-200/95 sm:text-sm">{blurb}</p>
+            </div>
+          ) : null}
         </div>
       </div>
     </motion.li>
