@@ -2,8 +2,8 @@
   "mapLayout": {
     "type": "HEXAGON",
     "placeholder": {
-      "width": 9,
-      "height": 7
+      "width": 11,
+      "height": 8
     },
     "forbiddenCells": [
       [
@@ -11,31 +11,71 @@
         0
       ],
       [
-        8,
+        10,
         0
       ],
       [
-        4,
-        1
-      ],
-      [
-        4,
+        0,
         2
       ],
       [
-        4,
+        10,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        9,
+        3
+      ],
+      [
+        10,
         3
       ],
       [
         0,
-        6
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        9,
+        4
+      ],
+      [
+        10,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        10,
+        5
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        10,
+        7
       ]
     ]
   },
   "mapTheme": "巢面展開",
   "gridStats": {
-    "totalCells": 63,
-    "forbiddenCellCount": 6,
-    "playableCells": 57
+    "totalCells": 88,
+    "forbiddenCellCount": 16,
+    "playableCells": 72
   }
 }

@@ -2,15 +2,15 @@
   "mapLayout": {
     "type": "HEXAGON",
     "placeholder": {
-      "width": 10,
-      "height": 5
+      "width": 11,
+      "height": 6
     },
     "forbiddenCells": []
   },
   "mapTheme": "蜂格初陣",
   "gridStats": {
-    "totalCells": 50,
+    "totalCells": 66,
     "forbiddenCellCount": 0,
-    "playableCells": 50
+    "playableCells": 66
   }
 }

@@ -762,7 +762,7 @@
       "chapter": 4,
       "title": "蜂巢戰線 · 4_1",
       "coverageGoal": 0.73,
-      "timeLimit": 45,
+      "timeLimit": 66,
       "initialSeed": "minefield-campaign-v1-L31-ch4",
       "commands": {
         "maxHand": 3,
@@ -785,7 +785,7 @@
       "chapter": 4,
       "title": "蜂巢戰線 · 4_2",
       "coverageGoal": 0.73,
-      "timeLimit": 52,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L32-ch4",
       "commands": {
         "maxHand": 3,
@@ -809,7 +809,7 @@
       "mapRef": "4_3",
       "title": "蜂巢戰線 · 4_3",
       "coverageGoal": 0.74,
-      "timeLimit": 65,
+      "timeLimit": 93,
       "initialSeed": "minefield-campaign-v1-L27-ch4-merged",
       "commands": {
         "maxHand": 3,
@@ -832,7 +832,7 @@
       "mapRef": "4_4",
       "title": "蜂巢戰線 · 4_4",
       "coverageGoal": 0.74,
-      "timeLimit": 66,
+      "timeLimit": 95,
       "initialSeed": "minefield-campaign-v1-L28-ch4-merged",
       "commands": {
         "maxHand": 3,
@@ -855,7 +855,7 @@
       "mapRef": "4_5",
       "title": "蜂巢戰線 · 4_5",
       "coverageGoal": 0.8,
-      "timeLimit": 62,
+      "timeLimit": 91,
       "initialSeed": "minefield-campaign-v1-L29-ch4-merged",
       "commands": {
         "maxHand": 3,
@@ -872,20 +872,20 @@
       "events": [],
       "digitOutposts": [
         [
-          6,
-          0
+          0,
+          11
         ],
         [
-          6,
+          5,
           5
         ],
         [
-          4,
-          9
+          2,
+          0
         ],
         [
-          2,
-          2
+          0,
+          8
         ]
       ],
       "rewards": {}
@@ -896,7 +896,7 @@
       "mapRef": "4_6",
       "title": "蜂巢戰線 · 4_6",
       "coverageGoal": 0.8,
-      "timeLimit": 72,
+      "timeLimit": 102,
       "initialSeed": "minefield-campaign-v1-L30-ch4-merged",
       "commands": {
         "maxHand": 3,
@@ -913,16 +913,16 @@
       "events": [],
       "digitOutposts": [
         [
-          5,
-          0
+          6,
+          12
         ],
         [
           5,
           6
         ],
         [
-          5,
-          11
+          1,
+          0
         ],
         [
           0,
@@ -937,7 +937,7 @@
       "mapRef": "4_7",
       "title": "蜂巢戰線 · 4_7",
       "coverageGoal": 0.8,
-      "timeLimit": 76,
+      "timeLimit": 100,
       "initialSeed": "minefield-campaign-v1-L31-ch4-merged",
       "commands": {
         "maxHand": 3,
@@ -954,20 +954,20 @@
       "events": [],
       "digitOutposts": [
         [
+          6,
+          12
+        ],
+        [
           5,
+          6
+        ],
+        [
+          2,
           0
         ],
         [
-          5,
-          5
-        ],
-        [
-          5,
-          10
-        ],
-        [
           0,
-          2
+          5
         ]
       ],
       "rewards": {}
@@ -978,7 +978,7 @@
       "mapRef": "4_8",
       "title": "蜂巢戰線 · 4_8",
       "coverageGoal": 0.8,
-      "timeLimit": 62,
+      "timeLimit": 99,
       "initialSeed": "minefield-campaign-v1-L32-ch4-merged",
       "commands": {
         "maxHand": 3,
@@ -995,20 +995,20 @@
       "events": [],
       "digitOutposts": [
         [
-          6,
+          3,
+          12
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          3,
           0
         ],
         [
-          6,
-          5
-        ],
-        [
-          6,
-          10
-        ],
-        [
           1,
-          2
+          3
         ]
       ],
       "rewards": {}
@@ -1020,7 +1020,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_1",
       "coverageGoal": 0.75,
-      "timeLimit": 48,
+      "timeLimit": 73,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1051,7 +1051,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_2",
       "coverageGoal": 0.76,
-      "timeLimit": 65,
+      "timeLimit": 90,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1082,7 +1082,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_3",
       "coverageGoal": 0.77,
-      "timeLimit": 80,
+      "timeLimit": 105,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1117,7 +1117,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_4",
       "coverageGoal": 0.78,
-      "timeLimit": 83,
+      "timeLimit": 108,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1152,7 +1152,7 @@
       "rewards": {},
       "title": "斷線封鎖 · 5_5",
       "coverageGoal": 0.79,
-      "timeLimit": 85,
+      "timeLimit": 110,
       "commands": {
         "maxHand": 3,
         "poolType": "WEIGHTED",
@@ -1199,7 +1199,7 @@
       "chapter": 5,
       "title": "斷線封鎖 · 5_6",
       "coverageGoal": 0.8,
-      "timeLimit": 82,
+      "timeLimit": 107,
       "initialSeed": "minefield-campaign-v1-L38-ch5-hex",
       "commands": {
         "maxHand": 3,
@@ -1251,7 +1251,7 @@
       "chapter": 5,
       "title": "斷線封鎖 · 5_7",
       "coverageGoal": 0.8,
-      "timeLimit": 86,
+      "timeLimit": 111,
       "initialSeed": "minefield-campaign-v1-L39-ch5-hex",
       "commands": {
         "maxHand": 3,
@@ -1307,7 +1307,7 @@
       "chapter": 5,
       "title": "斷線封鎖 · 5_8",
       "coverageGoal": 0.8,
-      "timeLimit": 90,
+      "timeLimit": 115,
       "initialSeed": "minefield-campaign-v1-L40-ch5-hex",
       "commands": {
         "maxHand": 3,
@@ -1363,7 +1363,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_1",
       "coverageGoal": 0.8,
-      "timeLimit": 54,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L51-ch5",
       "commands": {
         "maxHand": 3,
@@ -1389,7 +1389,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_2",
       "coverageGoal": 0.81,
-      "timeLimit": 54,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L52-ch5-d3e3e0b1",
       "commands": {
         "maxHand": 3,
@@ -1417,7 +1417,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_3",
       "coverageGoal": 0.8,
-      "timeLimit": 54,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L53-ch5-bbecf6ff",
       "commands": {
         "maxHand": 3,
@@ -1447,7 +1447,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_4",
       "coverageGoal": 0.81,
-      "timeLimit": 52,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L54-ch5-34a684b5",
       "commands": {
         "maxHand": 3,
@@ -1473,7 +1473,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_5",
       "coverageGoal": 0.8,
-      "timeLimit": 56,
+      "timeLimit": 71,
       "initialSeed": "minefield-campaign-v1-L55-ch5-9e656d2e",
       "commands": {
         "maxHand": 3,
@@ -1518,7 +1518,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_6",
       "coverageGoal": 0.8,
-      "timeLimit": 52,
+      "timeLimit": 67,
       "initialSeed": "minefield-campaign-v1-L56-ch5-7a1a9a14",
       "commands": {
         "maxHand": 3,
@@ -1558,7 +1558,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_7",
       "coverageGoal": 0.8,
-      "timeLimit": 58,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L57-ch5-373fecbd",
       "commands": {
         "maxHand": 3,
@@ -1607,7 +1607,7 @@
       "chapter": 6,
       "title": "深海要塞 · 6_8",
       "coverageGoal": 0.8,
-      "timeLimit": 58,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L58-ch5-ba8efb67",
       "commands": {
         "maxHand": 3,
@@ -1662,7 +1662,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_1",
       "coverageGoal": 0.8,
-      "timeLimit": 70,
+      "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L61-ch7-88c6cebb",
       "commands": {
         "maxHand": 3,
@@ -1689,7 +1689,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_2",
       "coverageGoal": 0.81,
-      "timeLimit": 72,
+      "timeLimit": 92,
       "initialSeed": "minefield-campaign-v1-L62-ch7-309c3e55",
       "commands": {
         "maxHand": 3,
@@ -1716,7 +1716,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_3",
       "coverageGoal": 0.8,
-      "timeLimit": 74,
+      "timeLimit": 94,
       "initialSeed": "minefield-campaign-v1-L63-ch7-893b56a5",
       "commands": {
         "maxHand": 3,
@@ -1741,7 +1741,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_4",
       "coverageGoal": 0.8,
-      "timeLimit": 76,
+      "timeLimit": 96,
       "initialSeed": "minefield-campaign-v1-L64-ch7-38378ceb",
       "commands": {
         "maxHand": 3,
@@ -1768,7 +1768,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_5",
       "coverageGoal": 0.81,
-      "timeLimit": 78,
+      "timeLimit": 98,
       "initialSeed": "minefield-campaign-v1-L65-ch7-df2fb059",
       "commands": {
         "maxHand": 3,
@@ -1802,7 +1802,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_6",
       "coverageGoal": 0.8,
-      "timeLimit": 80,
+      "timeLimit": 100,
       "initialSeed": "minefield-campaign-v1-L66-ch7-f5d69fa9",
       "commands": {
         "maxHand": 3,
@@ -1840,7 +1840,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_7",
       "coverageGoal": 0.81,
-      "timeLimit": 83,
+      "timeLimit": 103,
       "initialSeed": "minefield-campaign-v1-L67-ch7-28d0d8ae",
       "commands": {
         "maxHand": 3,
@@ -1880,7 +1880,7 @@
       "chapter": 7,
       "title": "信號干擾區 · 7_8",
       "coverageGoal": 0.8,
-      "timeLimit": 85,
+      "timeLimit": 105,
       "initialSeed": "minefield-campaign-v1-L68-ch7-68d7b054",
       "commands": {
         "maxHand": 3,
@@ -1929,7 +1929,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_1",
       "coverageGoal": 0.85,
-      "timeLimit": 48,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L71-ch8-23dc551d",
       "commands": {
         "maxHand": 3,
@@ -1969,7 +1969,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_2",
       "coverageGoal": 0.86,
-      "timeLimit": 48,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L72-ch8-4b889058",
       "commands": {
         "maxHand": 3,
@@ -2012,7 +2012,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_3",
       "coverageGoal": 0.85,
-      "timeLimit": 44,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L73-ch8-67155d30",
       "commands": {
         "maxHand": 3,
@@ -2057,7 +2057,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_4",
       "coverageGoal": 0.85,
-      "timeLimit": 60,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L74-ch8-3a736261",
       "commands": {
         "maxHand": 3,
@@ -2112,7 +2112,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_5",
       "coverageGoal": 0.86,
-      "timeLimit": 65,
+      "timeLimit": 90,
       "initialSeed": "minefield-campaign-v1-L75-ch8-3bb76206",
       "commands": {
         "maxHand": 3,
@@ -2165,7 +2165,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_6",
       "coverageGoal": 0.85,
-      "timeLimit": 70,
+      "timeLimit": 95,
       "initialSeed": "minefield-campaign-v1-L76-ch8-7a01e404",
       "commands": {
         "maxHand": 3,
@@ -2219,7 +2219,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_7",
       "coverageGoal": 0.86,
-      "timeLimit": 75,
+      "timeLimit": 100,
       "initialSeed": "minefield-campaign-v1-L77-ch8-302d0ade",
       "commands": {
         "maxHand": 3,
@@ -2286,7 +2286,7 @@
       "chapter": 8,
       "title": "引爆危機 · 8_8",
       "coverageGoal": 0.85,
-      "timeLimit": 80,
+      "timeLimit": 105,
       "initialSeed": "minefield-campaign-v1-L78-ch8-e959a386",
       "commands": {
         "maxHand": 3,
@@ -2354,7 +2354,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_1",
       "coverageGoal": 0.85,
-      "timeLimit": 57,
+      "timeLimit": 72,
       "initialSeed": "minefield-campaign-v1-L81-ch9-b5064a16",
       "commands": {
         "maxHand": 3,
@@ -2380,7 +2380,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_2",
       "coverageGoal": 0.86,
-      "timeLimit": 58,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L82-ch9-091929ff",
       "commands": {
         "maxHand": 3,
@@ -2406,7 +2406,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_3",
       "coverageGoal": 0.85,
-      "timeLimit": 58,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L83-ch9-a027e43e",
       "commands": {
         "maxHand": 3,
@@ -2432,7 +2432,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_4",
       "coverageGoal": 0.85,
-      "timeLimit": 60,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L84-ch9-00e0b334",
       "commands": {
         "maxHand": 3,
@@ -2458,7 +2458,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_5",
       "coverageGoal": 0.86,
-      "timeLimit": 58,
+      "timeLimit": 73,
       "initialSeed": "minefield-campaign-v1-L85-ch9-20695b4c",
       "commands": {
         "maxHand": 3,
@@ -2502,7 +2502,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_6",
       "coverageGoal": 0.85,
-      "timeLimit": 60,
+      "timeLimit": 75,
       "initialSeed": "minefield-campaign-v1-L86-ch9-613a3ba5",
       "commands": {
         "maxHand": 3,
@@ -2530,7 +2530,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_7",
       "coverageGoal": 0.85,
-      "timeLimit": 54,
+      "timeLimit": 69,
       "initialSeed": "minefield-campaign-v1-L87-ch9-d91760e8",
       "commands": {
         "maxHand": 3,
@@ -2567,7 +2567,7 @@
       "chapter": 9,
       "title": "鄰焰共振 · 9_8",
       "coverageGoal": 0.86,
-      "timeLimit": 64,
+      "timeLimit": 79,
       "initialSeed": "minefield-campaign-v1-L88-ch9-80a3f5ed",
       "commands": {
         "maxHand": 3,

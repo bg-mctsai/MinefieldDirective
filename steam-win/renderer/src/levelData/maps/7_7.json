@@ -11,55 +11,15 @@
         0
       ],
       [
-        1,
-        0
-      ],
-      [
         10,
         0
-      ],
-      [
-        11,
-        0
-      ],
-      [
-        0,
-        1
-      ],
-      [
-        1,
-        1
-      ],
-      [
-        11,
-        1
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        0,
-        8
-      ],
-      [
-        0,
-        9
-      ],
-      [
-        1,
-        9
-      ],
-      [
-        11,
-        9
       ]
     ]
   },
   "mapTheme": "折射稜鏡",
   "gridStats": {
     "totalCells": 120,
-    "forbiddenCellCount": 12,
-    "playableCells": 108
+    "forbiddenCellCount": 2,
+    "playableCells": 118
   }
 }

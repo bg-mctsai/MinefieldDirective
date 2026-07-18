@@ -1,35 +1,35 @@
 {
   "mapLayout": {
     "type": "SQUARE",
-    "width": 10,
+    "width": 11,
     "height": 10,
     "forbiddenCells": [
       [
-        9,
+        10,
         0
       ],
       [
-        9,
-        8
+        10,
+        1
       ],
       [
-        0,
-        9
+        10,
+        2
       ],
       [
-        8,
-        9
+        10,
+        3
       ],
       [
-        9,
-        9
+        10,
+        4
       ]
     ]
   },
   "mapTheme": "通訊節點",
   "gridStats": {
-    "totalCells": 100,
+    "totalCells": 110,
     "forbiddenCellCount": 5,
-    "playableCells": 95
+    "playableCells": 105
   }
 }
