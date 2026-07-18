@@ -30,13 +30,13 @@ export type MineBombVisualTier = 1 | 2 | 3 | 4 | 5;
 
 /**
  * `capTwo`：每顆雷旁邊有幾格「已佈數字」當讀數；權重 = 1（無或一格）～最多 2（兩格以上仍為 2）。
- * `convergenceExp`：賽琳娜格網倍乘——0～1 格鄰數權重 1；2 格起每多一格 ×2，上限 {@link SELINA_GRID_FIREPOWER_WEIGHT_MAX}。
+ * `convergenceExp`：賽琳娜格網倍乘——鄰數權重 1→2→4→6→8（n≤1→1，n≥5 封頂 {@link SELINA_GRID_FIREPOWER_WEIGHT_MAX}）。
  */
 export type FirepowerDigitWeightMode = 'capTwo' | 'convergenceExp';
 
 /**
  * `capTwo`：僅 1／2 兩階視覺（與火力封頂一致）。
- * `convergenceExp`：賽琳娜格網倍乘——依緊鄰已佈數字格數分 5 階（n≥5 併入第 5 階，權重封頂 {@link SELINA_GRID_FIREPOWER_WEIGHT_MAX}）。
+ * `convergenceExp`：賽琳娜格網倍乘——依緊鄰已佈數字格數分 5 階（權重 1／2／4／6／8；n≥5 併入第 5 階）。
  */
 export function mineBombVisualTier(
   adjacentPlacedDigits: number,
@@ -58,6 +58,9 @@ export function mineCombatTier(adjacentPlacedDigits: number): MineBombVisualTier
   return mineBombVisualTier(adjacentPlacedDigits, 'capTwo');
 }
 
+/** 賽琳娜：鄰數 n→權重（index = min(n,5)；n≤1 皆為 1）。 */
+const SELINA_GRID_FIREPOWER_BY_ADJ = [1, 1, 2, 4, 6, 8] as const;
+
 /** 單顆已揭示雷依「與幾格已佈數字邏輯相鄰」計入火力分子的權重。 */
 export function firepowerWeightForAdjacentDigitCount(
   adjacentPlacedDigits: number,
@@ -65,14 +68,12 @@ export function firepowerWeightForAdjacentDigitCount(
 ): number {
   const n = adjacentPlacedDigits;
   if (mode === 'capTwo') return Math.max(1, Math.min(n, 2));
-  if (n <= 1) return 1;
-  return Math.min(2 ** (n - 1), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
+  return SELINA_GRID_FIREPOWER_BY_ADJ[Math.min(Math.max(n, 0), 5)];
 }
 
 /** 依視覺階推算格網倍乘火力加權（tooltip 用，與 {@link firepowerWeightForAdjacentDigitCount} 在賽琳娜側一致）。 */
 export function convergenceFirepowerWeightFromTier(tier: MineBombVisualTier): number {
-  if (tier <= 1) return 1;
-  return Math.min(2 ** (tier - 1), SELINA_GRID_FIREPOWER_WEIGHT_MAX);
+  return SELINA_GRID_FIREPOWER_BY_ADJ[tier];
 }
 
 /** 棋格上顯示的火力數字；tier 1 不顯示（與 HUD 分子權重 1 一致）。 */

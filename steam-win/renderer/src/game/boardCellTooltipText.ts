@@ -21,7 +21,7 @@ export function boardCellTooltipText(opts: {
   isDigitOutpost?: boolean;
   /** 僅地雷／廢雷：火力視覺階 1～5 */
   mineCombatTier?: MineBombVisualTier;
-  /** 與目前選中幹員火力加權模式一致（賽琳娜格網倍乘 tooltip 顯示 2／4／8） */
+  /** 與目前選中幹員火力加權模式一致（賽琳娜格網倍乘 tooltip 顯示 2／4／6／8） */
   fireDigitMode?: FirepowerDigitWeightMode;
   /** 波比：選定電碼後的可放格 */
   isPlaceHint?: boolean;

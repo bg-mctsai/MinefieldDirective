@@ -105,7 +105,7 @@ function pickDynamicMinePosition(
 }
 
 /**
- * 火力：加權計分／總格（上限 100%）。每顆已確定雷依「與幾格已佈數字邏輯相鄰」加權：capTwo 封頂 2；賽琳娜格網倍乘為 min(2^(n−1),8)（n≥2）。
+ * 火力：加權計分／總格（上限 100%）。每顆已確定雷依「與幾格已佈數字邏輯相鄰」加權：capTwo 封頂 2；賽琳娜格網倍乘為 1→2→4→6→8（n≤1→1，n≥5 封頂 8）。
  * mineCount 仍為雷格數（副標「地雷 x/y」）。
  */
 export function destructivePowerFromGameState(
