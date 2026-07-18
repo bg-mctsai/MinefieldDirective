@@ -9,7 +9,7 @@
 ## 腳本路由
 
 - `node scripts/gen-chapter1-maps.mjs`：Lv1～10，SQUARE 訓練營，全幅矩形/正方形。
-- `node scripts/gen-chapter2-maps.mjs`：Lv11～20，SQUARE。
+- `node scripts/gen-chapter2-maps.mjs`：maps/2_1～2_8，SQUARE 巷戰剪影；並同步 ch2 `timeLimit=playable+2`、ch3 复用關據點。
 - `node scripts/gen-chapter3-maps.mjs`：Lv21～30，SQUARE（重點檢查 `digitOutposts`）。
 - `node scripts/gen-chapter4-hex-maps.mjs`：maps/4_1～4_8，HEXAGON（蜂巢戰線全章）。
 - `node scripts/patch-ch4-10-terrain-restructure.mjs`：第 4～10 章地形重構（合併 ch4/ch5、後章六角縮減）。

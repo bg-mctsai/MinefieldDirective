@@ -241,7 +241,7 @@
       "levelId": 9,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 94,
+      "timeLimit": 79,
       "initialSeed": "minefield-campaign-v1-L11-ch2",
       "commands": {
         "maxHand": 3,
@@ -263,7 +263,7 @@
       "levelId": 10,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 86,
+      "timeLimit": 78,
       "initialSeed": "minefield-campaign-v1-L12-ch2",
       "commands": {
         "maxHand": 3,
@@ -285,7 +285,7 @@
       "levelId": 11,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 106,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L13-ch2",
       "commands": {
         "maxHand": 3,
@@ -307,7 +307,7 @@
       "levelId": 12,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 91,
+      "timeLimit": 102,
       "initialSeed": "minefield-campaign-v1-L14-ch2",
       "commands": {
         "maxHand": 3,
@@ -329,7 +329,7 @@
       "levelId": 13,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 129,
+      "timeLimit": 118,
       "initialSeed": "minefield-campaign-v1-L15-ch2",
       "commands": {
         "maxHand": 3,
@@ -353,7 +353,7 @@
       "levelId": 14,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 91,
+      "timeLimit": 118,
       "initialSeed": "minefield-campaign-v1-L16-ch2",
       "commands": {
         "maxHand": 3,
@@ -377,7 +377,7 @@
       "levelId": 15,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 114,
+      "timeLimit": 87,
       "initialSeed": "minefield-campaign-v1-L17-ch2",
       "commands": {
         "maxHand": 3,
@@ -401,7 +401,7 @@
       "levelId": 16,
       "chapter": 2,
       "coverageGoal": 0.7,
-      "timeLimit": 102,
+      "timeLimit": 91,
       "initialSeed": "minefield-campaign-v1-L18-ch2",
       "commands": {
         "maxHand": 3,
@@ -578,7 +578,7 @@
       "chapter": 3,
       "title": "乾谷據點 · 3_5",
       "coverageGoal": 0.75,
-      "timeLimit": 127,
+      "timeLimit": 116,
       "initialSeed": "minefield-campaign-v1-L25-ch3",
       "commands": {
         "maxHand": 3,
@@ -597,20 +597,20 @@
       "events": [],
       "digitOutposts": [
         [
-          10,
-          7
+          0,
+          0
         ],
         [
-          10,
-          9
+          13,
+          13
         ],
         [
-          7,
-          10
+          13,
+          0
         ],
         [
-          1,
-          5
+          0,
+          13
         ]
       ],
       "rewards": {},
@@ -621,7 +621,7 @@
       "chapter": 3,
       "title": "乾谷據點 · 3_6",
       "coverageGoal": 0.75,
-      "timeLimit": 89,
+      "timeLimit": 116,
       "initialSeed": "minefield-campaign-v1-L26-ch3",
       "commands": {
         "maxHand": 3,
@@ -640,20 +640,20 @@
       "events": [],
       "digitOutposts": [
         [
-          6,
-          6
+          0,
+          12
         ],
         [
-          1,
-          11
+          8,
+          0
         ],
         [
-          7,
-          6
+          12,
+          12
         ],
         [
           2,
-          12
+          5
         ]
       ],
       "rewards": {},
@@ -664,7 +664,7 @@
       "chapter": 3,
       "title": "乾谷據點 · 3_7",
       "coverageGoal": 0.75,
-      "timeLimit": 112,
+      "timeLimit": 85,
       "initialSeed": "minefield-campaign-v1-L27-ch3",
       "commands": {
         "maxHand": 3,
@@ -683,16 +683,16 @@
       "events": [],
       "digitOutposts": [
         [
-          6,
-          6
+          4,
+          0
         ],
         [
-          6,
-          3
+          8,
+          12
         ],
         [
-          7,
-          6
+          0,
+          8
         ],
         [
           12,
@@ -700,7 +700,7 @@
         ],
         [
           6,
-          7
+          6
         ]
       ],
       "rewards": {},
@@ -711,7 +711,7 @@
       "chapter": 3,
       "title": "乾谷據點 · 3_8",
       "coverageGoal": 0.75,
-      "timeLimit": 100,
+      "timeLimit": 89,
       "initialSeed": "minefield-campaign-v1-L28-ch3",
       "commands": {
         "maxHand": 3,
@@ -730,28 +730,28 @@
       "events": [],
       "digitOutposts": [
         [
+          1,
+          1
+        ],
+        [
+          11,
+          11
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          1,
+          11
+        ],
+        [
           6,
           6
         ],
         [
           6,
-          3
-        ],
-        [
-          7,
-          6
-        ],
-        [
-          12,
-          10
-        ],
-        [
-          6,
-          7
-        ],
-        [
-          8,
-          4
+          1
         ]
       ],
       "rewards": {},
