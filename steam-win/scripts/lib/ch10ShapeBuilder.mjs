@@ -9,7 +9,16 @@ export const CH10_TARGETS = {
   '10_3': { targetPlay: 172, type: 'HEXAGON', theme: '鑰芯' },
   '10_4': { targetPlay: 183, type: 'SQUARE', theme: '廢雷場', preferHighDegree: true },
   '10_5': { targetPlay: 194, type: 'SQUARE', theme: '干擾槽掃' },
-  '10_6': { targetPlay: 205, type: 'SQUARE', theme: '鄰焰三橫堤' },
+  '10_6': {
+    targetPlay: 205,
+    type: 'SQUARE',
+    theme: '鄰焰三橫堤',
+    preferBands: true,
+    minW: 22,
+    maxW: 30,
+    minH: 15,
+    maxH: 22,
+  },
   '10_7': { targetPlay: 216, type: 'SQUARE', theme: '邊炸', preferCompact: false },
   '10_8': { targetPlay: 230, type: 'SQUARE', theme: '鑽石邊', preferCompact: false },
 };
@@ -113,10 +122,90 @@ function carveScan(rows, W, H) {
   }
 }
 
-function carveTripleBars(rows, W, H) {
-  for (let y = 0; y < H; y++) {
-    if (y % 5 >= 2) {
+/**
+ * 鄰焰三橫堤：三段錯位堤壩 + 斜焰橋，讀得出「三條」而非等距光禿橫條。
+ * 從實心盤挖溝（carved ≥ target），避免 fitToTarget 把溝填平。
+ */
+function carveTripleBars(rows, W, H, p = 0) {
+  const bandH = 3;
+  const trench = 2 + (p % 2);
+  const total = bandH * 3 + trench * 2;
+  const y0 = Math.max(1, Math.floor((H - total) / 2));
+
+  for (let y = 0; y < y0; y++) {
+    for (let x = 0; x < W; x++) set(rows, x, y, '.');
+  }
+  for (let y = y0 + total; y < H; y++) {
+    for (let x = 0; x < W; x++) set(rows, x, y, '.');
+  }
+
+  const trenches = [
+    {
+      yStart: y0 + bandH,
+      yEnd: y0 + bandH + trench - 1,
+      bridgeX: Math.floor(W * 0.28) + (p % 3),
+    },
+    {
+      yStart: y0 + bandH * 2 + trench,
+      yEnd: y0 + bandH * 2 + trench * 2 - 1,
+      bridgeX: Math.floor(W * 0.72) - (p % 3),
+    },
+  ];
+
+  for (const t of trenches) {
+    for (let y = t.yStart; y <= t.yEnd; y++) {
       for (let x = 0; x < W; x++) set(rows, x, y, '.');
+    }
+    for (let y = t.yStart; y <= t.yEnd; y++) {
+      const tnorm = (y - t.yStart) / Math.max(1, t.yEnd - t.yStart);
+      const x = Math.round(t.bridgeX + (tnorm - 0.5) * 5);
+      set(rows, x, y, '#');
+      set(rows, x + 1, y, '#');
+      if ((y + p) % 2 === 0) set(rows, x - 1, y, '#');
+    }
+  }
+
+  const bands = [
+    { yStart: y0, yEnd: y0 + bandH - 1, cutL: 0, cutR: 2 + (p % 3), tongue: 'R' },
+    {
+      yStart: y0 + bandH + trench,
+      yEnd: y0 + bandH * 2 + trench - 1,
+      cutL: 2 + (p % 2),
+      cutR: 2 + ((p + 1) % 3),
+      tongue: 'LR',
+    },
+    {
+      yStart: y0 + bandH * 2 + trench * 2,
+      yEnd: y0 + bandH * 3 + trench * 2 - 1,
+      cutL: 3 + (p % 3),
+      cutR: 0,
+      tongue: 'L',
+    },
+  ];
+
+  for (const b of bands) {
+    for (let y = b.yStart; y <= b.yEnd; y++) {
+      for (let x = 0; x < b.cutL; x++) set(rows, x, y, '.');
+      for (let x = W - b.cutR; x < W; x++) set(rows, x, y, '.');
+      // 堤沿鋸齒（只咬外緣一格，不打穿堤身）
+      if (y === b.yStart) {
+        for (let x = b.cutL + 2; x < W - b.cutR - 2; x++) {
+          if ((x + p * 3) % 8 === 0) set(rows, x, y, '.');
+        }
+      }
+    }
+    const mid = Math.floor((b.yStart + b.yEnd) / 2);
+    if (b.tongue.includes('R')) {
+      const tip = W - b.cutR;
+      set(rows, tip, mid, '#');
+      set(rows, tip + 1, mid, '#');
+      set(rows, tip, mid - 1, '#');
+    }
+    if (b.tongue.includes('L')) {
+      const tip = b.cutL - 1;
+      set(rows, tip, mid, '#');
+      set(rows, tip - 1, mid, '#');
+      set(rows, tip, mid + 1, '#');
     }
   }
 }
@@ -148,7 +237,7 @@ const CARVER_FNS = [
   (r, W, H) => carveKeyhole(r, W, H),
   (r, W, H, p) => carveMinefield(r, W, H, p),
   (r, W, H) => carveScan(r, W, H),
-  (r, W, H) => carveTripleBars(r, W, H),
+  (r, W, H, p) => carveTripleBars(r, W, H, p),
   (r, W, H, p) => carveHollow(r, W, H, 1 + (p % 2)),
   (r, W, H, p) => carveDiamond(r, W, H, 0.88 + p * 0.04),
 ];
@@ -212,7 +301,22 @@ function fitToTarget(rows, target) {
   return n;
 }
 
-function shapeScore(rows, { preferHighDegree = false } = {}) {
+function countFatBands(rows) {
+  const W = rows[0].length;
+  const fat = rows.map((line) => ((line.match(/#/g) || []).length >= W * 0.4));
+  let groups = 0;
+  let inG = false;
+  for (const f of fat) {
+    if (f && !inG) {
+      groups++;
+      inG = true;
+    }
+    if (!f) inG = false;
+  }
+  return groups;
+}
+
+function shapeScore(rows, { preferHighDegree = false, preferBands = false } = {}) {
   const W = rows[0].length;
   const H = rows.length;
   let holes = 0;
@@ -242,6 +346,12 @@ function shapeScore(rows, { preferHighDegree = false } = {}) {
         if (sur >= 6) holes++;
       }
     }
+  }
+  if (preferBands) {
+    const bands = countFatBands(rows);
+    // 剛好三段堤最高分；再加高鄰居度（鄰焰加成關）
+    const bandScore = bands === 3 ? 300 : bands * 40;
+    return bandScore + highDeg * 3;
   }
   // 廢雷場要「有坑但仍能放 5」：高鄰居度優先，彈坑數次之
   return preferHighDegree ? highDeg * 10 + holes : holes;
@@ -300,8 +410,13 @@ function buildShape(mapRef, idx, target, minPlay, meta = {}) {
         if (n !== target || n <= minPlay) continue;
 
         const diff = Math.abs(n - target);
-        const score = shapeScore(trimmed, { preferHighDegree: !!meta.preferHighDegree });
         const cropped = cropToBounds(trimmed, cropPad);
+        const score = shapeScore(cropped.rows, {
+          preferHighDegree: !!meta.preferHighDegree,
+          preferBands: !!meta.preferBands,
+        });
+        // 三橫堤：必須裁切後仍讀得出三段，否則丟棄
+        if (meta.preferBands && countFatBands(cropped.rows) < 3) continue;
         const area = cropped.W * cropped.H;
         if (
           !best ||

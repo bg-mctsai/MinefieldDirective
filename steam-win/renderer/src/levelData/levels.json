@@ -2842,14 +2842,12 @@
         "maxHand": 3,
         "poolType": "WEIGHTED",
         "weights": {
-          "1": 10,
-          "2": 14,
-          "3": 18,
-          "4": 18,
-          "5": 14,
-          "6": 10,
-          "7": 8,
-          "8": 4
+          "1": 12,
+          "2": 16,
+          "3": 20,
+          "4": 22,
+          "5": 18,
+          "6": 14
         }
       },
       "commandSlotReceiveJamming": true,
@@ -2933,39 +2931,39 @@
       "neighborPlacedDigitBonus": true,
       "digitOutposts": [
         [
+          7,
+          2
+        ],
+        [
           12,
-          7
+          8
         ],
         [
-          9,
-          6
-        ],
-        [
-          13,
-          7
+          17,
+          14
         ]
       ],
       "blastPoints": [
         {
           "pos": [
-            6,
-            5
+            8,
+            8
           ],
           "countdownSec": 30,
           "defuseBonusSec": 10
         },
         {
           "pos": [
-            19,
-            6
+            17,
+            8
           ],
           "countdownSec": 25,
           "defuseBonusSec": 10
         },
         {
           "pos": [
-            5,
-            5
+            11,
+            14
           ],
           "countdownSec": 20,
           "defuseBonusSec": 9
