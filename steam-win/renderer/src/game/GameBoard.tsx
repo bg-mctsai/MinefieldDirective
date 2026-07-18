@@ -35,6 +35,25 @@ function placeHintKeysEqual(
   return true;
 }
 
+/** 棋盤實際用到的欄位；忽略電報鎖定／訊息／手牌等 UI 狀態，避免點選輪播時整板重渲 */
+function gameBoardStateEqual(a: GameState, b: GameState): boolean {
+  if (a === b) return true;
+  return (
+    a.gameId === b.gameId &&
+    a.status === b.status &&
+    a.level === b.level &&
+    a.placedNumbers === b.placedNumbers &&
+    a.conflictCells === b.conflictCells &&
+    a.explosionMarkCells === b.explosionMarkCells &&
+    a.lossSequentialExplosionKeys === b.lossSequentialExplosionKeys &&
+    a.lossExplosionWaveIndex === b.lossExplosionWaveIndex &&
+    a.rewardedMineTargets === b.rewardedMineTargets &&
+    a.dynamicMines === b.dynamicMines &&
+    a.revealedMines === b.revealedMines &&
+    a.blastPointsCountdown === b.blastPointsCountdown
+  );
+}
+
 function GameBoardInner({
   gameState,
   movingSoldier,
@@ -344,7 +363,7 @@ function GameBoardInner({
 export const GameBoard = memo(
   GameBoardInner,
   (prev, next) =>
-    prev.gameState === next.gameState &&
+    gameBoardStateEqual(prev.gameState, next.gameState) &&
     prev.movingSoldier === next.movingSoldier &&
     prev.onCellClick === next.onCellClick &&
     prev.combatHeroId === next.combatHeroId &&

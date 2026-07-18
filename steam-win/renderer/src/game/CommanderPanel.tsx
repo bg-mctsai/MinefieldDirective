@@ -1,14 +1,66 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { pickHeroCommanderRowHint } from './heroGameStatusLines';
 import {
-  effectiveSignalJammingStepMs,
   signalJammingDisplayedDigit,
   signalJammingSlotEnterFromTop,
 } from './signalJamming';
 import type { GameState, MovingSoldierState } from './types';
 import type { HeroCombatTheme } from './heroCombatTheme';
 import { getHeroCombatTheme } from './heroCombatTheme';
+
+/**
+ * 信號干擾輪播顯示數字：共用 rAF 取樣，僅在任一槽數字真的變更時 setState。
+ * 鎖定值仍由 selectHand 用同一套 signalJammingDisplayedDigit(Date.now()) 計算，與此無關。
+ */
+function useSignalJammingDigits(
+  active: boolean,
+  epochMs: number,
+  slotCount: number,
+  stepMs: number | undefined,
+  gridSystem: GameState['level']['definition']['gridSystem'],
+  combatHeroId: string,
+): number[] | null {
+  const [digits, setDigits] = useState<number[] | null>(null);
+  const lastKeyRef = useRef('');
+
+  useEffect(() => {
+    if (!active || slotCount <= 0) {
+      lastKeyRef.current = '';
+      setDigits(null);
+      return;
+    }
+
+    let raf = 0;
+    const sample = (now: number): number[] => {
+      const next = new Array<number>(slotCount);
+      for (let i = 0; i < slotCount; i++) {
+        next[i] = signalJammingDisplayedDigit(epochMs, i, now, stepMs, gridSystem, combatHeroId);
+      }
+      return next;
+    };
+
+    const publishIfChanged = (next: number[]) => {
+      const key = next.join(',');
+      if (key === lastKeyRef.current) return;
+      lastKeyRef.current = key;
+      setDigits(next);
+    };
+
+    publishIfChanged(sample(Date.now()));
+
+    const loop = () => {
+      publishIfChanged(sample(Date.now()));
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
+  }, [active, epochMs, slotCount, stepMs, gridSystem, combatHeroId]);
+
+  return digits;
+}
 
 function telegraphHint(
   gameState: GameState,
@@ -66,10 +118,7 @@ const TelegraphHandButton = memo(function TelegraphHandButton({
   heroTheme,
   isColumn,
   jamming,
-  jammingEpochMs,
-  jammingStepMs,
-  gridSystem,
-  combatHeroId,
+  jamDisplayDigit,
   lockedValue,
   onSelect,
 }: {
@@ -83,38 +132,20 @@ const TelegraphHandButton = memo(function TelegraphHandButton({
   heroTheme: HeroCombatTheme;
   isColumn: boolean;
   jamming: boolean;
-  jammingEpochMs: number;
-  jammingStepMs: number | undefined;
-  gridSystem: GameState['level']['definition']['gridSystem'];
-  combatHeroId: string;
+  /** 干擾輪播當前顯示數字（由父層共用 rAF 推送）；鎖定時傳鎖定值 */
+  jamDisplayDigit: number | null;
   lockedValue: number | null;
   onSelect: (index: number) => void;
 }) {
   const digitBtnClass = isColumn ? digitBtnClassColumn : digitBtnClassRow;
   const jammingAnimateDigit = jamming && lockedValue === null;
   const enterFromTop = signalJammingSlotEnterFromTop(slotIndex);
-  const [, setJamTick] = useState(0);
-
-  useEffect(() => {
-    if (!jammingAnimateDigit) return;
-    const step = effectiveSignalJammingStepMs(jammingStepMs, combatHeroId);
-    const tickMs = Math.max(32, Math.round(step * 0.34));
-    const id = window.setInterval(() => setJamTick((x) => x + 1), tickMs);
-    return () => window.clearInterval(id);
-  }, [jammingAnimateDigit, jammingStepMs, combatHeroId, gameId, jammingEpochMs, slotIndex]);
 
   const displayNum =
     lockedValue !== null
       ? lockedValue
       : jamming
-        ? signalJammingDisplayedDigit(
-            jammingEpochMs,
-            slotIndex,
-            Date.now(),
-            jammingStepMs,
-            gridSystem,
-            combatHeroId,
-          )
+        ? (jamDisplayDigit ?? staticNum)
         : staticNum;
 
   return (
@@ -180,6 +211,14 @@ export function CommanderTelegraphRow({
   const jamming =
     gameState.status === 'playing' &&
     Boolean(gameState.level.definition.commandSlotReceiveJamming && gameState.jammingEpochMs > 0);
+  const jamDigits = useSignalJammingDigits(
+    jamming,
+    gameState.jammingEpochMs,
+    n,
+    gameState.level.definition.commandSlotJammingStepMs,
+    gameState.level.definition.gridSystem,
+    combatHeroId,
+  );
 
   const isColumn = layout === 'column';
   const shellClass = isColumn
@@ -228,6 +267,20 @@ export function CommanderTelegraphRow({
         {gameState.hand.map((num, idx) => {
           const lock = gameState.jammingLockedSlot;
           const lockedValue = lock && lock.slotIndex === idx ? lock.value : null;
+          const jamDisplayDigit =
+            lockedValue !== null
+              ? lockedValue
+              : jamming
+                ? (jamDigits?.[idx] ??
+                  signalJammingDisplayedDigit(
+                    gameState.jammingEpochMs,
+                    idx,
+                    Date.now(),
+                    gameState.level.definition.commandSlotJammingStepMs,
+                    gameState.level.definition.gridSystem,
+                    combatHeroId,
+                  ))
+                : null;
           return (
             <TelegraphHandButton
               key={`${gameState.gameId}-slot-${idx}`}
@@ -241,10 +294,7 @@ export function CommanderTelegraphRow({
               heroTheme={heroTheme}
               isColumn={isColumn}
               jamming={jamming}
-              jammingEpochMs={gameState.jammingEpochMs}
-              jammingStepMs={gameState.level.definition.commandSlotJammingStepMs}
-              gridSystem={gameState.level.definition.gridSystem}
-              combatHeroId={combatHeroId}
+              jamDisplayDigit={jamDisplayDigit}
               lockedValue={lockedValue}
               onSelect={onSelectHand}
             />
