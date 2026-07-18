@@ -1,4 +1,4 @@
-export const HOME_APP_VERSION = 'v1.0.11';
+export const HOME_APP_VERSION = 'v1.0.12';
 export const HOME_TITLE_FULL = '雷區指令：戰略部署';
 
 export const HOME_MENU_BTN_CLASS =
