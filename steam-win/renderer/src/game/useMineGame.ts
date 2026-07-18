@@ -510,41 +510,42 @@ export function useMineGame(initialLevelIndex: number) {
     return () => clearTimeout(t);
   }, [gameState?.gameId, gameState?.status, gameState?.lossExplosionWaveIndex, gameState?.lossSequentialExplosionKeys]);
 
-  // 已選槽再點同一槽略過（干擾關不重刷鎖定）。
-  const selectHand = useCallback(
-    (index: number) => {
-      if (selectedHandIndex === index) return;
+  // 非干擾：已選槽再點同一槽略過。干擾關：同槽可再點，依當下輪播重鎖數字。
+  const selectHand = useCallback((index: number) => {
+    const jamActive = Boolean(
+      gameStateRef.current?.level.definition.commandSlotReceiveJamming &&
+        gameStateRef.current.jammingEpochMs > 0,
+    );
+    if (!jamActive && selectedHandIndexRef.current === index) return;
 
-      setSelectedHandIndex(index);
-      setLaozhangCopySlotSelected(false);
-      setGameState((prev) => {
-        if (!prev) return prev;
-        const jam = Boolean(prev.level.definition.commandSlotReceiveJamming && prev.jammingEpochMs > 0);
-        const jammingLockedSlot = jam
-          ? {
-              slotIndex: index,
-              value: signalJammingDisplayedDigit(
-                prev.jammingEpochMs,
-                index,
-                Date.now(),
-                prev.level.definition.commandSlotJammingStepMs,
-                prev.level.definition.gridSystem,
-                getStoredHeroId(),
-              ),
-            }
-          : null;
+    setSelectedHandIndex(index);
+    setLaozhangCopySlotSelected(false);
+    setGameState((prev) => {
+      if (!prev) return prev;
+      const jam = Boolean(prev.level.definition.commandSlotReceiveJamming && prev.jammingEpochMs > 0);
+      const jammingLockedSlot = jam
+        ? {
+            slotIndex: index,
+            value: signalJammingDisplayedDigit(
+              prev.jammingEpochMs,
+              index,
+              Date.now(),
+              prev.level.definition.commandSlotJammingStepMs,
+              prev.level.definition.gridSystem,
+              getStoredHeroId(),
+            ),
+          }
+        : null;
 
-        if (prev.secondsLeft === null) {
-          return { ...prev, jammingLockedSlot };
-        }
-        if (!prev.timerStarted) {
-          return { ...prev, timerStarted: true, jammingLockedSlot };
-        }
-        return jam ? { ...prev, jammingLockedSlot } : prev;
-      });
-    },
-    [selectedHandIndex],
-  );
+      if (prev.secondsLeft === null) {
+        return { ...prev, jammingLockedSlot };
+      }
+      if (!prev.timerStarted) {
+        return { ...prev, timerStarted: true, jammingLockedSlot };
+      }
+      return jam ? { ...prev, jammingLockedSlot } : prev;
+    });
+  }, []);
 
   const selectLaozhangCopySlot = useCallback(() => {
     if (!gameState || gameState.status !== 'playing' || movingSoldier) return;

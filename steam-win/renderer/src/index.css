@@ -1014,4 +1014,58 @@ body {
   .mission-map-viewport-scanline {
     animation: none;
   }
+
+  .telegraph-jam-digit-from-top,
+  .telegraph-jam-digit-from-bottom,
+  .telegraph-placed-dot-pop {
+    animation: none;
+  }
+}
+
+/* 信號輪播：數字進場（取代 motion AnimatePresence） */
+@keyframes telegraph-jam-digit-from-top {
+  from {
+    transform: translateY(-85%);
+    opacity: 0.25;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes telegraph-jam-digit-from-bottom {
+  from {
+    transform: translateY(85%);
+    opacity: 0.25;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.telegraph-jam-digit-from-top {
+  animation: telegraph-jam-digit-from-top 0.11s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.telegraph-jam-digit-from-bottom {
+  animation: telegraph-jam-digit-from-bottom 0.11s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes telegraph-placed-dot-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.telegraph-placed-dot-pop {
+  animation: telegraph-placed-dot-pop 0.35s ease;
 }

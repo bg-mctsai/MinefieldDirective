@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'motion/react';
 import { memo, useEffect, useRef, useState } from 'react';
 import { pickHeroCommanderRowHint } from './heroGameStatusLines';
 import {
@@ -103,16 +102,17 @@ function telegraphHint(
 }
 
 const digitBtnClassColumn =
-  'flex h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:h-[2.55rem] md:text-xl';
+  'flex h-[2.35rem] w-full min-w-0 touch-manipulation items-center justify-center rounded-xl border-2 text-base font-black transition-[colors,opacity,border-color,background-color,box-shadow] sm:h-[2.55rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:h-[2.75rem] md:text-xl';
 const digitBtnClassRow =
-  'flex aspect-square max-h-[2.55rem] min-h-[2.15rem] w-full min-w-0 items-center justify-center rounded-xl border-2 text-base font-black transition-all sm:max-h-[2.85rem] sm:min-h-[2.35rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:max-h-[3.1rem] md:text-xl';
+  'flex aspect-square max-h-[2.75rem] min-h-[2.35rem] w-full min-w-0 touch-manipulation items-center justify-center rounded-xl border-2 text-base font-black transition-[colors,opacity,border-color,background-color,box-shadow] sm:max-h-[3rem] sm:min-h-[2.55rem] sm:rounded-2xl sm:border-[3px] sm:text-lg md:max-h-[3.25rem] md:text-xl';
+
+/** 不用 scale／translate，避免按下時 hitbox 縮掉導致點不到 */
+const telegraphPressClass = 'enabled:active:brightness-110';
 
 const TelegraphHandButton = memo(function TelegraphHandButton({
   slotIndex,
   staticNum,
   gameId,
-  status,
-  movingSoldier,
   selected,
   disabled,
   heroTheme,
@@ -125,8 +125,6 @@ const TelegraphHandButton = memo(function TelegraphHandButton({
   slotIndex: number;
   staticNum: number;
   gameId: number;
-  status: GameState['status'];
-  movingSoldier: MovingSoldierState | null;
   selected: boolean;
   disabled: boolean;
   heroTheme: HeroCombatTheme;
@@ -149,36 +147,33 @@ const TelegraphHandButton = memo(function TelegraphHandButton({
         : staticNum;
 
   return (
-    <motion.button
+    <button
       type="button"
-      whileHover={status === 'playing' ? { y: -1, scale: 1.02 } : {}}
-      whileTap={status === 'playing' ? { scale: 0.95 } : {}}
       disabled={disabled}
-      onClick={() => onSelect(slotIndex)}
+      onPointerDown={(e) => {
+        if (disabled || e.button !== 0) return;
+        onSelect(slotIndex);
+      }}
       className={`${digitBtnClass}
         ${selected ? heroTheme.telegraphDigitSelected : heroTheme.telegraphDigitIdle}
-        ${disabled ? 'cursor-not-allowed opacity-40' : ''}
+        ${disabled ? 'cursor-not-allowed opacity-40' : telegraphPressClass}
       `}
     >
       {jammingAnimateDigit ? (
-        <span className="relative flex h-[1.15em] w-full items-center justify-center overflow-hidden">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={`${gameId}-jam-${slotIndex}-${displayNum}`}
-              initial={{ y: enterFromTop ? '-85%' : '85%', opacity: 0.25 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: enterFromTop ? '85%' : '-85%', opacity: 0.2 }}
-              transition={{ duration: 0.11, ease: [0.22, 1, 0.36, 1] }}
-              className="flex items-center justify-center font-black tabular-nums"
-            >
-              {displayNum}
-            </motion.span>
-          </AnimatePresence>
+        <span className="pointer-events-none relative flex h-[1.15em] w-full items-center justify-center overflow-hidden">
+          <span
+            key={`${gameId}-jam-${slotIndex}-${displayNum}`}
+            className={`pointer-events-none flex items-center justify-center font-black tabular-nums ${
+              enterFromTop ? 'telegraph-jam-digit-from-top' : 'telegraph-jam-digit-from-bottom'
+            }`}
+          >
+            {displayNum}
+          </span>
         </span>
       ) : (
-        displayNum
+        <span className="pointer-events-none">{displayNum}</span>
       )}
-    </motion.button>
+    </button>
   );
 });
 
@@ -228,7 +223,7 @@ export function CommanderTelegraphRow({
   const telegraphDisabled = gameState.status !== 'playing' || movingSoldier !== null;
 
   return (
-    <motion.div className={shellClass} title={hint}>
+    <div className={shellClass} title={hint}>
       <div
         className={`flex shrink-0 ${isColumn ? 'flex-col items-center gap-0.5' : 'items-center gap-1 sm:gap-1.5'}`}
       >
@@ -241,16 +236,18 @@ export function CommanderTelegraphRow({
           )}
         </div>
         <div className="flex gap-0.5 sm:gap-1">
-          <motion.div
-            animate={gameState.placedInTurn >= 1 ? { scale: [1, 1.2, 1] } : {}}
+          <div
             className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 ${
-              gameState.placedInTurn >= 1 ? 'bg-amber-500 shadow-[0_0_6px_#f59e0b]' : 'bg-slate-800'
+              gameState.placedInTurn >= 1
+                ? 'telegraph-placed-dot-pop bg-amber-500 shadow-[0_0_6px_#f59e0b]'
+                : 'bg-slate-800'
             }`}
           />
-          <motion.div
-            animate={gameState.placedInTurn >= 2 ? { scale: [1, 1.2, 1] } : {}}
+          <div
             className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 ${
-              gameState.placedInTurn >= 2 ? 'bg-amber-500 shadow-[0_0_6px_#f59e0b]' : 'bg-slate-800'
+              gameState.placedInTurn >= 2
+                ? 'telegraph-placed-dot-pop bg-amber-500 shadow-[0_0_6px_#f59e0b]'
+                : 'bg-slate-800'
             }`}
           />
         </div>
@@ -287,8 +284,6 @@ export function CommanderTelegraphRow({
               slotIndex={idx}
               staticNum={num}
               gameId={gameState.gameId}
-              status={gameState.status}
-              movingSoldier={movingSoldier}
               selected={selectedHandIndex === idx}
               disabled={telegraphDisabled}
               heroTheme={heroTheme}
@@ -301,13 +296,14 @@ export function CommanderTelegraphRow({
           );
         })}
         {combatHeroId === 'laozhang' && onLaozhangCopySlotClick ? (
-          <motion.button
+          <button
             type="button"
-            whileHover={gameState.status === 'playing' ? { y: -1, scale: 1.02 } : {}}
-            whileTap={gameState.status === 'playing' ? { scale: 0.95 } : {}}
             disabled={telegraphDisabled}
-            onClick={onLaozhangCopySlotClick}
-            className={`${isColumn ? digitBtnClassColumn : digitBtnClassRow} relative mt-0.5 border-dashed
+            onPointerDown={(e) => {
+              if (telegraphDisabled || e.button !== 0) return;
+              onLaozhangCopySlotClick();
+            }}
+            className={`${isColumn ? digitBtnClassColumn : digitBtnClassRow} relative mt-0.5 border-dashed touch-manipulation
               ${
                 laozhangCopySlotSelected
                   ? heroTheme.telegraphDigitSelected
@@ -317,7 +313,7 @@ export function CommanderTelegraphRow({
                       ? heroTheme.telegraphDigitIdle
                       : 'border-slate-700 bg-slate-900 text-slate-500 hover:border-orange-500/50 hover:text-orange-300'
               }
-              ${telegraphDisabled ? 'cursor-not-allowed opacity-40' : ''}
+              ${telegraphDisabled ? 'cursor-not-allowed opacity-40' : telegraphPressClass}
             `}
             title={
               selectedHandIndex !== null
@@ -337,9 +333,9 @@ export function CommanderTelegraphRow({
             ) : (
               <span className="text-[10px] font-black tracking-wider sm:text-xs">壓箱</span>
             )}
-          </motion.button>
+          </button>
         ) : null}
       </div>
-    </motion.div>
+    </div>
   );
 }
