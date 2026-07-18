@@ -7,7 +7,7 @@ export const CH10_TARGETS = {
   '10_1': { targetPlay: 150, type: 'SQUARE', theme: '終焉對角' },
   '10_2': { targetPlay: 162, type: 'HEXAGON', theme: '稜線雙工峽', maxW: 22, maxH: 17 },
   '10_3': { targetPlay: 172, type: 'HEXAGON', theme: '鑰芯' },
-  '10_4': { targetPlay: 183, type: 'SQUARE', theme: '廢雷場' },
+  '10_4': { targetPlay: 183, type: 'SQUARE', theme: '廢雷場', preferHighDegree: true },
   '10_5': { targetPlay: 194, type: 'SQUARE', theme: '干擾槽掃' },
   '10_6': { targetPlay: 205, type: 'SQUARE', theme: '鄰焰三橫堤' },
   '10_7': { targetPlay: 216, type: 'SQUARE', theme: '邊炸', preferCompact: false },
@@ -72,10 +72,35 @@ function carveKeyhole(rows, W, H) {
   }
 }
 
-function carveMinefield(rows, W, H, step = 4) {
+/**
+ * 廢雷場：橢圓主體 + 稀疏彈坑（不再用對角晶格挖洞）。
+ * 舊晶格會把 Moore 鄰居度卡死在 ≤5，電報 5 幾乎無餘裕可放。
+ */
+function carveMinefield(rows, W, H, p = 0) {
+  const cx = (W - 1) / 2;
+  const cy = (H - 1) / 2;
+  const rx = W * 0.48;
+  const ry = H * 0.46;
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      if ((x + y) % step === 0) set(rows, x, y, '.');
+      const nx = (x - cx) / rx;
+      const ny = (y - cy) / ry;
+      if (nx * nx + ny * ny > 1) set(rows, x, y, '.');
+    }
+  }
+  const gap = 5 + (p % 2);
+  const ox = 1 + (p % 3);
+  const oy = 2 - (p % 2);
+  for (let y = oy; y < H; y += gap) {
+    for (let x = ox + (Math.floor(y / gap) % 2) * 2; x < W; x += gap) {
+      const jx = (x + p * 2) % W;
+      const jy = (y + p) % H;
+      if (rows[jy]?.[jx] !== '#') continue;
+      set(rows, jx, jy, '.');
+      set(rows, jx + 1, jy, '.');
+      set(rows, jx, jy + 1, '.');
+      if ((jx + jy + p) % 3 === 0) set(rows, jx - 1, jy, '.');
+      if ((jx + jy + p) % 3 === 1) set(rows, jx + 1, jy + 1, '.');
     }
   }
 }
@@ -121,7 +146,7 @@ const CARVER_FNS = [
   (r, W, H, p) => carveDiagonal(r, W, H, 2 + p),
   (r, W, H, p) => carveTwinRidge(r, W, H, 3 + (p % 2), p),
   (r, W, H) => carveKeyhole(r, W, H),
-  (r, W, H, p) => carveMinefield(r, W, H, 3 + p),
+  (r, W, H, p) => carveMinefield(r, W, H, p),
   (r, W, H) => carveScan(r, W, H),
   (r, W, H) => carveTripleBars(r, W, H),
   (r, W, H, p) => carveHollow(r, W, H, 1 + (p % 2)),
@@ -187,13 +212,27 @@ function fitToTarget(rows, target) {
   return n;
 }
 
-function shapeScore(rows) {
+function shapeScore(rows, { preferHighDegree = false } = {}) {
   const W = rows[0].length;
   const H = rows.length;
   let holes = 0;
-  for (let y = 1; y < H - 1; y++) {
-    for (let x = 1; x < W - 1; x++) {
-      if (rows[y][x] === '.') {
+  let highDeg = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (rows[y][x] === '#') {
+        let adj = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < W && ny >= 0 && ny < H && rows[ny][nx] === '#') adj++;
+          }
+        }
+        if (adj >= 6) highDeg++;
+        continue;
+      }
+      if (y > 0 && y < H - 1 && x > 0 && x < W - 1) {
         let sur = 0;
         for (let dy = -1; dy <= 1; dy++) {
           for (let dx = -1; dx <= 1; dx++) {
@@ -204,7 +243,8 @@ function shapeScore(rows) {
       }
     }
   }
-  return holes;
+  // 廢雷場要「有坑但仍能放 5」：高鄰居度優先，彈坑數次之
+  return preferHighDegree ? highDeg * 10 + holes : holes;
 }
 
 /** 裁掉 placeholder 外圈空白，略縮視覺戰場（保留 pad 格邊距） */
@@ -260,7 +300,7 @@ function buildShape(mapRef, idx, target, minPlay, meta = {}) {
         if (n !== target || n <= minPlay) continue;
 
         const diff = Math.abs(n - target);
-        const score = shapeScore(trimmed);
+        const score = shapeScore(trimmed, { preferHighDegree: !!meta.preferHighDegree });
         const cropped = cropToBounds(trimmed, cropPad);
         const area = cropped.W * cropped.H;
         if (
